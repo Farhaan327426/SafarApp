@@ -14,6 +14,17 @@ const stateStore = require('./stateStore');
 const metrics = require('./metrics');
 const { detectGpsAnomaly } = require('./anomaly/gpsAnomaly');
 const { recordPaymentFailure, recordPaymentSuccess, getAdminAlerts } = require('./anomaly/paymentAnomaly');
+const { encryptBuffer, decryptBuffer } = require('./utils/encryptFile');
+const multer = require('multer');
+
+// Configure in-memory upload handling for driver KYC documents (max 5MB per file)
+const kycUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 5 * 1024 * 1024 }
+});
+
+const KYC_UPLOADS_DIR = path.join(__dirname, 'data', 'uploads', 'kyc');
+if (!fs.existsSync(KYC_UPLOADS_DIR)) fs.mkdirSync(KYC_UPLOADS_DIR, { recursive: true });
 
 stateStore.init({
   redisUrl: process.env.REDIS_URL || null,
@@ -1065,8 +1076,324 @@ const staleTripTimer = setInterval(async () => {
 }, 5000);
 if (staleTripTimer.unref) staleTripTimer.unref();
 
-// 1. 
-// 1. Driver Shift Start Endpoint (Authenticated via Driver Registration Secret / PIN)
+// ─── DRIVER ONBOARDING & KYC VERIFICATION SYSTEM (SPRINT 7) ─────────────────
+
+// 1. Driver Registration / Onboarding Endpoint
+app.post('/api/v1/driver/onboard', (req, res) => {
+  const { phone, name, vehicleNo, upiId } = req.body || {};
+
+  if (!phone || !name || !vehicleNo || !upiId) {
+    return res.status(400).json({
+      success: false,
+      error: { code: 'INVALID_INPUT', message: 'phone, name, vehicleNo, and upiId are required.' }
+    });
+  }
+
+  const cleanVehicleNo = String(vehicleNo).trim().toUpperCase();
+  const phoneEnc = encryptField(String(phone).trim());
+  const nameEnc = encryptField(String(name).trim());
+  const upiEnc = encryptField(String(upiId).trim());
+
+  try {
+    stmts.upsertDriverKycOnboard.run(phoneEnc, nameEnc, cleanVehicleNo, upiEnc);
+
+    // Also register in driver_profiles for backward compatibility
+    if (stmts.upsertDriver) {
+      stmts.upsertDriver.run(cleanVehicleNo, String(name).trim(), upiEnc, null, null, null);
+    }
+
+    const driverToken = `drv_tok_${Date.now()}_${crypto.randomBytes(8).toString('hex')}`;
+    const expiresAt = Date.now() + 24 * 3600 * 1000;
+
+    activeDriverTokens.set(driverToken, {
+      vehicleNo: cleanVehicleNo,
+      routeId: 'DEFAULT',
+      vehicleType: 'MINI_BUS',
+      expiresAt
+    });
+
+    stmts.insertAudit.run(
+      `audit_${Date.now()}_${crypto.randomBytes(4).toString('hex')}`,
+      cleanVehicleNo,
+      'DRIVER',
+      'DRIVER_ONBOARD_INITIATED',
+      'DRIVER_KYC',
+      cleanVehicleNo,
+      JSON.stringify({ vehicleNo: cleanVehicleNo, kyc_status: 'not_submitted' }),
+      req.ip || '127.0.0.1',
+      'SUCCESS'
+    );
+
+    res.status(201).json({
+      success: true,
+      data: {
+        driverToken,
+        vehicleNo: cleanVehicleNo,
+        kycStatus: 'not_submitted',
+        expiresAt
+      }
+    });
+  } catch (err) {
+    console.error('[Driver Onboarding Error]', err);
+    res.status(500).json({ success: false, error: { code: 'ONBOARD_FAILED', message: err.message } });
+  }
+});
+
+// 2. Driver KYC Document Upload Endpoint (Multipart encrypted at rest)
+app.post(
+  '/api/v1/driver/kyc/upload',
+  kycUpload.fields([
+    { name: 'licence', maxCount: 1 },
+    { name: 'vehicleRc', maxCount: 1 },
+    { name: 'routePermit', maxCount: 1 }
+  ]),
+  async (req, res) => {
+    let token = req.body?.token;
+    const authHeader = req.headers['authorization'];
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      token = authHeader.substring(7);
+    }
+
+    if (!token || !activeDriverTokens.has(token)) {
+      return res.status(401).json({ success: false, error: { code: 'UNAUTHORIZED', message: 'Valid driver token required.' } });
+    }
+
+    const driverSession = activeDriverTokens.get(token);
+    const vehicleNo = driverSession.vehicleNo;
+
+    // Check if KYC already approved
+    const existingDriver = stmts.getDriverByVehicle.get(vehicleNo);
+    if (existingDriver && existingDriver.kyc_status === 'approved') {
+      return res.status(400).json({ success: false, error: { code: 'ALREADY_APPROVED', message: 'Driver KYC is already approved.' } });
+    }
+
+    const files = req.files || {};
+    const licenceFile = files.licence?.[0];
+    const rcFile = files.vehicleRc?.[0];
+    const permitFile = files.routePermit?.[0];
+
+    if (!licenceFile || !rcFile || !permitFile) {
+      return res.status(400).json({
+        success: false,
+        error: { code: 'MISSING_DOCUMENTS', message: 'All 3 documents (licence, vehicleRc, routePermit) are required.' }
+      });
+    }
+
+    // Validate file types
+    const allowedMimeTypes = ['image/jpeg', 'image/png', 'image/jpg', 'application/pdf'];
+    for (const f of [licenceFile, rcFile, permitFile]) {
+      if (!allowedMimeTypes.includes(f.mimetype)) {
+        return res.status(400).json({
+          success: false,
+          error: { code: 'INVALID_FILE_TYPE', message: `Invalid file type for ${f.fieldname}. Only JPG, PNG, and PDF accepted.` }
+        });
+      }
+    }
+
+    try {
+      // Encrypt and save files to disk
+      const docPaths = {};
+      for (const [key, fileObj] of Object.entries({ licence: licenceFile, vehicleRc: rcFile, routePermit: permitFile })) {
+        const fileId = `kyc_${vehicleNo}_${key}_${crypto.randomBytes(6).toString('hex')}`;
+        const encryptedBuffer = encryptBuffer(fileObj.buffer);
+        const diskPath = path.join(KYC_UPLOADS_DIR, `${fileId}.enc`);
+        fs.writeFileSync(diskPath, encryptedBuffer);
+        docPaths[key] = encryptField(diskPath);
+      }
+
+      stmts.updateDriverKycDocs.run(
+        docPaths.licence,
+        docPaths.vehicleRc,
+        docPaths.routePermit,
+        vehicleNo
+      );
+
+      stmts.insertAudit.run(
+        `audit_${Date.now()}_${crypto.randomBytes(4).toString('hex')}`,
+        vehicleNo,
+        'DRIVER',
+        'DRIVER_KYC_SUBMITTED',
+        'DRIVER_KYC',
+        vehicleNo,
+        JSON.stringify({ vehicleNo, kyc_status: 'pending' }),
+        req.ip || '127.0.0.1',
+        'SUCCESS'
+      );
+
+      res.status(201).json({
+        success: true,
+        data: {
+          vehicleNo,
+          kycStatus: 'pending',
+          submittedAt: new Date().toISOString()
+        }
+      });
+    } catch (err) {
+      console.error('[KYC Upload Error]', err);
+      res.status(500).json({ success: false, error: { code: 'UPLOAD_FAILED', message: err.message } });
+    }
+  }
+);
+
+// 3. Driver KYC Status Endpoint
+app.get('/api/v1/driver/kyc/status', (req, res) => {
+  let token = req.query?.token;
+  const authHeader = req.headers['authorization'];
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    token = authHeader.substring(7);
+  }
+
+  let vehicleNo = req.query?.vehicleNo;
+  if (token && activeDriverTokens.has(token)) {
+    vehicleNo = activeDriverTokens.get(token).vehicleNo;
+  }
+
+  if (!vehicleNo) {
+    return res.status(401).json({ success: false, error: { code: 'UNAUTHORIZED', message: 'Valid driver token or vehicleNo required.' } });
+  }
+
+  const driver = stmts.getDriverByVehicle.get(vehicleNo);
+  if (!driver) {
+    return res.status(404).json({ success: false, error: { code: 'DRIVER_NOT_FOUND', message: 'Driver not found.' } });
+  }
+
+  res.json({
+    success: true,
+    data: {
+      vehicleNo: driver.driver_vehicle_no,
+      status: driver.kyc_status,
+      submittedAt: driver.kyc_submitted_at,
+      rejectionReason: driver.kyc_rejection_reason,
+      verifiedAt: driver.kyc_verified_at
+    }
+  });
+});
+
+// 4. Admin KYC Pending Queue
+app.get('/api/v1/admin/kyc/pending', (req, res) => {
+  try {
+    const pendingDrivers = stmts.getPendingKycDrivers.all();
+    const cleanList = pendingDrivers.map(d => {
+      let plainName = 'Driver';
+      let plainPhone = '0000000000';
+      try { plainName = decryptField(d.driver_name); } catch(e) {}
+      try { plainPhone = decryptField(d.driver_phone); } catch(e) {}
+
+      return {
+        id: d.id,
+        vehicleNo: d.driver_vehicle_no,
+        name: plainName,
+        phoneMasked: plainPhone.slice(0, 3) + '****' + plainPhone.slice(-3),
+        kycStatus: d.kyc_status,
+        submittedAt: d.kyc_submitted_at
+      };
+    });
+
+    res.json({ success: true, count: cleanList.length, data: cleanList });
+  } catch (err) {
+    res.status(500).json({ success: false, error: { code: 'FETCH_FAILED', message: err.message } });
+  }
+});
+
+// 5. Admin KYC Review & Verification (Approve / Reject)
+app.post('/api/v1/admin/kyc/verify', (req, res) => {
+  const { driverId, vehicleNo, action, reason } = req.body || {};
+
+  if (!action || !['approve', 'reject'].includes(action)) {
+    return res.status(400).json({ success: false, error: { code: 'INVALID_ACTION', message: 'Action must be "approve" or "reject".' } });
+  }
+
+  if (action === 'reject' && (!reason || reason.trim().length === 0)) {
+    return res.status(400).json({ success: false, error: { code: 'REASON_REQUIRED', message: 'A rejection reason is required.' } });
+  }
+
+  const targetVehicle = vehicleNo || (driverId ? stmts.getDriverById.get(driverId)?.driver_vehicle_no : null);
+  if (!targetVehicle) {
+    return res.status(404).json({ success: false, error: { code: 'DRIVER_NOT_FOUND', message: 'Driver not found.' } });
+  }
+
+  const newStatus = action === 'approve' ? 'approved' : 'rejected';
+  const rejectionReason = action === 'reject' ? reason.trim() : null;
+  const adminId = req.headers['x-admin-id'] || 'admin_super';
+
+  try {
+    stmts.verifyDriverKyc.run(newStatus, rejectionReason, adminId, targetVehicle, driverId || 0);
+
+    stmts.insertAudit.run(
+      `audit_${Date.now()}_${crypto.randomBytes(4).toString('hex')}`,
+      adminId,
+      'ADMIN',
+      `DRIVER_KYC_${action.toUpperCase()}`,
+      'DRIVER_KYC',
+      targetVehicle,
+      JSON.stringify({ vehicleNo: targetVehicle, action, newStatus, reason: rejectionReason }),
+      req.ip || '127.0.0.1',
+      'SUCCESS'
+    );
+
+    res.json({
+      success: true,
+      data: {
+        vehicleNo: targetVehicle,
+        kycStatus: newStatus,
+        verifiedAt: new Date().toISOString(),
+        verifiedBy: adminId
+      }
+    });
+  } catch (err) {
+    console.error('[Admin KYC Verify Error]', err);
+    res.status(500).json({ success: false, error: { code: 'VERIFICATION_FAILED', message: err.message } });
+  }
+});
+
+// 6. Admin Document Viewer (Decrypts and streams securely)
+app.get('/api/v1/admin/kyc/document/:vehicleNo/:docType', (req, res) => {
+  const { vehicleNo, docType } = req.params;
+  const driver = stmts.getDriverByVehicle.get(vehicleNo);
+
+  if (!driver) {
+    return res.status(404).json({ success: false, error: 'Driver not found.' });
+  }
+
+  let encPathField = null;
+  if (docType === 'licence') encPathField = driver.kyc_doc_licence;
+  else if (docType === 'rc' || docType === 'vehicleRc') encPathField = driver.kyc_doc_vehicle_rc;
+  else if (docType === 'permit' || docType === 'routePermit') encPathField = driver.kyc_doc_route_permit;
+
+  if (!encPathField) {
+    return res.status(404).json({ success: false, error: 'Document not found or not uploaded.' });
+  }
+
+  try {
+    const diskPath = decryptField(encPathField);
+    if (!fs.existsSync(diskPath)) {
+      return res.status(404).json({ success: false, error: 'Encrypted document file missing from storage.' });
+    }
+
+    const encryptedData = fs.readFileSync(diskPath);
+    const decryptedBuffer = decryptBuffer(encryptedData);
+
+    // Detect MIME type signature (PNG, JPEG, PDF)
+    let mimeType = 'application/octet-stream';
+    if (decryptedBuffer[0] === 0xFF && decryptedBuffer[1] === 0xD8) {
+      mimeType = 'image/jpeg';
+    } else if (decryptedBuffer[0] === 0x89 && decryptedBuffer[1] === 0x50) {
+      mimeType = 'image/png';
+    } else if (decryptedBuffer.toString('utf8', 0, 4) === '%PDF') {
+      mimeType = 'application/pdf';
+    }
+
+    res.setHeader('Content-Type', mimeType);
+    res.setHeader('Cache-Control', 'no-store, private');
+    res.send(decryptedBuffer);
+  } catch (err) {
+    console.error('[Document Viewer Error]', err);
+    res.status(500).json({ success: false, error: 'Failed to decrypt document.' });
+  }
+});
+
+// ─── DRIVER SHIFT MANAGEMENT ────────────────────────────────────────────────
+// 1. Driver Shift Start Endpoint (Gated by Driver Secret AND KYC Verification)
 app.post('/api/v1/driver/shift/start', (req, res) => {
   const { vehicleNo, routeId, vehicleType, driverSecret } = req.body || {};
   const authSecretHeader = req.headers['x-driver-secret'];
@@ -1086,11 +1413,29 @@ app.post('/api/v1/driver/shift/start', (req, res) => {
     });
   }
 
+  const cleanVehicleNo = String(vehicleNo).trim().toUpperCase();
+
+  // SPRINT 7: KYC Verification Shift Gate
+  const driver = stmts.getDriverByVehicle.get(cleanVehicleNo);
+  const allowPending = process.env.ALLOW_PENDING_SHIFT === 'true';
+
+  if (driver && driver.kyc_status !== 'approved' && !allowPending) {
+    return res.status(403).json({
+      success: false,
+      error: {
+        code: 'KYC_VERIFICATION_REQUIRED',
+        message: 'Driver KYC verification required before starting shift. Your current status is: ' + driver.kyc_status,
+        kycStatus: driver.kyc_status,
+        rejectionReason: driver.kyc_rejection_reason || null
+      }
+    });
+  }
+
   const driverToken = `drv_tok_${Date.now()}_${crypto.randomBytes(8).toString('hex')}`;
   const expiresAt = Date.now() + 12 * 3600 * 1000;
 
   activeDriverTokens.set(driverToken, {
-    vehicleNo,
+    vehicleNo: cleanVehicleNo,
     routeId,
     vehicleType: vehicleType || 'MINI_BUS',
     expiresAt
@@ -1098,7 +1443,7 @@ app.post('/api/v1/driver/shift/start', (req, res) => {
 
   res.json({
     success: true,
-    data: { driverToken, expiresAt, vehicleNo, routeId }
+    data: { driverToken, expiresAt, vehicleNo: cleanVehicleNo, routeId }
   });
 });
 

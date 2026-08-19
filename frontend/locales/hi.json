@@ -32,5 +32,15 @@
   "student_concession": "छात्र रियायत (50%)",
   "general_fare": "सामान्य यात्री",
   "emergency_sos": "आपातकालीन एसओएस",
-  "passenger_count": "यात्री: {{count}}"
+  "passenger_count": "यात्री: {{count}}",
+  "kyc_title": "चालक केवाईसी सत्यापन",
+  "kyc_status_not_submitted": "दस्तावेज़ जमा नहीं किए गए",
+  "kyc_status_pending": "सत्यापन अनुमोदन लंबित",
+  "kyc_status_approved": "केवाईसी स्वीकृत और सक्रिय",
+  "kyc_status_rejected": "केवाईसी अस्वीकृत",
+  "kyc_upload_licence": "ड्राइविंग लाइसेंस अपलोड करें",
+  "kyc_upload_rc": "वाहन आरसी अपलोड करें",
+  "kyc_upload_permit": "रूट परमिट अपलोड करें",
+  "kyc_submit_btn": "सत्यापन के लिए दस्तावेज़ जमा करें",
+  "kyc_rejection_reason": "अस्वीकृति का कारण: {{reason}}"
 }

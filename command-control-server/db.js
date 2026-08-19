@@ -83,11 +83,32 @@ db.exec(`
     result TEXT DEFAULT 'SUCCESS'
   );
 
+  CREATE TABLE IF NOT EXISTS drivers (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    driver_phone TEXT UNIQUE NOT NULL,
+    driver_name TEXT NOT NULL,
+    driver_vehicle_no TEXT UNIQUE NOT NULL,
+    driver_upi_id TEXT NOT NULL,
+    kyc_status TEXT NOT NULL DEFAULT 'not_submitted'
+      CHECK (kyc_status IN ('not_submitted', 'pending', 'approved', 'rejected')),
+    kyc_doc_licence TEXT,
+    kyc_doc_vehicle_rc TEXT,
+    kyc_doc_route_permit TEXT,
+    kyc_submitted_at TEXT,
+    kyc_rejection_reason TEXT,
+    kyc_verified_at TEXT,
+    verified_by TEXT,
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+  );
+
   -- Indexes for common query patterns
   CREATE INDEX IF NOT EXISTS idx_trips_vehicle ON trips_ledger(vehicle_no);
   CREATE INDEX IF NOT EXISTS idx_trips_status ON trips_ledger(status);
   CREATE INDEX IF NOT EXISTS idx_trips_created ON trips_ledger(created_at);
   CREATE INDEX IF NOT EXISTS idx_shifts_expires ON driver_shifts(expires_at);
+  CREATE INDEX IF NOT EXISTS idx_drivers_kyc ON drivers(kyc_status);
+  CREATE INDEX IF NOT EXISTS idx_drivers_vehicle ON drivers(driver_vehicle_no);
   CREATE INDEX IF NOT EXISTS idx_audit_timestamp ON audit_events(timestamp);
   CREATE INDEX IF NOT EXISTS idx_audit_action ON audit_events(action);
 `);
@@ -145,6 +166,49 @@ const stmts = {
   `),
 
   getEarnings: db.prepare('SELECT total_earnings FROM driver_earnings WHERE vehicle_no = ?'),
+
+  // Driver KYC Operations
+  upsertDriverKycOnboard: db.prepare(`
+    INSERT INTO drivers (driver_phone, driver_name, driver_vehicle_no, driver_upi_id, kyc_status, created_at, updated_at)
+    VALUES (?, ?, ?, ?, 'not_submitted', datetime('now'), datetime('now'))
+    ON CONFLICT(driver_vehicle_no) DO UPDATE SET
+      driver_phone = excluded.driver_phone,
+      driver_name = excluded.driver_name,
+      driver_upi_id = excluded.driver_upi_id,
+      updated_at = datetime('now')
+  `),
+
+  getDriverByVehicle: db.prepare('SELECT * FROM drivers WHERE driver_vehicle_no = ?'),
+  getDriverByPhone: db.prepare('SELECT * FROM drivers WHERE driver_phone = ?'),
+  getDriverById: db.prepare('SELECT * FROM drivers WHERE id = ?'),
+
+  updateDriverKycDocs: db.prepare(`
+    UPDATE drivers SET
+      kyc_doc_licence = ?,
+      kyc_doc_vehicle_rc = ?,
+      kyc_doc_route_permit = ?,
+      kyc_status = 'pending',
+      kyc_submitted_at = datetime('now'),
+      updated_at = datetime('now')
+    WHERE driver_vehicle_no = ?
+  `),
+
+  getPendingKycDrivers: db.prepare(`
+    SELECT id, driver_phone, driver_name, driver_vehicle_no, driver_upi_id, kyc_status, kyc_submitted_at
+    FROM drivers
+    WHERE kyc_status = 'pending'
+    ORDER BY kyc_submitted_at ASC
+  `),
+
+  verifyDriverKyc: db.prepare(`
+    UPDATE drivers SET
+      kyc_status = ?,
+      kyc_rejection_reason = ?,
+      kyc_verified_at = datetime('now'),
+      verified_by = ?,
+      updated_at = datetime('now')
+    WHERE driver_vehicle_no = ? OR id = ?
+  `),
 
   // Audit Events
   insertAudit: db.prepare(`

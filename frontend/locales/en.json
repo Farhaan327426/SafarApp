@@ -32,5 +32,15 @@
   "student_concession": "Student Concession (50%)",
   "general_fare": "General Commuter",
   "emergency_sos": "Emergency SOS",
-  "passenger_count": "Passengers: {{count}}"
+  "passenger_count": "Passengers: {{count}}",
+  "kyc_title": "Driver KYC Verification",
+  "kyc_status_not_submitted": "Documents Not Submitted",
+  "kyc_status_pending": "Verification Pending Approval",
+  "kyc_status_approved": "KYC Approved & Active",
+  "kyc_status_rejected": "KYC Rejected",
+  "kyc_upload_licence": "Upload Driving Licence",
+  "kyc_upload_rc": "Upload Vehicle RC",
+  "kyc_upload_permit": "Upload Route Permit",
+  "kyc_submit_btn": "Submit Documents for Verification",
+  "kyc_rejection_reason": "Rejection Reason: {{reason}}"
 }

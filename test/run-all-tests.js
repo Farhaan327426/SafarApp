@@ -11,6 +11,7 @@ const auditFileName = 'audit_safar' + 'pro.js';
 const auditFilePath = path.join('scratch', auditFileName);
 
 const testSuites = [
+  'test/driver-kyc.test.mjs',
   'test/i18n.test.mjs',
   'test/offline-store.test.mjs',
   'test/anomaly-detection.test.mjs',

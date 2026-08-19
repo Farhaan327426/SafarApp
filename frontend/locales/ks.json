@@ -32,5 +32,15 @@
   "student_concession": "طٲلبہِ عٔلم رعایت (۵۰٪)",
   "general_fare": "عام مسافر",
   "emergency_sos": "ہنگامی مدد (SOS)",
-  "passenger_count": "سوار: {{count}}"
+  "passenger_count": "سوار: {{count}}",
+  "kyc_title": "ڈرائیور کے وائی سی تصدیق",
+  "kyc_status_not_submitted": "دستاویزات چِھنہٕ جمع کَرنہٕ آمٕژ",
+  "kyc_status_pending": "تصدیق زیر التواء",
+  "kyc_status_approved": "کے وائی سی منظور",
+  "kyc_status_rejected": "کے وائی سی مسترد",
+  "kyc_upload_licence": "ڈرائیونگ لائسنس اپ لوڈ کٔرِو",
+  "kyc_upload_rc": "گاڑی ہٕنٛز آر سی اپ لوڈ کٔرِو",
+  "kyc_upload_permit": "روٹ پرمٹ اپ لوڈ کٔرِو",
+  "kyc_submit_btn": "تصدیق خٲطرٕ دستاویزات جمع کٔرِو",
+  "kyc_rejection_reason": "مسترد کَرنُک وجہ: {{reason}}"
 }

@@ -32,5 +32,15 @@
   "student_concession": "طلبہ رعایت (50%)",
   "general_fare": "عام مسافر",
   "emergency_sos": "ہنگامی مدد (SOS)",
-  "passenger_count": "مسافر: {{count}}"
+  "passenger_count": "مسافر: {{count}}",
+  "kyc_title": "ڈرائیور کے وائی سی تصدیق",
+  "kyc_status_not_submitted": "دستاویزات جمع نہیں کرائی گئیں",
+  "kyc_status_pending": "تصدیق کی منظوری زیر التواء",
+  "kyc_status_approved": "کے وائی سی منظور شدہ اور فعال",
+  "kyc_status_rejected": "کے وائی سی مسترد",
+  "kyc_upload_licence": "ڈرائیونگ لائسنس اپ لوڈ کریں",
+  "kyc_upload_rc": "گاڑی کی آر سی اپ لوڈ کریں",
+  "kyc_upload_permit": "روٹ پرمٹ اپ لوڈ کریں",
+  "kyc_submit_btn": "تصدیق کے لیے دستاویزات جمع کریں",
+  "kyc_rejection_reason": "مسترد کرنے کی وجہ: {{reason}}"
 }
