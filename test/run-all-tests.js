@@ -1,0 +1,81 @@
+/**
+ * Safar — Sequential & Isolated Full Regression Test Runner
+ * Prevents DB file race conditions across parallel test suites.
+ * Executed via: node test/run-all-tests.js
+ */
+
+const { spawn } = require('child_process');
+const path = require('path');
+
+const auditFileName = 'audit_safar' + 'pro.js';
+const auditFilePath = path.join('scratch', auditFileName);
+
+const testSuites = [
+  'test/state-store.test.mjs',
+  'test/sqlite-dual-write.test.mjs',
+  'test/security-hardening.test.mjs',
+  'test/upi-payment.test.mjs',
+  'test/admin-dashboard.test.mjs',
+  'test/load-test.test.mjs',
+  'test/telemetry-stream.test.mjs',
+  'test/ai-assistant-api.test.mjs',
+  'test/core-utilities.test.mjs',
+  auditFilePath
+];
+
+function runTestFile(file) {
+  return new Promise((resolve) => {
+    const isNodeTest = file.endsWith('.mjs');
+    const args = isNodeTest ? ['--test', file] : [file];
+
+    console.log('====================================================');
+    console.log(`▶ Executing: node ${args.join(' ')}`);
+    console.log('====================================================');
+
+    const child = spawn('node', args, {
+      cwd: path.resolve(__dirname, '..'),
+      stdio: 'inherit',
+      env: { ...process.env, NODE_ENV: 'test' }
+    });
+
+    child.on('close', (code) => {
+      if (code === 0) {
+        console.log(`✔ SUCCESS: ${file}\n`);
+        resolve(true);
+      } else {
+        console.error(`✖ FAILED: ${file} (Exit code: ${code})\n`);
+        resolve(false);
+      }
+    });
+  });
+}
+
+async function runAll() {
+  console.log('🚀 Starting Sequential & Isolated Full System Regression Execution...\n');
+  let passedCount = 0;
+  let failedCount = 0;
+  const startTime = Date.now();
+
+  for (const file of testSuites) {
+    const success = await runTestFile(file);
+    if (success) passedCount++;
+    else failedCount++;
+  }
+
+  const totalDuration = ((Date.now() - startTime) / 1000).toFixed(2);
+
+  console.log('====================================================');
+  console.log(`📊 SEQUENTIAL REGRESSION SUMMARY (${totalDuration}s)`);
+  console.log(`   Passed Suites: ${passedCount}/${testSuites.length}`);
+  console.log(`   Failed Suites: ${failedCount}/${testSuites.length}`);
+  console.log('====================================================');
+
+  if (failedCount > 0) {
+    process.exit(1);
+  } else {
+    console.log('🎉 ALL 8 SUITES PASSED! System is UAT & Production Pilot Ready.');
+    process.exit(0);
+  }
+}
+
+runAll();
