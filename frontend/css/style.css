@@ -856,3 +856,101 @@ select:focus, input:focus, .form-select:focus, .form-input:focus {
 .modal__panel--wide { max-width: 720px; width: 100%; position: relative; z-index: 2; }
 .modal__footer--actions { display: flex; justify-content: flex-end; gap: var(--space-xs); margin-top: var(--space-md); }
 .form-error { color: var(--danger); font-size: var(--text-xs); margin-top: 4px; }
+
+/* ─── OFFLINE STATUS BANNER ───────────────────────────────────────────────── */
+.offline-status-banner {
+  background: linear-gradient(90deg, #92400e 0%, #b45309 100%);
+  color: #ffffff;
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 600;
+  padding: 8px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  position: sticky;
+  top: 0;
+  z-index: 9999;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  animation: slideDownBanner 0.3s ease-out;
+}
+
+.offline-dot {
+  width: 8px;
+  height: 8px;
+  background-color: #fbbf24;
+  border-radius: 50%;
+  display: inline-block;
+  animation: pulseDot 2s infinite ease-in-out;
+}
+
+@keyframes slideDownBanner {
+  from { transform: translateY(-100%); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes pulseDot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.85); }
+}
+
+/* ─── MULTILINGUAL & RTL ENGINE ────────────────────────────────────────────── */
+.lang-switcher-select {
+  background: var(--bg-card-hi, #1a1a22);
+  color: var(--ink, #ffffff);
+  border: 1px solid var(--border-hi, rgba(255, 255, 255, 0.16));
+  border-radius: var(--radius-sm, 6px);
+  padding: 4px 8px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.lang-switcher-select:focus {
+  border-color: var(--saffron, #ff7a1a);
+}
+
+/* Language-specific typography */
+html[lang="ur"], html[lang="ks"] {
+  font-family: "Noto Nastaliq Urdu", "Noto Sans Arabic", serif, sans-serif;
+  letter-spacing: 0.02em;
+}
+
+html[lang="hi"] {
+  font-family: "Noto Sans Devanagari", "Manrope", "Inter", sans-serif;
+}
+
+/* RTL Layout Flow Overrides */
+html[dir="rtl"] {
+  direction: rtl;
+  text-align: right;
+}
+
+html[dir="rtl"] .portal-nav-link {
+  flex-direction: row-reverse;
+}
+
+html[dir="rtl"] .master-portal-links {
+  margin-right: auto;
+  margin-left: initial;
+}
+
+html[dir="rtl"] .data-table {
+  text-align: right;
+}
+
+html[dir="rtl"] .modal__header {
+  flex-direction: row-reverse;
+}
+
+html[dir="rtl"] .modal__footer--actions {
+  justify-content: flex-start;
+}
+
+html[dir="rtl"] .tab-btn {
+  direction: rtl;
+}

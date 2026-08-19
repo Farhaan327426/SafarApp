@@ -21,6 +21,7 @@ import { initDriverMap } from './features/map/driver-map.js';
 import { initSosHandler, triggerEmergencySos } from './features/sos/sos-handler.js';
 import { showToast } from './core/toast.js';
 import { initOfflineManager } from './offline-manager.js';
+import { initI18n } from './i18n.js';
 
 // ─── MASTER ASYNC BOOTSTRAP SEQUENCE ─────────────────────────────────────────
 async function bootstrap() {
@@ -39,6 +40,7 @@ async function bootstrap() {
   initSosHandler();
   initCommuterMap();
   initOfflineManager();
+  await initI18n();
 
   // 3. Network Monitoring
   if (typeof window !== "undefined") {

@@ -4,8 +4,8 @@
  * and direct Network bypass for Sensitive Payments, OTPs, and SSE real-time streams.
  */
 
-const SHELL_CACHE = 'safar-shell-v4';
-const DATA_CACHE = 'safar-data-v4';
+const SHELL_CACHE = 'safar-shell-v5';
+const DATA_CACHE = 'safar-data-v5';
 
 const APP_SHELL = [
   '/',
@@ -13,8 +13,13 @@ const APP_SHELL = [
   '/css/style.css',
   '/manifest.webmanifest',
   '/js/app.js',
+  '/js/i18n.js',
   '/js/offline-manager.js',
   '/js/offline-store.js',
+  '/locales/en.json',
+  '/locales/hi.json',
+  '/locales/ur.json',
+  '/locales/ks.json',
   '/js/translations.js',
   '/js/routes.js',
   '/js/fare-rules.js',
