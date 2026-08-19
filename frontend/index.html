@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Safar — Verified Fares & Live Bus Tracking (J&K)</title>
+  <meta name="description" content="Safar gives J&K passengers the exact fare and live location of every verified local bus.">
+  
+  <!-- CSP is enforced via server-generated Content-Security-Policy header with dynamic per-request nonces.
+       No meta CSP tag here — a static meta tag with hardcoded nonce + unsafe-inline defeats the purpose. -->
+  
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" type="image/svg+xml" href="assets/icons/icon-maple.svg">
+  <link rel="alternate icon" type="image/png" href="assets/icons/icon-32.png">
+  <link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="anonymous">
+  <link rel="stylesheet" href="css/style.css">
+  
+  <script src="js/lang-init.js"></script>
+</head>
+<body>
+  <!-- ─── OFFLINE STATUS BANNER ──────────────────────────────────────────────── -->
+  <div id="offline-banner" class="offline-status-banner" style="display:none;" role="status" aria-live="polite"></div>
+
+  <!-- ─── UNIFIED MASTER PORTAL NAVIGATION (safar.in) ────────────────────────── -->
+  <nav class="safar-master-portal-bar" aria-label="Safar Unified Network Navigation">
+    <div class="safar-master-portal-inner">
+      <a href="/commuter" class="master-domain-brand" title="SAFAR Mountain Transit Ecosystem">
+        <svg class="switchback-mini-icon" viewBox="0 0 40 40" width="22" height="22" fill="none" style="vertical-align:middle; display:inline-block;">
+          <path d="M 8 34 C 14 34, 26 31, 30 26 C 35 20, 32 16, 22 14 C 15 12, 12 10, 18 6 L 30 4" stroke="url(#sbGradMaster)" stroke-width="3.5" stroke-linecap="round"/>
+          <circle cx="8" cy="34" r="3" fill="#10b981"/>
+          <circle cx="30" cy="4" r="3" fill="none" stroke="#ffffff" stroke-width="1.5"/>
+          <circle cx="30" cy="4" r="1.5" fill="#f97316"/>
+          <defs>
+            <linearGradient id="sbGradMaster" x1="0%" y1="100%" x2="100%" y2="0%">
+              <stop offset="0%" stop-color="#10b981"/>
+              <stop offset="50%" stop-color="#38bdf8"/>
+              <stop offset="100%" stop-color="#f97316"/>
+            </linearGradient>
+          </defs>
+        </svg>
+        <span>SAFAR</span>
+        <span class="domain-pill">safar.in</span>
+      </a>
+
+      <div class="master-portal-links">
+        <a href="landing.html" class="portal-nav-link" id="masterNavLanding">
+          <span>ℹ️ Overview</span>
+          <span class="portal-url-tag">/landing</span>
+        </a>
+        <a href="/commuter" class="portal-nav-link active-portal" id="masterNavCommuter">
+          <span>🚌 Commuter</span>
+          <span class="portal-url-tag">/commuter</span>
+        </a>
+        <a href="/driver" class="portal-nav-link" id="masterNavDriver">
+          <span>🚗 Driver</span>
+          <span class="portal-url-tag">/driver</span>
+        </a>
+        <a href="/admin" class="portal-nav-link" id="masterNavAdmin">
+          <span>🛡️ Admin Suite</span>
+          <span class="portal-url-tag">/admin</span>
+        </a>
+        <a href="/govt" class="portal-nav-link" id="masterNavGovt">
+          <span>🏛️ Government</span>
+          <span class="portal-url-tag">/govt</span>
+        </a>
+      </div>
+
+      <div class="master-network-status">
+        <span class="network-badge online">🟢 safar.in Hub</span>
+      </div>
+    </div>
+  </nav>
+
+  <a href="#main-content" class="skip-link">Skip to main content</a>
+
+  <div class="app-container">
+    <!-- APP HEADER WITH LANGUAGE SWITCHER & NETWORK BADGE -->
+    <header class="app-header">
+      <div class="brand">
+        <h1>
+          <span class="brand-logo" aria-hidden="true" style="display:inline-flex; align-items:center;">
+            <svg class="switchback-brand-mark" viewBox="0 0 50 50" width="34" height="34" fill="none">
+              <path d="M 10 42 C 18 42, 33 39, 38 33 C 44 26, 40 20, 26 18 C 18 16, 16 12, 24 8 L 38 5" stroke="url(#sbGradHeader)" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/>
+              <circle cx="10" cy="42" r="4" fill="#10b981"/>
+              <circle cx="38" cy="5" r="4" fill="none" stroke="#ffffff" stroke-width="2"/>
+              <circle cx="38" cy="5" r="2" fill="#f97316"/>
+              <defs>
+                <linearGradient id="sbGradHeader" x1="0%" y1="100%" x2="100%" y2="0%">
+                  <stop offset="0%" stop-color="#10b981"/>
+                  <stop offset="40%" stop-color="#2563eb"/>
+                  <stop offset="75%" stop-color="#38bdf8"/>
+                  <stop offset="100%" stop-color="#f97316"/>
+                </linearGradient>
+              </defs>
+            </svg>
+          </span> 
+          Safar
+        </h1>
+        <p data-i18n="tagline">Exact fare &amp; live location of every verified J&amp;K local bus</p>
+      </div>
+
+      <div class="header-actions">
+        <!-- Real-time Network Status Badge -->
+        <span id="networkStatusBadge" class="network-badge online" aria-live="polite">🟢 Online</span>
+
+        <!-- Global Language Switcher -->
+        <label for="langSwitcher" class="sr-only">Interface Language</label>
+        <select id="langSwitcher" class="lang-switcher" aria-label="Select Interface Language">
+          <option value="en">English</option>
+          <option value="ur">اردو (Urdu)</option>
+          <option value="hi">हिन्दी (Hindi)</option>
+        </select>
+
+        <!-- SRO trigger button -->
+        <button id="sroModalTrigger" class="btn btn--ghost btn--sro icon-btn" type="button" aria-haspopup="dialog" title="Official SRO Fare Schedules" aria-label="Official SRO Fare Schedules">
+          📜
+        </button>
+
+        <!-- Emergency SOS Button -->
+        <button id="sosBtn" class="icon-btn" aria-label="Emergency SOS">🚨</button>
+      </div>
+    </header>
+
+    <nav class="corridor-bar" aria-label="Live corridors">
+      <span class="chip active">Srinagar–Budgam</span>
+      <span class="chip">Anantnag Express</span>
+      <span class="chip">Baramulla Corridor</span>
+      <span class="chip">Jammu–Katra</span>
+    </nav>
+
+    <main id="main-content">
+      <!-- 1. COMMUTER VIEW -->
+      <div id="viewCommuter" class="view-panel" role="tabpanel" aria-labelledby="tabCommuter">
+        <!-- OFFICIAL ROUTE & FARE CARD (With Structural Arch Notch Top Corner) -->
+        <section class="card card-official" aria-labelledby="fare-heading">
+          <div class="arch-notch-badge">JKMT Notified ✓</div>
+          <h2 id="fare-heading" data-i18n="fareCalcTitle">
+            <span>Fare Calculator</span>
+            <span class="urdu-label" style="font-size:0.9rem; font-weight:normal; margin-left:8px; display:inline;">کرایہ گائیڈ</span>
+          </h2>
+          <form id="fareForm" novalidate>
+            <div class="form-group">
+              <label for="routeSelect">Route</label>
+              <select id="routeSelect" required>
+              <option value="srn-budgam">Srinagar – Budgam (14 km)</option>
+              <option value="srn-anantnag">Srinagar – Anantnag (54 km)</option>
+              <option value="srn-baramulla">Srinagar – Baramulla (54 km)</option>
+              <option value="srn-ganderbal">Srinagar – Ganderbal (21 km)</option>
+              <option value="srn-pulwama">Srinagar – Pulwama (31 km)</option>
+              <option value="srn-kupwara">Parimpora – Kupwara (85 km)</option>
+              <option value="srn-bandipora">Parimpora – Bandipora (55 km)</option>
+              <option value="srn-shopian">Batamaloo – Shopian (51 km)</option>
+              <option value="srn-kulgam">Lal Chowk – Kulgam (68 km)</option>
+              <option value="srn-charar-e-sharief">Parimpora – Charar‑e‑Sharief (32 km)</option>
+              <option value="srn-sonamarg">Srinagar – Sonamarg (80 km)</option>
+              <option value="srn-gulmarg">Parimpora – Gulmarg (51 km)</option>
+              <option value="srn-pahalgam">Srinagar – Pahalgam (90 km)</option>
+              <option value="srn-dachigam">Srinagar – Dachigam (22 km)</option>
+              <option value="srn-aharbal">Batamaloo – Aharbal (68 km)</option>
+              <option value="srn-kokernag">Srinagar – Kokernag (78 km)</option>
+              <option value="srn-verinag">Srinagar – Verinag (82 km)</option>
+              <option value="srn-uri">Baramulla – Uri (48 km)</option>
+              <option value="srn-tangdhar">Kupwara – Tangdhar (67 km)</option>
+              <option value="srn-machil">Kupwara – Machil (56 km)</option>
+              <option value="srn-doodhpathri">Parimpora – Doodhpathri (42 km)</option>
+              <option value="srn-tulmulla">Srinagar – Tulmulla (26 km)</option>
+              <option value="srn-manasbal">Srinagar – Manasbal (30 km)</option>
+              <option value="srn-watlab">Parimpora – Watlab (58 km)</option>
+              <option value="srn-tral">Srinagar – Tral (46 km)</option>
+              <option value="srn-achabal">Anantnag – Achabal (9 km)</option>
+              <option value="srn-ranbirpora">Anantnag – Ranbirpora (14 km)</option>
+              <option value="srn-nunwan">Pahalgam – Nunwan Base Camp (6 km)</option>
+              <option value="srn-betab-valley">Pahalgam – Betaab Valley (15 km)</option>
+              <option value="srn-aripal">Tral – Aripal (12 km)</option>
+              <option value="jmu-katra">Jammu – Katra (45 km)</option>
+              <option value="jmu-udhampur">Jammu – Udhampur (65 km)</option>
+              <option value="jmu-samba">Jammu – Samba (40 km)</option>
+              <option value="jmu-akhnoor">Jammu – Akhnoor (28 km)</option>
+              <option value="jmu-r-s-pura">Jammu – R.S. Pura (22 km)</option>
+              <option value="jmu-bishnah">Jammu – Bishnah (29 km)</option>
+              <option value="jmu-rajouri">Jammu – Rajouri (155 km)</option>
+              <option value="jmu-poonch">Jammu – Poonch (235 km)</option>
+              <option value="jmu-kishtwar">Jammu – Kishtwar (225 km)</option>
+              <option value="jmu-bhaderwah">Jammu – Bhaderwah (195 km)</option>
+              <option value="jmu-kathua">Jammu – Kathua (88 km)</option>
+              <option value="jmu-billawar">Kathua – Billawar (65 km)</option>
+              <option value="jmu-bani">Kathua – Bani (125 km)</option>
+              <option value="jmu-ramban">Jammu – Ramban (130 km)</option>
+              <option value="jmu-banihal">Jammu – Banihal (165 km)</option>
+              <option value="jmu-mendhar">Rajouri – Mendhar (60 km)</option>
+              <option value="jmu-surankote">Rajouri – Surankote (55 km)</option>
+              <option value="jmu-nowshera">Rajouri – Nowshera (39 km)</option>
+              <option value="srn-botraj-colony">Lal Chowk – Botraj Colony (KU Campus) (13.5 km)</option>
+              <option value="srn-soura-alijan">Lal Chowk – Soura SKIMS (Ali Jan Road) (10.5 km)</option>
+              <option value="srn-dalgate-harwan">Dalgate – Harwan Gardens (18 km)</option>
+              <option value="srn-parimpora-magam">Parimpora – Magam Stand (14 km)</option>
+              <option value="magam-tangmarg">Magam – Tangmarg Base (22 km)</option>
+              <option value="tangmarg-gulmarg">Tangmarg – Gulmarg Meadow (13 km)</option>
+              <option value="anantnag-pahalgam">Anantnag – Pahalgam Valley (42 km)</option>
+              <option value="anantnag-kokernag">Anantnag – Kokernag Gardens (25 km)</option>
+              <option value="kokernag-sinthan">Kokernag – Sinthan Top Summit (48 km)</option>
+              <option value="anantnag-verinag">Anantnag – Verinag Spring (26 km)</option>
+              <option value="kulgam-aharbal">Kulgam – Aharbal Waterfall (35 km)</option>
+              <option value="shopian-peerkigali">Shopian – Peer Ki Gali (Mughal Road) (43 km)</option>
+              <option value="bandipora-gurez">Bandipora – Dawar Gurez Valley (86 km)</option>
+              <option value="kupwara-tangdhar">Kupwara – Tangdhar (Sadhna Pass) (67 km)</option>
+              <option value="baramulla-uri">Baramulla – Uri Border (48 km)</option>
+              <option value="jmu-parade-satwari">Jammu Parade Ground – Satwari Airport (8.5 km)</option>
+              <option value="jmu-railway-nagrota">Jammu Tawi Railway – Nagrota (14.5 km)</option>
+              <option value="jmu-rs-pura">Jammu – RS Pura (Suchetgarh Border) (28 km)</option>
+              <option value="jmu-katra-express">Jammu Tawi – Katra Express (Vaishno Devi) (45 km)</option>
+              <option value="katra-shivkhori">Katra – Shiv Khori Cave Shrine (78 km)</option>
+              <option value="udhampur-patnitop">Udhampur – Patnitop Hill Resort (46 km)</option>
+              <option value="batote-bhaderwah">Batote – Bhaderwah Valley (82 km)</option>
+              <option value="rajouri-thanamandi">Rajouri – Thanamandi (DKG Pass) (36 km)</option>
+              <option value="poonch-mandi">Poonch – Mandi (Buddha Amarnath) (24 km)</option>
+              <option value="kathua-basohli">Kathua – Basohli (Atal Setu) (62 km)</option>
+            </select>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="boardingSelect" data-i18n="selectOrigin">Boarding</label>
+                <select id="boardingSelect" required>
+                  <option value="my_location">📍 My Current Location</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="deboardingSelect" data-i18n="selectDestination">Deboarding</label>
+                <select id="deboardingSelect" required>
+                  <option value="">Select destination</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="vehicleSelect" data-i18n="selectVehicle">Vehicle Type</label>
+              <select id="vehicleSelect" required></select>
+            </div>
+            <!-- Vehicle Category Selector & JKMT Badge -->
+            <div class="form-group" id="vehicleCategoryGroup">
+              <label for="vehicleCategorySelect" class="form-label">Vehicle Category</label>
+              <select id="vehicleCategorySelect" class="form-select" aria-label="Vehicle category">
+                <option value="STAGE_CARRIAGE" selected>Stage Carriage (JKSRTC / Ordinary Bus)</option>
+                <option value="CONTRACT_CARRIAGE">Contract Carriage (Private Hire / Maxi Cab)</option>
+                <option value="TOURIST_PERMIT">Tourist Permit Vehicle</option>
+              </select>
+              <span id="jkmtRouteBadge" class="badge badge--jkmt" style="display:none; margin-top:6px; padding:4px 8px; background:rgba(16,185,129,0.15); color:#10b981; border:1px solid #10b981; border-radius:4px; font-size:12px; font-weight:600;">
+                ✓ JKMT Notified Route — <span id="jkmtRef"></span>
+              </span>
+            </div>
+            <div class="form-group">
+              <label for="concessionSelect">Passenger Concession Category</label>
+              <select id="concessionSelect" class="form-select">
+                <option value="General" selected>General (Standard Rate)</option>
+                <option value="Student">Student (50% Concession)</option>
+                <option value="Senior Citizen">Senior Citizen (25% Concession)</option>
+                <option value="Specially Abled">Specially Abled (50% Concession)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="distanceInput" data-i18n="enterDistance">Distance (km)</label>
+              <input type="number" id="distanceInput" min="0.1" max="500" step="0.1" value="1" required>
+            </div>
+            <button type="submit" id="btnCalculateFare" class="btn-primary" data-i18n="calculateBtn">Calculate Fare</button>
+            <button type="button" id="bookTripBtn" class="btn-secondary">Book Trip</button>
+          </form>
+
+          <div class="sync-bar">
+            <button type="button" id="flushSyncBtn" class="btn-outline">🔄 Sync Offline Queue</button>
+            <span id="syncBadge" class="sync-badge synced">Synced</span>
+          </div>
+
+          <!-- Fare Result & Show to Conductor Action -->
+          <div id="fareResult" class="fare-result" aria-live="polite">
+            <div class="fare-amount" id="fareAmount">—</div>
+            <div class="fare-meta" id="fareMeta"></div>
+            <div class="fare-source" id="fareSource"></div>
+            <button type="button" id="btnShowConductorCard" class="btn-outline btn-dispute hidden">
+              📋 Show to Conductor (Official Rate Badge)
+            </button>
+          </div>
+        </section>
+
+
+        <section class="card" aria-labelledby="map-heading">
+          <h2 id="map-heading" data-i18n="liveMapTitle">Live Tracker</h2>
+          <div id="map" class="map-box"></div>
+        </section>
+      </div>
+
+      <!-- 2. DRIVER & CONDUCTOR VIEW -->
+      <div id="viewDriver" class="view-panel hidden" role="tabpanel" aria-labelledby="tabDriver" aria-hidden="true">
+        <!-- Driver/Conductor Console Card -->
+        <section class="card" aria-labelledby="conductor-console-heading">
+          <h2 id="conductor-console-heading" data-i18n="conductorTitle">🧑‍✈️ Driver & Conductor Console</h2>
+          
+          <form id="conductorConsoleForm" novalidate>
+            <div class="form-group">
+              <label for="conductorRouteSelect" data-i18n="assignedRoute">Assigned Route</label>
+              <select id="conductorRouteSelect" required>
+                <option value="">-- Select Assigned Route --</option>
+              </select>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="conductorVehicleNo" data-i18n="vehicleRegNo">Vehicle Number</label>
+                <input type="text" id="conductorVehicleNo" placeholder="e.g. JK01-AV-9912" value="JK01-AV-9912" required>
+              </div>
+
+              <div class="form-group">
+                <label for="conductorVehicleType" data-i18n="selectVehicle">Vehicle Type</label>
+                <select id="conductorVehicleType" required>
+                  <option value="MINI_BUS">Mini Bus (22 Seats)</option>
+                  <option value="BIG_BUS">Big Bus (42 Seats)</option>
+                  <option value="TATA_MAGIC">Tata Magic (7 Seats)</option>
+                  <option value="SHARED_VAN">Shared Van (8 Seats)</option>
+                  <option value="E_RICKSHAW">E-Rickshaw (4 Seats)</option>
+                  <option value="E_AUTO">E-Auto (3 Seats)</option>
+                  <option value="PETROL_AUTO">Petrol Auto (3 Seats)</option>
+                  <option value="TAXI_MAXI_CAB_BASE">Maxi Cab / Sumo (7 Seats)</option>
+                  <option value="TAXI_MEDIUM_TOURIST">Medium Tourist Taxi (4 Seats)</option>
+                  <option value="TAXI_PREMIUM_TOURIST">Premium Tourist Taxi (4 Seats)</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Live Passenger Count Widget -->
+            <div class="form-group">
+              <label id="passenger-count-label">Live Passenger Count</label>
+              <div class="passenger-counter" role="group" aria-labelledby="passenger-count-label">
+                <button type="button" id="btnPassengerMinus" class="counter-btn" aria-label="Decrease passenger count">−</button>
+                <div class="counter-display-box">
+                  <div id="driverPassengerCount" class="counter-val" aria-live="polite">0</div>
+                  <div class="counter-capacity">Max Capacity: <span id="driverMaxCapacity">22</span></div>
+                </div>
+                <button type="button" id="btnPassengerPlus" class="counter-btn" aria-label="Increase passenger count">+</button>
+              </div>
+            </div>
+
+            <!-- Toggle Broadcast Button -->
+            <div class="form-group">
+              <button type="button" id="btnToggleBroadcast" class="btn-broadcast btn-broadcast-idle">
+                📡 Start GPS Broadcast
+              </button>
+            </div>
+          </form>
+
+          <!-- Conductor Receipt Verification Form -->
+          <div class="verify-box" aria-labelledby="verify-heading">
+            <h3 id="verify-heading">🎫 Conductor Receipt Verification</h3>
+            <p class="section-desc">Verify commuter e-tickets and QR transaction codes against transport authority registry.</p>
+            <div class="form-group">
+              <label for="conductorVerifyInput">Receipt / Ticket Code</label>
+              <div class="verify-input-row">
+                <input type="text" id="conductorVerifyInput" placeholder="Enter ticket code (e.g. TKT-78219)">
+              </div>
+            </div>
+            <div class="button-row">
+              <button type="button" id="btnConductorVerifySubmit" class="btn-primary">Verify Receipt</button>
+              <button type="button" id="btnScanQrCode" class="btn-secondary">📋 Enter Ticket Code</button>
+            </div>
+            <div id="conductorVerifyResult" class="verify-result" aria-live="polite">
+              Ready to verify tickets.
+            </div>
+          </div>
+        </section>
+
+        <!-- Driver Stats Widgets -->
+        <section class="card" aria-labelledby="stats-heading">
+          <h2 id="stats-heading">📊 Driver Shift Statistics</h2>
+          <div class="driver-stats-grid">
+            <div class="stat-card">
+              <span class="stat-lbl" data-i18n="pingsSent">Pings Dispatched</span>
+              <strong id="conductorPingsCount" class="stat-val">0</strong>
+            </div>
+            <div class="stat-card">
+              <span class="stat-lbl" data-i18n="todayEarnings">Est. Earnings</span>
+              <strong id="conductorEarnings" class="stat-val">₹0</strong>
+            </div>
+          </div>
+          <div id="driverMap" class="map-box"></div>
+        </section>
+      </div>
+
+      <!-- 3. AI ASSISTANT VIEW -->
+      <div id="viewAi" class="view-panel hidden" role="tabpanel" aria-labelledby="tabAi" aria-hidden="true">
+        <section class="card" aria-labelledby="ai-heading">
+          <h2 id="ai-heading">🤖 Safar Multilingual AI Assistant</h2>
+          <p class="section-desc">Ask fare questions, route details, live bus locations, or student concession rules in English, Kashmiri (कॉशुर / کٲشُر), Urdu, or Hindi.</p>
+          
+          <div id="aiChatContainer" class="ai-chat-box" aria-live="polite"></div>
+
+          <!-- Suggested Prompt Chips -->
+          <div class="ai-chips-bar" role="group" aria-label="Suggested questions">
+            <button type="button" class="ai-chip" data-query="Cheapest fare to Lal Chowk?">Cheapest fare to Lal Chowk?</button>
+            <button type="button" class="ai-chip" data-query="Fare for Budgam?">Fare for Budgam?</button>
+            <button type="button" class="ai-chip" data-query="Is Kashmir University bus crowded?">Is Kashmir University bus crowded?</button>
+            <button type="button" class="ai-chip" data-query="Student discount rules?">Student discount rules?</button>
+          </div>
+
+          <!-- Input Bar -->
+          <form id="aiInputForm" class="ai-input-form" novalidate>
+            <label for="aiInputText" class="sr-only">Ask AI Assistant</label>
+            <input type="text" id="aiInputText" class="ai-input-field" placeholder="Ask in English, हिन्दी, or कॉशुर (e.g. Fare for Budgam)..." autocomplete="off" required>
+            <button type="button" id="aiMicBtn" class="ai-mic-btn" aria-label="Voice input">🎙️</button>
+            <button type="submit" id="btnSendAiMessage" class="btn-primary ai-send-btn" aria-label="Send message">Send</button>
+          </form>
+        </section>
+      </div>
+
+      <!-- 4. MIND MAP / BLUEPRINT VIEW -->
+      <div id="viewMindmap" class="view-panel hidden" role="tabpanel" aria-labelledby="tabMindmap" aria-hidden="true">
+        <section class="card" aria-labelledby="mindmap-heading">
+          <h2 id="mindmap-heading">🧠 Shared Mobility Platform Blueprint</h2>
+          <p class="section-desc">Interactive architectural mind map & operational system graph. Use Arrow keys to navigate, Space/Enter to expand or inspect, or launch related SAFAR services.</p>
+
+          <div class="mindmap-header-tools">
+            <div class="mindmap-toolbar">
+              <div class="mindmap-search-bar">
+                <input type="text" id="mindmapSearchInput" placeholder="🔍 Search blueprint nodes (e.g. Fare, Safety, Telemetry)..." aria-label="Search blueprint nodes">
+              </div>
+              <div class="mindmap-btn-group">
+                <button type="button" id="btnMindmapExpandAll" class="btn-outline">Expand All</button>
+                <button type="button" id="btnMindmapCollapseAll" class="btn-outline">Collapse All</button>
+                <button type="button" id="btnMindmapZoomIn" class="btn-outline" aria-label="Zoom in">+</button>
+                <button type="button" id="btnMindmapZoomOut" class="btn-outline" aria-label="Zoom out">−</button>
+                <button type="button" id="btnMindmapZoomReset" class="btn-outline" aria-label="Reset zoom">Reset</button>
+              </div>
+            </div>
+          </div>
+
+          <div id="mindmapViewport" class="mindmap-viewport" role="region" aria-label="Interactive Mind Map Viewport">
+            <div id="mindmapCanvas" class="mindmap-canvas">
+              <svg id="mindmapSvg" class="mindmap-svg-layer" aria-hidden="true"></svg>
+              <div id="mindmapTree" class="mindmap-tree-container" role="tree" aria-label="Shared Mobility Architecture Hierarchy"></div>
+            </div>
+          </div>
+
+          <!-- Dynamic Node Inspector Drawer -->
+          <div id="mindmapInspector" class="mindmap-inspector" aria-live="polite">
+            <div class="inspector-header">
+              <div id="inspectorTitle" class="inspector-title">Shared Mobility Platform Blueprint</div>
+              <span id="inspectorCategory" class="inspector-category">Root Architecture</span>
+            </div>
+            <div id="inspectorBody" class="inspector-body">
+              Click or navigate with keyboard to any node in the interactive tree diagram above to examine technical architecture, transit regulatory workflows, and instant feature shortcuts.
+            </div>
+            <div id="inspectorActionBar" class="inspector-action-bar"></div>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <!-- FIXED BOTTOM NAVIGATION BAR (4 TABS) -->
+    <nav class="bottom-nav" role="tablist" aria-label="Primary Navigation">
+      <div class="bottom-nav-inner">
+        <button type="button" role="tab" id="tabCommuter" class="bottom-nav-item active" aria-selected="true" aria-controls="viewCommuter" tabindex="0">
+          <span class="nav-icon" aria-hidden="true">🚌</span>
+          <span class="nav-label" data-i18n="navCommuter">Commuter</span>
+        </button>
+        <button type="button" role="tab" id="tabDriver" class="bottom-nav-item" aria-selected="false" aria-controls="viewDriver" tabindex="-1">
+          <span class="nav-icon" aria-hidden="true">🧑‍✈️</span>
+          <span class="nav-label" data-i18n="navConductor">Driver</span>
+        </button>
+        <button type="button" role="tab" id="tabAi" class="bottom-nav-item" aria-selected="false" aria-controls="viewAi" tabindex="-1">
+          <span class="nav-icon" aria-hidden="true">🤖</span>
+          <span class="nav-label">AI</span>
+        </button>
+        <button type="button" role="tab" id="tabMindmap" class="bottom-nav-item" aria-selected="false" aria-controls="viewMindmap" tabindex="-1">
+          <span class="nav-icon" aria-hidden="true">🧠</span>
+          <span class="nav-label">Blueprint</span>
+        </button>
+      </div>
+    </nav>
+  </div>
+
+  <!-- Accessible Full-screen Dispute / Official Rate Modal -->
+  <div id="disputeModal" class="dispute-modal hidden" role="dialog" aria-modal="true" aria-labelledby="disputeModalTitle">
+    <div class="dispute-modal-card card-official">
+      <div class="arch-notch-badge">SRO Statutory Badge ✓</div>
+      <div class="dispute-badge-stamp">🍁 OFFICIAL REGULATED FARE BADGE</div>
+      <h2 id="disputeModalTitle" class="dispute-fare-title">₹0</h2>
+      <p id="disputeModalMeta" class="dispute-fare-meta">Mini Bus · Standard Corridor</p>
+      
+      <div id="qr-container" style="background:#fff; padding:10px; border-radius:8px; display:inline-block; margin-bottom:12px;"></div>
+      <div id="disputeSignatureNotice" style="font-size:11px; color:#10b981; font-weight:700; margin-bottom:12px; display:none;">
+        ✓ Calculated from official notification — verify online when possible.
+      </div>
+      
+      <div class="dispute-legal-notice">
+        ⚖️ Mandated as per official J&K Regional Transport Authority fare notification. For overcharge grievances or enforcement inquiries, contact J&K Transport Helpline (112) or the Regional Transport Officer.
+      </div>
+      <div style="display:flex; gap:12px;">
+        <button type="button" id="btnShareDispute" class="btn-outline" style="flex:1;">Share</button>
+        <button type="button" id="btnCloseDisputeModal" class="btn-primary" style="flex:1;">Done / Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SRO Notification Drawer / Modal -->
+  <div id="sroModal" class="modal dispute-modal hidden" role="dialog" aria-modal="true" aria-labelledby="sroModalTitle" style="display:none;">
+    <div id="sroModalBackdrop" class="modal__backdrop"></div>
+    <div class="dispute-modal-card modal__panel" style="max-width:550px; max-height:85vh; overflow-y:auto; position:relative; z-index:2;">
+      <header class="modal__header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; border-bottom:1px solid rgba(255,255,255,0.1); padding-bottom:8px;">
+        <h2 id="sroModalTitle" class="modal__title" style="font-size:18px; margin:0;">📜 Active SRO Fare Schedules</h2>
+        <button class="modal__close icon-btn" id="sroModalClose" aria-label="Close" style="background:none; border:none; color:#fff; font-size:20px; cursor:pointer;">&times;</button>
+      </header>
+      <div class="modal__body" id="sroModalBody" style="font-size:13px; line-height:1.5;">
+        <p class="loading-text">Loading official fare schedules…</p>
+      </div>
+      <footer class="modal__footer" style="margin-top:16px; border-top:1px solid rgba(255,255,255,0.1); padding-top:8px;">
+        <small style="color:var(--text-secondary,#94a3b8); font-size:11px;">Source: J&amp;K Transport Department official SRO notifications. Verified fare data only.</small>
+      </footer>
+    </div>
+  </div>
+
+  <!-- Accessible Toast Notification Container -->
+  <div id="toastContainer" class="toast-container" aria-live="polite"></div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/gh/davidshimjs/qrcodejs/qrcode.min.js"></script>
+  <script src="js/translations.js"></script>
+  <script src="js/routes.js"></script>
+  <script src="js/fare-rules.js"></script>
+  <script src="js/live-tracker.js"></script>
+  <script type="module" src="js/app.js"></script>
+  <script src="js/sw-register.js"></script>
+</body>
+</html>
