@@ -102,6 +102,32 @@ db.exec(`
     updated_at TEXT NOT NULL DEFAULT (datetime('now'))
   );
 
+  CREATE TABLE IF NOT EXISTS payouts (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    request_id TEXT UNIQUE NOT NULL,
+    vehicle_no TEXT NOT NULL,
+    amount_paise INTEGER NOT NULL,
+    upi_id_encrypted TEXT NOT NULL,
+    status TEXT NOT NULL DEFAULT 'pending'
+      CHECK (status IN ('pending', 'approved', 'rejected', 'paid')),
+    rejection_reason TEXT,
+    utr_reference TEXT,
+    requested_at TEXT NOT NULL DEFAULT (datetime('now')),
+    approved_at TEXT,
+    paid_at TEXT,
+    admin_id TEXT
+  );
+
+  CREATE TABLE IF NOT EXISTS payout_allocations (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    payout_id INTEGER NOT NULL,
+    trip_id TEXT NOT NULL,
+    amount_paise INTEGER NOT NULL,
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    FOREIGN KEY (payout_id) REFERENCES payouts(id),
+    UNIQUE (payout_id, trip_id)
+  );
+
   -- Indexes for common query patterns
   CREATE INDEX IF NOT EXISTS idx_trips_vehicle ON trips_ledger(vehicle_no);
   CREATE INDEX IF NOT EXISTS idx_trips_status ON trips_ledger(status);
@@ -111,6 +137,9 @@ db.exec(`
   CREATE INDEX IF NOT EXISTS idx_drivers_vehicle ON drivers(driver_vehicle_no);
   CREATE INDEX IF NOT EXISTS idx_audit_timestamp ON audit_events(timestamp);
   CREATE INDEX IF NOT EXISTS idx_audit_action ON audit_events(action);
+  CREATE INDEX IF NOT EXISTS idx_payouts_vehicle_status ON payouts(vehicle_no, status);
+  CREATE INDEX IF NOT EXISTS idx_payouts_status ON payouts(status);
+  CREATE INDEX IF NOT EXISTS idx_payout_alloc_trip ON payout_allocations(trip_id);
 `);
 
 // ─── PREPARED STATEMENTS ──────────────────────────────────────────────────────
@@ -210,6 +239,36 @@ const stmts = {
     WHERE driver_vehicle_no = ? OR id = ?
   `),
 
+  // Payouts & Allocations
+  getPayoutByRequestId: db.prepare('SELECT * FROM payouts WHERE request_id = ?'),
+  getPayoutById: db.prepare('SELECT * FROM payouts WHERE id = ?'),
+  getPayoutsByVehicle: db.prepare('SELECT * FROM payouts WHERE vehicle_no = ? ORDER BY requested_at DESC'),
+  getAllPayouts: db.prepare('SELECT * FROM payouts ORDER BY requested_at DESC'),
+  getPendingPayouts: db.prepare("SELECT * FROM payouts WHERE status = 'pending' ORDER BY requested_at ASC"),
+
+  insertPayout: db.prepare(`
+    INSERT INTO payouts (request_id, vehicle_no, amount_paise, upi_id_encrypted, status, requested_at)
+    VALUES (?, ?, ?, ?, 'pending', datetime('now'))
+  `),
+
+  insertPayoutAllocation: db.prepare(`
+    INSERT INTO payout_allocations (payout_id, trip_id, amount_paise, created_at)
+    VALUES (?, ?, ?, datetime('now'))
+  `),
+
+  deletePayoutAllocations: db.prepare('DELETE FROM payout_allocations WHERE payout_id = ?'),
+
+  updatePayoutStatus: db.prepare(`
+    UPDATE payouts SET
+      status = ?,
+      rejection_reason = ?,
+      utr_reference = ?,
+      approved_at = CASE WHEN ? = 'approved' THEN datetime('now') ELSE approved_at END,
+      paid_at = CASE WHEN ? = 'paid' THEN datetime('now') ELSE paid_at END,
+      admin_id = ?
+    WHERE id = ?
+  `),
+
   // Audit Events
   insertAudit: db.prepare(`
     INSERT INTO audit_events (event_id, actor_id, actor_role, action, resource_type, resource_id, details, timestamp, ip_address, result)
@@ -231,6 +290,118 @@ const recordPaymentTx = db.transaction((tripId, status, upiRef, paidAt, vehicleN
 });
 
 /**
+ * Calculate available balance in paise for a vehicle:
+ * Confirmed trips in trips_ledger minus any amounts allocated to pending/approved/paid payouts.
+ */
+function getAvailableBalancePaise(vehicleNo) {
+  const earnedRow = db.prepare(`
+    SELECT COALESCE(SUM(ROUND(tl.amount * 100)), 0) AS total_earned_paise
+    FROM trips_ledger tl
+    WHERE tl.vehicle_no = ? AND tl.status = 'PAID'
+  `).get(vehicleNo);
+
+  const allocatedRow = db.prepare(`
+    SELECT COALESCE(SUM(p.amount_paise), 0) AS total_allocated_paise
+    FROM payouts p
+    WHERE p.vehicle_no = ? AND p.status IN ('pending', 'approved', 'paid')
+  `).get(vehicleNo);
+
+  const earned = Number(earnedRow?.total_earned_paise || 0);
+  const allocated = Number(allocatedRow?.total_allocated_paise || 0);
+  return Math.max(0, earned - allocated);
+}
+
+/**
+ * Atomic Payout Request Transaction:
+ * Checks idempotency, validates available balance in paise, inserts payout record,
+ * and creates FIFO allocations linking confirmed trips.
+ */
+const requestPayoutTx = db.transaction((vehicleNo, requestId, amountPaise, encryptedUpiId) => {
+  const existing = stmts.getPayoutByRequestId.get(requestId);
+  if (existing) {
+    return { status: 'duplicate', payout: existing };
+  }
+
+  const availablePaise = getAvailableBalancePaise(vehicleNo);
+  if (availablePaise < amountPaise) {
+    return { status: 'insufficient', availablePaise };
+  }
+
+  const result = stmts.insertPayout.run(requestId, vehicleNo, amountPaise, encryptedUpiId);
+  const payoutId = Number(result.lastInsertRowid);
+
+  // Allocate confirmed unallocated trips in FIFO order
+  const unallocatedTrips = db.prepare(`
+    SELECT tl.trip_id, ROUND(tl.amount * 100) AS amount_paise
+    FROM trips_ledger tl
+    WHERE tl.vehicle_no = ? AND tl.status = 'PAID'
+      AND tl.trip_id NOT IN (
+        SELECT pa.trip_id
+        FROM payout_allocations pa
+        JOIN payouts p ON p.id = pa.payout_id
+        WHERE p.status IN ('pending', 'approved', 'paid')
+      )
+    ORDER BY tl.created_at ASC
+  `).all(vehicleNo);
+
+  let remaining = amountPaise;
+  for (const trip of unallocatedTrips) {
+    if (remaining <= 0) break;
+    const alloc = Math.min(Number(trip.amount_paise), remaining);
+    stmts.insertPayoutAllocation.run(payoutId, trip.trip_id, alloc);
+    remaining -= alloc;
+  }
+
+  return {
+    status: 'ok',
+    payoutId,
+    amountPaise,
+    remainingAvailablePaise: availablePaise - amountPaise
+  };
+});
+
+/**
+ * Atomic Admin Approve Payout
+ */
+const approvePayoutTx = db.transaction((payoutId, adminId) => {
+  const payout = stmts.getPayoutById.get(payoutId);
+  if (!payout) return { status: 'not_found' };
+  if (payout.status !== 'pending') return { status: 'invalid_state', currentStatus: payout.status };
+
+  stmts.updatePayoutStatus.run('approved', null, null, 'approved', null, adminId, payoutId);
+  return { status: 'ok', payout: stmts.getPayoutById.get(payoutId) };
+});
+
+/**
+ * Atomic Admin Reject Payout (Releases allocations back to driver available balance)
+ */
+const rejectPayoutTx = db.transaction((payoutId, adminId, reason) => {
+  const payout = stmts.getPayoutById.get(payoutId);
+  if (!payout) return { status: 'not_found' };
+  if (payout.status !== 'pending' && payout.status !== 'approved') {
+    return { status: 'invalid_state', currentStatus: payout.status };
+  }
+
+  stmts.updatePayoutStatus.run('rejected', reason, null, null, null, adminId, payoutId);
+  stmts.deletePayoutAllocations.run(payoutId);
+  return { status: 'ok', payout: stmts.getPayoutById.get(payoutId) };
+});
+
+/**
+ * Atomic Admin Mark Paid Payout with UTR Reference
+ */
+const markPaidPayoutTx = db.transaction((payoutId, adminId, utrReference) => {
+  const payout = stmts.getPayoutById.get(payoutId);
+  if (!payout) return { status: 'not_found' };
+  if (payout.status !== 'approved') {
+    return { status: 'invalid_state', currentStatus: payout.status };
+  }
+
+  stmts.updatePayoutStatus.run('paid', null, utrReference, null, 'paid', adminId, payoutId);
+  return { status: 'ok', payout: stmts.getPayoutById.get(payoutId) };
+});
+
+/**
  * Close the database connection gracefully.
  */
 function closeDb() {
@@ -246,6 +417,11 @@ module.exports = {
   db,
   stmts,
   recordPaymentTx,
+  getAvailableBalancePaise,
+  requestPayoutTx,
+  approvePayoutTx,
+  rejectPayoutTx,
+  markPaidPayoutTx,
   closeDb,
   DB_PATH
 };

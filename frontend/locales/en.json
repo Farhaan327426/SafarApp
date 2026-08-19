@@ -42,5 +42,13 @@
   "kyc_upload_rc": "Upload Vehicle RC",
   "kyc_upload_permit": "Upload Route Permit",
   "kyc_submit_btn": "Submit Documents for Verification",
-  "kyc_rejection_reason": "Rejection Reason: {{reason}}"
+  "kyc_rejection_reason": "Rejection Reason: {{reason}}",
+  "payout_title": "Driver Earnings & Payouts",
+  "available_balance": "Available Balance: ₹{{amount}}",
+  "pending_payouts": "Pending Payouts: ₹{{amount}}",
+  "request_payout_btn": "Request Withdrawal",
+  "payout_status_pending": "Pending Admin Approval",
+  "payout_status_approved": "Approved - Processing UPI Payment",
+  "payout_status_paid": "Paid (UTR: {{utr}})",
+  "payout_status_rejected": "Rejected: {{reason}}"
 }

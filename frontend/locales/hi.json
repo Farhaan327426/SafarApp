@@ -42,5 +42,13 @@
   "kyc_upload_rc": "वाहन आरसी अपलोड करें",
   "kyc_upload_permit": "रूट परमिट अपलोड करें",
   "kyc_submit_btn": "सत्यापन के लिए दस्तावेज़ जमा करें",
-  "kyc_rejection_reason": "अस्वीकृति का कारण: {{reason}}"
+  "kyc_rejection_reason": "अस्वीकृति का कारण: {{reason}}",
+  "payout_title": "चालक कमाई और निकासी",
+  "available_balance": "उपलब्ध शेष: ₹{{amount}}",
+  "pending_payouts": "लंबित निकासी: ₹{{amount}}",
+  "request_payout_btn": "निकासी का अनुरोध करें",
+  "payout_status_pending": "प्रशासक अनुमोदन लंबित",
+  "payout_status_approved": "स्वीकृत - यूपीआई भुगतान प्रक्रियाधीन",
+  "payout_status_paid": "भुगतान किया गया (यूटीआर: {{utr}})",
+  "payout_status_rejected": "अस्वीकृत: {{reason}}"
 }

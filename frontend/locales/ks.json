@@ -42,5 +42,13 @@
   "kyc_upload_rc": "گاڑی ہٕنٛز آر سی اپ لوڈ کٔرِو",
   "kyc_upload_permit": "روٹ پرمٹ اپ لوڈ کٔرِو",
   "kyc_submit_btn": "تصدیق خٲطرٕ دستاویزات جمع کٔرِو",
-  "kyc_rejection_reason": "مسترد کَرنُک وجہ: {{reason}}"
+  "kyc_rejection_reason": "مسترد کَرنُک وجہ: {{reason}}",
+  "payout_title": "ڈرائیور کمائی تہٕ رۄپیہٕ کَڈنؠ",
+  "available_balance": "دستیاب رقم: ₹{{amount}}",
+  "pending_payouts": "زیر التواء رۄپیہٕ: ₹{{amount}}",
+  "request_payout_btn": "رۄپیہٕ کَڈنٕچ درخواست",
+  "payout_status_pending": "ایڈمِن منظوری ہُنٛد انتظار",
+  "payout_status_approved": "منظور شدہ - UPI ادائیگی جاری",
+  "payout_status_paid": "ادا شُدٕ (UTR: {{utr}})",
+  "payout_status_rejected": "مسترد: {{reason}}"
 }

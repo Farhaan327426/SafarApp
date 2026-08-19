@@ -9,7 +9,15 @@ const fs = require('fs');
 const { encryptField, decryptField, hashOtp } = require('./cryptoUtils');
 const { MutexWriteQueue } = require('./mutexQueue');
 const { deepRedact } = require('./sanitizer');
-const { stmts, recordPaymentTx } = require('./db');
+const {
+  stmts,
+  recordPaymentTx,
+  getAvailableBalancePaise,
+  requestPayoutTx,
+  approvePayoutTx,
+  rejectPayoutTx,
+  markPaidPayoutTx
+} = require('./db');
 const stateStore = require('./stateStore');
 const metrics = require('./metrics');
 const { detectGpsAnomaly } = require('./anomaly/gpsAnomaly');
@@ -1390,6 +1398,386 @@ app.get('/api/v1/admin/kyc/document/:vehicleNo/:docType', (req, res) => {
     console.error('[Document Viewer Error]', err);
     res.status(500).json({ success: false, error: 'Failed to decrypt document.' });
   }
+});
+
+// ─── DRIVER PAYOUT & LEDGER AUDIT SYSTEM (SPRINT 8) ─────────────────────────
+
+// Helper: resolve vehicleNo from token or query/body
+function resolveDriverVehicleNo(req) {
+  let token = req.body?.token || req.query?.token;
+  const authHeader = req.headers['authorization'];
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    token = authHeader.substring(7);
+  }
+  if (token && activeDriverTokens.has(token)) {
+    return activeDriverTokens.get(token).vehicleNo;
+  }
+  return req.body?.vehicleNo || req.query?.vehicleNo || null;
+}
+
+// 1. Driver Payout Request (Idempotent & KYC Gated)
+app.post('/api/v1/driver/payout/request', (req, res) => {
+  const vehicleNo = resolveDriverVehicleNo(req);
+  if (!vehicleNo) {
+    return res.status(401).json({ success: false, error: { code: 'UNAUTHORIZED', message: 'Driver session or vehicleNo required.' } });
+  }
+
+  const { requestId, amount, upiId } = req.body || {};
+  if (!requestId || !amount || Number(amount) <= 0) {
+    return res.status(400).json({
+      success: false,
+      error: { code: 'INVALID_INPUT', message: 'requestId and positive amount are required.' }
+    });
+  }
+
+  // 1. KYC Approval Check
+  const driver = stmts.getDriverByVehicle.get(vehicleNo);
+  if (!driver || driver.kyc_status !== 'approved') {
+    return res.status(403).json({
+      success: false,
+      error: {
+        code: 'KYC_NOT_APPROVED',
+        message: 'Withdrawals are restricted to KYC-approved drivers. Current status: ' + (driver?.kyc_status || 'not_submitted')
+      }
+    });
+  }
+
+  const amountPaise = Math.round(Number(amount) * 100);
+  const targetUpi = upiId ? String(upiId).trim() : (driver.driver_upi_id ? decryptField(driver.driver_upi_id) : 'driver@upi');
+  const encryptedUpi = encryptField(targetUpi);
+
+  try {
+    const txResult = requestPayoutTx(vehicleNo, String(requestId).trim(), amountPaise, encryptedUpi);
+
+    if (txResult.status === 'duplicate') {
+      return res.status(409).json({
+        success: false,
+        error: {
+          code: 'DUPLICATE_REQUEST',
+          message: 'Payout request with this requestId already exists.',
+          payoutId: txResult.payout.id,
+          status: txResult.payout.status
+        }
+      });
+    }
+
+    if (txResult.status === 'insufficient') {
+      return res.status(422).json({
+        success: false,
+        error: {
+          code: 'INSUFFICIENT_BALANCE',
+          message: `Requested ₹${amount} exceeds available balance of ₹${(txResult.availablePaise / 100).toFixed(2)}.`,
+          availableRupees: txResult.availablePaise / 100,
+          requestedRupees: Number(amount)
+        }
+      });
+    }
+
+    stmts.insertAudit.run(
+      `audit_${Date.now()}_${crypto.randomBytes(4).toString('hex')}`,
+      vehicleNo,
+      'DRIVER',
+      'PAYOUT_REQUESTED',
+      'PAYOUT',
+      String(txResult.payoutId),
+      JSON.stringify({ vehicleNo, amountRupees: amount, amountPaise, payoutId: txResult.payoutId }),
+      req.ip || '127.0.0.1',
+      'SUCCESS'
+    );
+
+    res.status(201).json({
+      success: true,
+      data: {
+        payoutId: txResult.payoutId,
+        vehicleNo,
+        amountRupees: Number(amount),
+        status: 'pending',
+        remainingAvailableRupees: txResult.remainingAvailablePaise / 100
+      }
+    });
+  } catch (err) {
+    console.error('[Payout Request Error]', err);
+    res.status(500).json({ success: false, error: { code: 'PAYOUT_FAILED', message: err.message } });
+  }
+});
+
+// 2. Driver Payout Status History
+app.get('/api/v1/driver/payout/status', (req, res) => {
+  const vehicleNo = resolveDriverVehicleNo(req);
+  if (!vehicleNo) {
+    return res.status(401).json({ success: false, error: { code: 'UNAUTHORIZED', message: 'Driver session or vehicleNo required.' } });
+  }
+
+  const payouts = stmts.getPayoutsByVehicle.all(vehicleNo);
+  const formatted = payouts.map(p => {
+    let plainUpi = '***';
+    try { plainUpi = decryptField(p.upi_id_encrypted); } catch(e) {}
+    return {
+      payoutId: p.id,
+      requestId: p.request_id,
+      amountRupees: p.amount_paise / 100,
+      upiIdMasked: plainUpi.replace(/(?<=.).(?=.*@)/g, '*'),
+      status: p.status,
+      rejectionReason: p.rejection_reason,
+      utrReference: p.utr_reference,
+      requestedAt: p.requested_at,
+      approvedAt: p.approved_at,
+      paidAt: p.paid_at
+    };
+  });
+
+  res.json({ success: true, count: formatted.length, data: formatted });
+});
+
+// 3. Driver Earnings Summary API
+app.get('/api/v1/driver/earnings/summary', (req, res) => {
+  const vehicleNo = resolveDriverVehicleNo(req);
+  if (!vehicleNo) {
+    return res.status(401).json({ success: false, error: { code: 'UNAUTHORIZED', message: 'Driver session or vehicleNo required.' } });
+  }
+
+  const availablePaise = getAvailableBalancePaise(vehicleNo);
+  const payouts = stmts.getPayoutsByVehicle.all(vehicleNo);
+
+  const pendingPaise = payouts
+    .filter(p => p.status === 'pending' || p.status === 'approved')
+    .reduce((sum, p) => sum + Number(p.amount_paise), 0);
+
+  const paidPaise = payouts
+    .filter(p => p.status === 'paid')
+    .reduce((sum, p) => sum + Number(p.amount_paise), 0);
+
+  const totalEarnedRow = stmts.getEarnings.get(vehicleNo);
+  const totalEarnedRupees = Number(totalEarnedRow?.total_earnings || 0);
+
+  res.json({
+    success: true,
+    data: {
+      vehicleNo,
+      availableRupees: availablePaise / 100,
+      pendingPayoutsRupees: pendingPaise / 100,
+      totalPaidOutRupees: paidPaise / 100,
+      lifetimeEarnedRupees: totalEarnedRupees
+    }
+  });
+});
+
+// 4. Driver Earnings CSV Export
+app.get('/api/v1/driver/earnings/export', (req, res) => {
+  const vehicleNo = resolveDriverVehicleNo(req);
+  if (!vehicleNo) {
+    return res.status(401).json({ success: false, error: { code: 'UNAUTHORIZED', message: 'Driver session or vehicleNo required.' } });
+  }
+
+  const trips = stmts.getPaidTripsByVehicle.all(vehicleNo, 'PAID');
+  const payouts = stmts.getPayoutsByVehicle.all(vehicleNo);
+
+  let csv = '=== SAFAR DRIVER EARNINGS & PAYOUT STATEMENT ===\n';
+  csv += `Vehicle Number,${vehicleNo}\n`;
+  csv += `Generated At,${new Date().toISOString()}\n\n`;
+
+  csv += '--- CONFIRMED TRIP EARNINGS ---\n';
+  csv += 'Trip ID,Amount (INR),Route ID,Origin,Destination,Paid At,UPI Ref\n';
+  for (const t of trips) {
+    csv += `"${t.trip_id}",${t.amount},"${t.route_id || 'N/A'}","${t.origin || ''}","${t.destination || ''}","${t.paid_at || t.created_at}","${t.upi_ref || ''}"\n`;
+  }
+
+  csv += '\n--- PAYOUT WITHDRAWAL HISTORY ---\n';
+  csv += 'Payout ID,Request ID,Amount (INR),Status,Requested At,Paid At,UTR Reference,Rejection Reason\n';
+  for (const p of payouts) {
+    csv += `"${p.id}","${p.request_id}",${p.amount_paise / 100},"${p.status}","${p.requested_at}","${p.paid_at || ''}","${p.utr_reference || ''}","${p.rejection_reason || ''}"\n`;
+  }
+
+  res.setHeader('Content-Type', 'text/csv');
+  res.setHeader('Content-Disposition', `attachment; filename="safar_earnings_${vehicleNo}.csv"`);
+  res.send(csv);
+});
+
+// 5. Admin Pending Payouts Queue
+app.get('/api/v1/admin/payout/pending', (req, res) => {
+  const pending = stmts.getPendingPayouts.all();
+  const formatted = pending.map(p => {
+    let plainUpi = '***';
+    try { plainUpi = decryptField(p.upi_id_encrypted); } catch(e) {}
+    const driver = stmts.getDriverByVehicle.get(p.vehicle_no);
+    let driverName = 'Driver';
+    try { if (driver) driverName = decryptField(driver.driver_name); } catch(e) {}
+
+    return {
+      payoutId: p.id,
+      requestId: p.request_id,
+      vehicleNo: p.vehicle_no,
+      driverName,
+      kycStatus: driver?.kyc_status || 'not_submitted',
+      amountRupees: p.amount_paise / 100,
+      amountPaise: p.amount_paise,
+      upiId: plainUpi,
+      status: p.status,
+      requestedAt: p.requested_at,
+      availableBalanceRupees: getAvailableBalancePaise(p.vehicle_no) / 100
+    };
+  });
+
+  res.json({ success: true, count: formatted.length, data: formatted });
+});
+
+// 6. Admin All Payouts List (Filterable)
+app.get('/api/v1/admin/payout/all', (req, res) => {
+  const { status, vehicleNo } = req.query || {};
+  let list = stmts.getAllPayouts.all();
+
+  if (status) {
+    list = list.filter(p => p.status === status);
+  }
+  if (vehicleNo) {
+    list = list.filter(p => p.vehicle_no.toLowerCase() === vehicleNo.toLowerCase());
+  }
+
+  const formatted = list.map(p => {
+    let plainUpi = '***';
+    try { plainUpi = decryptField(p.upi_id_encrypted); } catch(e) {}
+    return {
+      payoutId: p.id,
+      requestId: p.request_id,
+      vehicleNo: p.vehicle_no,
+      amountRupees: p.amount_paise / 100,
+      amountPaise: p.amount_paise,
+      upiIdMasked: plainUpi.replace(/(?<=.).(?=.*@)/g, '*'),
+      status: p.status,
+      utrReference: p.utr_reference,
+      rejectionReason: p.rejection_reason,
+      requestedAt: p.requested_at,
+      approvedAt: p.approved_at,
+      paidAt: p.paid_at,
+      adminId: p.admin_id
+    };
+  });
+
+  res.json({ success: true, count: formatted.length, data: formatted });
+});
+
+// 7. Admin Approve Payout
+app.post('/api/v1/admin/payout/approve', (req, res) => {
+  const { payoutId } = req.body || {};
+  if (!payoutId) {
+    return res.status(400).json({ success: false, error: { code: 'INVALID_INPUT', message: 'payoutId is required.' } });
+  }
+
+  const adminId = req.headers['x-admin-id'] || 'admin_super';
+  const result = approvePayoutTx(Number(payoutId), adminId);
+
+  if (result.status === 'not_found') {
+    return res.status(404).json({ success: false, error: { code: 'NOT_FOUND', message: 'Payout record not found.' } });
+  }
+  if (result.status === 'invalid_state') {
+    return res.status(400).json({ success: false, error: { code: 'INVALID_STATE', message: `Cannot approve payout in status: ${result.currentStatus}` } });
+  }
+
+  stmts.insertAudit.run(
+    `audit_${Date.now()}_${crypto.randomBytes(4).toString('hex')}`,
+    adminId,
+    'ADMIN',
+    'PAYOUT_APPROVED',
+    'PAYOUT',
+    String(payoutId),
+    JSON.stringify({ payoutId, vehicleNo: result.payout.vehicle_no, amountRupees: result.payout.amount_paise / 100 }),
+    req.ip || '127.0.0.1',
+    'SUCCESS'
+  );
+
+  res.json({
+    success: true,
+    data: {
+      payoutId: result.payout.id,
+      status: result.payout.status,
+      approvedAt: result.payout.approved_at
+    }
+  });
+});
+
+// 8. Admin Reject Payout (Releases trip allocations back to driver balance)
+app.post('/api/v1/admin/payout/reject', (req, res) => {
+  const { payoutId, reason } = req.body || {};
+  if (!payoutId || !reason || String(reason).trim().length === 0) {
+    return res.status(400).json({
+      success: false,
+      error: { code: 'INVALID_INPUT', message: 'payoutId and non-empty reason are required.' }
+    });
+  }
+
+  const adminId = req.headers['x-admin-id'] || 'admin_super';
+  const result = rejectPayoutTx(Number(payoutId), adminId, String(reason).trim());
+
+  if (result.status === 'not_found') {
+    return res.status(404).json({ success: false, error: { code: 'NOT_FOUND', message: 'Payout record not found.' } });
+  }
+  if (result.status === 'invalid_state') {
+    return res.status(400).json({ success: false, error: { code: 'INVALID_STATE', message: `Cannot reject payout in status: ${result.currentStatus}` } });
+  }
+
+  stmts.insertAudit.run(
+    `audit_${Date.now()}_${crypto.randomBytes(4).toString('hex')}`,
+    adminId,
+    'ADMIN',
+    'PAYOUT_REJECTED',
+    'PAYOUT',
+    String(payoutId),
+    JSON.stringify({ payoutId, vehicleNo: result.payout.vehicle_no, reason: result.payout.rejection_reason }),
+    req.ip || '127.0.0.1',
+    'SUCCESS'
+  );
+
+  res.json({
+    success: true,
+    data: {
+      payoutId: result.payout.id,
+      status: result.payout.status,
+      rejectionReason: result.payout.rejection_reason
+    }
+  });
+});
+
+// 9. Admin Mark Paid Payout (With Manual UPI UTR Reference)
+app.post('/api/v1/admin/payout/mark-paid', (req, res) => {
+  const { payoutId, utrReference } = req.body || {};
+  if (!payoutId || !utrReference || String(utrReference).trim().length === 0) {
+    return res.status(400).json({
+      success: false,
+      error: { code: 'INVALID_INPUT', message: 'payoutId and non-empty utrReference are required.' }
+    });
+  }
+
+  const adminId = req.headers['x-admin-id'] || 'admin_super';
+  const result = markPaidPayoutTx(Number(payoutId), adminId, String(utrReference).trim());
+
+  if (result.status === 'not_found') {
+    return res.status(404).json({ success: false, error: { code: 'NOT_FOUND', message: 'Payout record not found.' } });
+  }
+  if (result.status === 'invalid_state') {
+    return res.status(400).json({ success: false, error: { code: 'INVALID_STATE', message: `Payout must be in 'approved' status to mark paid. Current status: ${result.currentStatus}` } });
+  }
+
+  stmts.insertAudit.run(
+    `audit_${Date.now()}_${crypto.randomBytes(4).toString('hex')}`,
+    adminId,
+    'ADMIN',
+    'PAYOUT_PAID',
+    'PAYOUT',
+    String(payoutId),
+    JSON.stringify({ payoutId, vehicleNo: result.payout.vehicle_no, utrReference: result.payout.utr_reference }),
+    req.ip || '127.0.0.1',
+    'SUCCESS'
+  );
+
+  res.json({
+    success: true,
+    data: {
+      payoutId: result.payout.id,
+      status: result.payout.status,
+      paidAt: result.payout.paid_at,
+      utrReference: result.payout.utr_reference
+    }
+  });
 });
 
 // ─── DRIVER SHIFT MANAGEMENT ────────────────────────────────────────────────

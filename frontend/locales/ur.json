@@ -42,5 +42,13 @@
   "kyc_upload_rc": "گاڑی کی آر سی اپ لوڈ کریں",
   "kyc_upload_permit": "روٹ پرمٹ اپ لوڈ کریں",
   "kyc_submit_btn": "تصدیق کے لیے دستاویزات جمع کریں",
-  "kyc_rejection_reason": "مسترد کرنے کی وجہ: {{reason}}"
+  "kyc_rejection_reason": "مسترد کرنے کی وجہ: {{reason}}",
+  "payout_title": "ڈرائیور کمائی اور رقم نکلوانا",
+  "available_balance": "دستیاب رقم: ₹{{amount}}",
+  "pending_payouts": "زیر التواء ادائیگیاں: ₹{{amount}}",
+  "request_payout_btn": "رقم نکلوانے کی درخواست",
+  "payout_status_pending": "ایڈمن منظوری کا انتظار",
+  "payout_status_approved": "منظور شدہ - UPI ادائیگی جاری ہے",
+  "payout_status_paid": "ادا شدہ (UTR: {{utr}})",
+  "payout_status_rejected": "مسترد: {{reason}}"
 }
