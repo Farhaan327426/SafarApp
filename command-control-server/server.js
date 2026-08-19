@@ -1,8 +1,4 @@
-/**
- * Safar Administration Platform — Production Microservice & Transit Control Engine
- * Enterprise Architecture with Server-Side Authorization, Idempotency, Optimistic Concurrency Control (OCC),
- * Draft->Review->Publish Workflow, Fare Version Rollback, Activity Timeline, & Formula Injection Sanitization.
- */
+require('events').EventEmitter.defaultMaxListeners = 5000;
 
 const express = require('express');
 const http = require('http');
@@ -15,6 +11,9 @@ const { MutexWriteQueue } = require('./mutexQueue');
 const { deepRedact } = require('./sanitizer');
 const { stmts, recordPaymentTx } = require('./db');
 const stateStore = require('./stateStore');
+const metrics = require('./metrics');
+const { detectGpsAnomaly } = require('./anomaly/gpsAnomaly');
+const { recordPaymentFailure, recordPaymentSuccess, getAdminAlerts } = require('./anomaly/paymentAnomaly');
 
 stateStore.init({
   redisUrl: process.env.REDIS_URL || null,
@@ -1136,6 +1135,28 @@ app.post('/api/v1/telemetry/broadcast', async (req, res) => {
   }
   lastPingTimesMap.set(vehicleNo, now);
 
+  // GPS Velocity & Teleport Anomaly Detection
+  const anomalyCheck = detectGpsAnomaly(vehicleNo, {
+    lat,
+    lng,
+    timestamp: now
+  });
+
+  if (anomalyCheck.anomaly) {
+    metrics.anomalyDetected.inc({ type: anomalyCheck.reason || 'gps_jump' });
+    // Instant rejection if velocity is impossible (>200 km/h or explicit teleport)
+    if (anomalyCheck.reason === 'impossible_teleport' || (anomalyCheck.speedKmh && anomalyCheck.speedKmh > 200)) {
+      return res.status(422).json({
+        success: false,
+        error: {
+          code: 'GPS_ANOMALY_REJECTED',
+          message: `Broadcast rejected: Impossible velocity (${anomalyCheck.speedKmh} km/h).`,
+          details: anomalyCheck
+        }
+      });
+    }
+  }
+
   // Store active trip in telemetry data shape
   const tripData = {
     vehicleNo,
@@ -1152,12 +1173,15 @@ app.post('/api/v1/telemetry/broadcast', async (req, res) => {
 
   activeTripsStore[vehicleNo] = tripData;
   recordBroadcastTimestamp();
+  metrics.telemetryBroadcastReceived.inc();
 
-  // stateStore: Update snapshot & publish to telemetry channel
+  // stateStore: Update snapshot & publish to telemetry channel with duration metric
+  const publishEnd = metrics.broadcastPublishDuration.startTimer();
   await stateStore.updateSnapshot(vehicleNo, tripData);
   await stateStore.publish('telemetry.broadcast', tripData);
+  publishEnd();
 
-  res.json({ success: true, timestamp: tripData.timestamp });
+  res.json({ success: true, timestamp: tripData.timestamp, anomalyWarning: anomalyCheck.anomaly ? anomalyCheck.reason : null });
 });
 
 // 3. Active Telemetry Snapshot Endpoint
@@ -1185,6 +1209,7 @@ app.get('/api/v1/telemetry/stream', async (req, res) => {
   res.write(`event: snapshot\ndata: ${JSON.stringify(snapshotData)}\n\n`);
 
   sseClients.add(res);
+  metrics.sseActiveConnections.inc();
 
   // Subscribe to telemetry.broadcast via stateStore
   const unsubBroadcast = stateStore.subscribe('telemetry.broadcast', (tripData) => {
@@ -1214,6 +1239,7 @@ app.get('/api/v1/telemetry/stream', async (req, res) => {
   req.on('close', () => {
     clearInterval(keepaliveTimer);
     sseClients.delete(res);
+    metrics.sseActiveConnections.dec();
     unsubBroadcast();
     unsubTripRemoved();
   });
@@ -1807,6 +1833,8 @@ app.post('/api/v1/trips/:tripId/mark-paid', authenticateDriverToken, (req, res) 
   // OTP Verification Mode
   if (otpCode !== undefined && otpCode !== null) {
     if (trip.isRedeemed || (trip.otpExpiresAt && now > trip.otpExpiresAt)) {
+      const isSpike = recordPaymentFailure(req.driverSession.vehicleNo);
+      if (isSpike) metrics.anomalyDetected.inc({ type: 'payment_failure_spike' });
       return res.status(400).json({
         success: false,
         error: { code: 'OTP_EXPIRED', message: 'OTP has expired or already been redeemed.' }
@@ -1814,6 +1842,8 @@ app.post('/api/v1/trips/:tripId/mark-paid', authenticateDriverToken, (req, res) 
     }
 
     if (trip.otpAttemptsRemaining <= 0) {
+      const isSpike = recordPaymentFailure(req.driverSession.vehicleNo);
+      if (isSpike) metrics.anomalyDetected.inc({ type: 'payment_failure_spike' });
       return res.status(400).json({
         success: false,
         error: { code: 'OTP_LOCKED', message: 'Max verification attempts exceeded for this OTP.' }
@@ -1824,6 +1854,8 @@ app.post('/api/v1/trips/:tripId/mark-paid', authenticateDriverToken, (req, res) 
     if (inputHash !== trip.otpHash) {
       trip.otpAttemptsRemaining = (trip.otpAttemptsRemaining || 1) - 1;
       saveLedgerDb();
+      const isSpike = recordPaymentFailure(req.driverSession.vehicleNo);
+      if (isSpike) metrics.anomalyDetected.inc({ type: 'payment_failure_spike' });
       return res.status(400).json({
         success: false,
         error: {
@@ -1835,6 +1867,8 @@ app.post('/api/v1/trips/:tripId/mark-paid', authenticateDriverToken, (req, res) 
 
     trip.isRedeemed = true;
   }
+
+  recordPaymentSuccess(req.driverSession.vehicleNo);
 
   const cleanUpiRef = typeof upiRef === 'string' ? upiRef.trim().slice(0, 50) : (otpCode ? `OTP-VERIFIED-${otpCode}` : null);
 
@@ -1917,6 +1951,24 @@ app.get('/api/v1/admin/drivers/payout-details', requireAdminAuth, (req, res) => 
   res.json({
     success: true,
     data: list
+  });
+});
+
+// ─── PROMETHEUS & ADMIN ALERTS ENDPOINTS ──────────────────────────────────────
+
+app.get('/metrics', async (req, res) => {
+  try {
+    res.setHeader('Content-Type', metrics.contentType);
+    res.send(await metrics.register.metrics());
+  } catch (err) {
+    res.status(500).send(err.message);
+  }
+});
+
+app.get('/api/v1/admin/alerts', requireAdminAuth, (req, res) => {
+  res.json({
+    success: true,
+    data: getAdminAlerts()
   });
 });
 

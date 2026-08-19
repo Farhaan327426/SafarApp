@@ -11,6 +11,7 @@ const auditFileName = 'audit_safar' + 'pro.js';
 const auditFilePath = path.join('scratch', auditFileName);
 
 const testSuites = [
+  'test/anomaly-detection.test.mjs',
   'test/state-store.test.mjs',
   'test/sqlite-dual-write.test.mjs',
   'test/security-hardening.test.mjs',
