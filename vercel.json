@@ -1,8 +1,6 @@
 {
-  "version": 2,
-  "public": true,
   "cleanUrls": true,
   "buildCommand": "",
-  "installCommand": "echo 'Static deployment - skipping backend npm install'",
+  "installCommand": "echo 'Static deployment'",
   "outputDirectory": "frontend"
 }
