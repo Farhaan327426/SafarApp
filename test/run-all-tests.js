@@ -7,9 +7,6 @@
 const { spawn } = require('child_process');
 const path = require('path');
 
-const auditFileName = 'audit_safar' + 'pro.js';
-const auditFilePath = path.join('scratch', auditFileName);
-
 const testSuites = [
   'test/driver-payout.test.mjs',
   'test/driver-kyc.test.mjs',
@@ -19,19 +16,25 @@ const testSuites = [
   'test/state-store.test.mjs',
   'test/sqlite-dual-write.test.mjs',
   'test/security-hardening.test.mjs',
+  'test/security-audit.test.mjs',
   'test/upi-payment.test.mjs',
   'test/admin-dashboard.test.mjs',
   'test/load-test.test.mjs',
   'test/telemetry-stream.test.mjs',
   'test/ai-assistant-api.test.mjs',
+  'test/fare-sro-versioning.test.mjs',
+  'test/telemetry-anon.test.mjs',
+  'test/production-pilot.test.mjs',
+  'test/places-route-graph.test.mjs',
   'test/core-utilities.test.mjs',
-  auditFilePath
+  'test/branding-audit.test.mjs'
 ];
 
 function runTestFile(file) {
   return new Promise((resolve) => {
     const isNodeTest = file.endsWith('.mjs');
-    const args = isNodeTest ? ['--test', file] : [file];
+    const normalizedPath = file.replace(/\\/g, '/');
+    const args = isNodeTest ? ['--test', normalizedPath] : [normalizedPath];
 
     console.log('====================================================');
     console.log(`▶ Executing: node ${args.join(' ')}`);
@@ -78,7 +81,7 @@ async function runAll() {
   if (failedCount > 0) {
     process.exit(1);
   } else {
-    console.log('🎉 ALL 8 SUITES PASSED! System is UAT & Production Pilot Ready.');
+    console.log('🎉 ALL 20 SUITES PASSED! System is UAT & Production Pilot Ready.');
     process.exit(0);
   }
 }

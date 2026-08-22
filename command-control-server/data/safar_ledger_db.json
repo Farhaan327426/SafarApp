@@ -1,0 +1,67 @@
+{
+  "checksum": "9f9fbc4b6410a76e4529072ed1bee7bdfe0c239199965d8a58ded7a9351ad1a3",
+  "data": {
+    "driversStore": [
+      [
+        "JK01-TEST-11",
+        {
+          "vehicleNo": "JK01-TEST-11",
+          "name": "Tariq Ahmad",
+          "upiId": "6beef8ca47fca0ddf7088471:c29c115e1fc7e3efd944e7d9539b4d51:df9746b46c6bd07c2e395419d0d3c647124a52",
+          "bankAccount": {
+            "accountNumber": "5d80863354ac9315ba7fbb7b:50742c48209a2c26eaae276fe253b70e:8a1cbcfe88b6e6ddd2f3be38",
+            "ifsc": "d19ecb27c0186f115d3ec945:f432793d8193c2c24f6320feb7d0dd01:42e5b39a950b86fac0dc2e",
+            "accountHolderName": "7104347f3fdddb07895ceab1:00cd1cdca157da546585fd2200ce9e6d:879e9fe21a333e59014457"
+          },
+          "updatedAt": "2026-08-22T06:41:19.863Z"
+        }
+      ],
+      [
+        "JK-01-AB-1024",
+        {
+          "vehicleNo": "JK-01-AB-1024",
+          "name": "Tariq Bhat",
+          "upiId": "891bc720a649479291b6e368:e06f95d34faffb4e66869b84f653cb86:d926e632dc1db0722d"
+        }
+      ]
+    ],
+    "tripsLedger": [
+      {
+        "tripId": "trip_1787380885009_6f91a4af",
+        "vehicleNo": "JK01-TEST-11",
+        "amount": 17,
+        "routeId": "SRN-BUD-01",
+        "origin": "Lal Chowk",
+        "destination": "Budgam Stand",
+        "status": "PAID_DIRECT",
+        "otpHash": "b090147020e033534635010c4f7eb6fc270d44e5df67ea9e744a8087df9ca106",
+        "otpExpiresAt": 1787381485009,
+        "otpAttemptsRemaining": 3,
+        "isRedeemed": false,
+        "createdAt": "2026-08-22T06:41:25.010Z",
+        "upiRef": "123456789012",
+        "paidAt": "2026-08-22T06:41:25.050Z"
+      },
+      {
+        "tripId": "trip_1787381431359_46101478",
+        "vehicleNo": "JK-01-AB-1024",
+        "amount": 24,
+        "routeId": "SRN-BUD-01",
+        "origin": "Lal Chowk",
+        "destination": "Budgam",
+        "status": "AWAITING_PAYMENT",
+        "otpHash": "ae6cce4b004d72861a57b9a782bfa7970ef01225cb9f619d4ed553135d5dda8e",
+        "otpExpiresAt": 1787382031359,
+        "otpAttemptsRemaining": 3,
+        "isRedeemed": false,
+        "createdAt": "2026-08-22T06:50:31.360Z"
+      }
+    ],
+    "driverEarningsLedger": [
+      [
+        "JK01-TEST-11",
+        17
+      ]
+    ]
+  }
+}

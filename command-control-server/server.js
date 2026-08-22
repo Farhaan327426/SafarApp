@@ -1,6 +1,8 @@
 require('events').EventEmitter.defaultMaxListeners = 5000;
 
 const express = require('express');
+const cors = require('cors');
+const helmet = require('helmet');
 const http = require('http');
 const path = require('path');
 const crypto = require('crypto');
@@ -10,14 +12,49 @@ const { encryptField, decryptField, hashOtp } = require('./cryptoUtils');
 const { MutexWriteQueue } = require('./mutexQueue');
 const { deepRedact } = require('./sanitizer');
 const {
+  db,
   stmts,
   recordPaymentTx,
   getAvailableBalancePaise,
   requestPayoutTx,
   approvePayoutTx,
   rejectPayoutTx,
-  markPaidPayoutTx
+  markPaidPayoutTx,
+  createSroDraftTx,
+  acquireSroDraftLockTx,
+  releaseSroDraftLockTx,
+  publishSroVersionTx,
+  rollbackSroVersionTx,
+  getActiveSroVersion,
+  getAllSroVersions,
+  recordComplianceDiscrepancyTx,
+  getComplianceDiscrepancies,
+  getOperatorComplianceStats,
+  getAggregatedTelemetryRecords,
+  queryAggregatedTelemetry,
+  recordPilotFeedbackTx,
+  getPilotFeedbackRecords,
+  updatePilotFeedbackTriageTx,
+  getPilotKpiStats,
+  searchPlaces,
+  getRouteStops,
+  reportMissingPlace,
+  getPendingPlaces,
+  verifyPlace,
+  verifyPlacesBulkTx,
+  findPotentialDuplicates,
+  insertGpsPing,
+  haversineDistanceKm,
+  computeRulesChecksum,
+  canonicalJsonStringify
 } = require('./db');
+const {
+  fuzzCoordinate,
+  timeBin,
+  aggregateRoute,
+  runAggregator,
+  cleanupRawGpsPings
+} = require('./telemetryAggregator');
 const stateStore = require('./stateStore');
 const metrics = require('./metrics');
 const { detectGpsAnomaly } = require('./anomaly/gpsAnomaly');
@@ -38,8 +75,11 @@ stateStore.init({
   redisUrl: process.env.REDIS_URL || null,
 });
 
+const { setupLiveTracking, broadcastRealVehicleGps } = require('./websocket');
+
 const app = express();
 const server = http.createServer(app);
+setupLiveTracking(server);
 const PORT = process.env.PORT || 3000;
 
 const activeAdminTokens = new Map();
@@ -306,6 +346,7 @@ let operatorViolationsData = []; // Aggregated operator violation audit records
 
 let activeTripsStore = {};
 let sosAlertsStore = [];
+const otpMemoryCache = new Map();
 
 // ─── HELPER FUNCTIONS & SECURITY PIPELINE ──────────────────────────────────────
 
@@ -350,28 +391,69 @@ app.set('trust proxy', true);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Security Headers & Dynamic CSP Nonce Middleware
+// CORS Allowed Origins Middleware
+const allowedOrigins = [
+  'https://safarkashmir.in',
+  'https://www.safarkashmir.in',
+  'http://localhost:3000',
+  'http://127.0.0.1:3000',
+  'capacitor://localhost',
+  'http://localhost'
+];
+
+if (process.env.CORS_ORIGIN) {
+  process.env.CORS_ORIGIN.split(',').forEach(o => {
+    const trimmed = o.trim();
+    if (trimmed && !allowedOrigins.includes(trimmed)) allowedOrigins.push(trimmed);
+  });
+}
+
+app.use(cors({
+  origin: function (origin, callback) {
+    if (
+      !origin ||
+      allowedOrigins.includes(origin) ||
+      /^http:\/\/(127\.0\.0\.1|localhost)(:\d+)?$/.test(origin) ||
+      origin.startsWith('capacitor://')
+    ) {
+      return callback(null, true);
+    }
+    return callback(null, false);
+  },
+  credentials: true
+}));
+
+// Helmet & Dynamic Security Headers Middleware
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://cdn.tailwindcss.com", "https://unpkg.com", "https://cdn.jsdelivr.net"],
+      styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com", "https://unpkg.com"],
+      fontSrc: ["'self'", "https://fonts.gstatic.com"],
+      imgSrc: ["'self'", "data:", "blob:", "https://*.tile.openstreetmap.org", "https://*.basemaps.cartocdn.com", "https://maps.gstatic.com", "https://*.googleapis.com"],
+      connectSrc: ["'self'", "ws:", "wss:", "http:", "https:"]
+    }
+  },
+  frameguard: { action: 'deny' },
+  hsts: { maxAge: 31536000, includeSubDomains: true, preload: true }
+}));
+
 app.use((req, res, next) => {
-  const nonce = crypto.randomBytes(16).toString('base64');
-  res.locals.nonce = nonce;
   req.requestId = generateId("req");
-
   res.setHeader('X-Request-ID', req.requestId);
-  res.setHeader('X-Content-Type-Options', 'nosniff');
-  res.setHeader('X-Frame-Options', 'DENY');
-  res.setHeader('X-XSS-Protection', '1; mode=block');
-  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
-  
-  res.setHeader(
-    'Content-Security-Policy',
-    `default-src 'self'; script-src 'self' 'nonce-${nonce}' https://unpkg.com https://cdn.jsdelivr.net; style-src 'self' 'nonce-${nonce}' https://fonts.googleapis.com https://unpkg.com https://cdn.jsdelivr.net; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https://*.basemaps.cartocdn.com https://*.cartocdn.com https://*.tile.openstreetmap.org https://tile.openstreetmap.org https://unpkg.com https://cdn.jsdelivr.net; connect-src 'self' https://*.basemaps.cartocdn.com https://*.cartocdn.com https://*.tile.openstreetmap.org https://tile.openstreetmap.org https://unpkg.com https://cdn.jsdelivr.net; frame-ancestors 'none'; base-uri 'self';`
-  );
-
   next();
 });
 
 // Serve Frontend Application Files
 app.use(express.static(path.join(__dirname, '..', 'frontend')));
+
+// Friendly Root Portal Redirects
+app.get('/', (req, res) => res.sendFile(path.join(__dirname, '..', 'frontend', 'index.html')));
+app.get('/app', (req, res) => res.sendFile(path.join(__dirname, '..', 'frontend', 'index.html')));
+app.get('/commuter', (req, res) => res.sendFile(path.join(__dirname, '..', 'frontend', 'index.html')));
+app.get('/admin', (req, res) => res.sendFile(path.join(__dirname, '..', 'frontend', 'index.html')));
+app.get('/driver', (req, res) => res.sendFile(path.join(__dirname, '..', 'frontend', 'index.html')));
 
 
 // Authentication Middleware
@@ -1914,6 +1996,22 @@ app.post('/api/v1/telemetry/broadcast', async (req, res) => {
   await stateStore.publish('telemetry.broadcast', tripData);
   publishEnd();
 
+  // Asynchronous SQLite raw GPS persistence (7-day retention)
+  try {
+    stmts.insertGpsPing.run(
+      driverInfo.driverId || driverInfo.vehicleNo || 'driver_unknown',
+      driverInfo.vehicleNo,
+      driverInfo.routeId,
+      lat,
+      lng,
+      cleanSpeed,
+      0,
+      now
+    );
+  } catch (dbErr) {
+    console.error('[DB] Raw GPS ping insert error:', dbErr.message);
+  }
+
   res.json({ success: true, timestamp: tripData.timestamp, anomalyWarning: anomalyCheck.anomaly ? anomalyCheck.reason : null });
 });
 
@@ -1960,6 +2058,14 @@ app.get('/api/v1/telemetry/stream', async (req, res) => {
     } catch (e) {}
   });
 
+  // Subscribe to safar_fare_updates via stateStore
+  const unsubFare = stateStore.subscribe('safar_fare_updates', (data) => {
+    try {
+      res.write(`event: fare_update\ndata: ${JSON.stringify(data)}\n\n`);
+      if (typeof res.flush === 'function') res.flush();
+    } catch (e) {}
+  });
+
   // Keep-alive ping interval (every 15s)
   const keepaliveTimer = setInterval(() => {
     try {
@@ -1975,6 +2081,7 @@ app.get('/api/v1/telemetry/stream', async (req, res) => {
     metrics.sseActiveConnections.dec();
     unsubBroadcast();
     unsubTripRemoved();
+    unsubFare();
   });
 });
 
@@ -2731,6 +2838,1051 @@ app.get('/readyz', (req, res) => {
     });
   });
 });
+
+// ─── FARE SRO VERSIONING & TRANSPORT DEPT COMPLIANCE (SPRINT 9) ──────────
+
+// 1. Public Active SRO Version
+app.get('/api/v1/fares/active', (req, res) => {
+  try {
+    const active = getActiveSroVersion();
+    if (!active) {
+      return res.status(404).json({ success: false, error: 'No active fare version' });
+    }
+    const rules = JSON.parse(active.rules_json);
+    res.json({
+      success: true,
+      data: {
+        versionId: active.version_id,
+        sroNumber: active.sro_number,
+        publishedAt: active.published_at,
+        rules,
+        sha256Checksum: active.sha256_checksum
+      }
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// 2. Admin List All SRO Versions
+app.get('/api/v1/admin/fares/sro/versions', (req, res) => {
+  try {
+    const versions = getAllSroVersions().map(v => ({
+      ...v,
+      rules: JSON.parse(v.rules_json)
+    }));
+    res.json({ success: true, data: versions });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// 3. Admin Create SRO Draft
+app.post('/api/v1/admin/fares/sro/draft', (req, res) => {
+  try {
+    const { sroNumber, rulesJson, createdBy } = req.body || {};
+    if (!sroNumber || !rulesJson || typeof rulesJson !== 'object') {
+      return res.status(400).json({ success: false, error: 'sroNumber and rulesJson object are required' });
+    }
+    const adminId = req.headers['x-admin-id'] || createdBy || 'admin_super';
+    const draft = createSroDraftTx({ sroNumber: String(sroNumber).trim(), rulesJson, createdBy: adminId });
+    res.status(201).json({ success: true, data: draft });
+  } catch (err) {
+    res.status(400).json({ success: false, error: err.message });
+  }
+});
+
+// 4. Admin Acquire Draft Lock
+app.post('/api/v1/admin/fares/sro/:versionId/lock', (req, res) => {
+  try {
+    const versionId = parseInt(req.params.versionId, 10);
+    const adminId = req.headers['x-admin-id'] || (req.body && req.body.adminId) || 'admin_super';
+    const result = acquireSroDraftLockTx(versionId, adminId);
+    res.json({ success: true, data: result });
+  } catch (err) {
+    if (err.message === 'LOCK_CONFLICT') {
+      return res.status(409).json({ success: false, error: 'LOCK_CONFLICT', message: 'Draft is currently locked by another administrator' });
+    }
+    res.status(400).json({ success: false, error: err.message });
+  }
+});
+
+// 5. Admin Release Draft Lock
+app.post('/api/v1/admin/fares/sro/:versionId/unlock', (req, res) => {
+  try {
+    const versionId = parseInt(req.params.versionId, 10);
+    const adminId = req.headers['x-admin-id'] || (req.body && req.body.adminId) || 'admin_super';
+    const result = releaseSroDraftLockTx(versionId, adminId);
+    res.json({ success: true, data: result });
+  } catch (err) {
+    res.status(400).json({ success: false, error: err.message });
+  }
+});
+
+// 6. Admin Publish SRO Version
+app.post('/api/v1/admin/fares/sro/:versionId/publish', async (req, res) => {
+  try {
+    const versionId = parseInt(req.params.versionId, 10);
+    const adminId = req.headers['x-admin-id'] || (req.body && req.body.adminId) || 'admin_super';
+    const published = publishSroVersionTx(versionId, adminId);
+
+    const eventPayload = {
+      type: 'fare_version_published',
+      versionId: published.version_id,
+      sroNumber: published.sro_number,
+      sha256Checksum: published.sha256_checksum,
+      timestamp: Date.now()
+    };
+
+    // Broadcast to Redis / memory StateStore
+    await stateStore.publish('safar_fare_updates', eventPayload);
+
+    // Direct SSE push
+    const sseMsg = `event: fare_update\ndata: ${JSON.stringify(eventPayload)}\n\n`;
+    sseClients.forEach(client => {
+      try {
+        client.write(sseMsg);
+        if (typeof client.flush === 'function') client.flush();
+      } catch (e) {}
+    });
+
+    // Record Audit
+    stmts.insertAudit.run(
+      `audit_${Date.now()}_${crypto.randomBytes(4).toString('hex')}`,
+      adminId,
+      'ADMIN',
+      'FARE_SRO_PUBLISHED',
+      'FARE_SRO',
+      String(versionId),
+      JSON.stringify({ versionId, sroNumber: published.sro_number, checksum: published.sha256_checksum }),
+      req.ip || '127.0.0.1',
+      'SUCCESS'
+    );
+
+    res.json({ success: true, data: published });
+  } catch (err) {
+    if (err.message === 'LOCK_CONFLICT') {
+      return res.status(409).json({ success: false, error: 'LOCK_CONFLICT', message: 'Draft is locked by another administrator' });
+    }
+    res.status(400).json({ success: false, error: err.message });
+  }
+});
+
+// 7. Admin Rollback SRO Version
+app.post('/api/v1/admin/fares/sro/:versionId/rollback', async (req, res) => {
+  try {
+    const versionId = parseInt(req.params.versionId, 10);
+    const adminId = req.headers['x-admin-id'] || (req.body && req.body.adminId) || 'admin_super';
+    const target = rollbackSroVersionTx(versionId, adminId);
+
+    const eventPayload = {
+      type: 'fare_version_rolled_back',
+      versionId: target.version_id,
+      sroNumber: target.sro_number,
+      sha256Checksum: target.sha256_checksum,
+      timestamp: Date.now()
+    };
+
+    await stateStore.publish('safar_fare_updates', eventPayload);
+
+    const sseMsg = `event: fare_update\ndata: ${JSON.stringify(eventPayload)}\n\n`;
+    sseClients.forEach(client => {
+      try {
+        client.write(sseMsg);
+        if (typeof client.flush === 'function') client.flush();
+      } catch (e) {}
+    });
+
+    stmts.insertAudit.run(
+      `audit_${Date.now()}_${crypto.randomBytes(4).toString('hex')}`,
+      adminId,
+      'ADMIN',
+      'FARE_SRO_ROLLED_BACK',
+      'FARE_SRO',
+      String(versionId),
+      JSON.stringify({ versionId, sroNumber: target.sro_number, checksum: target.sha256_checksum }),
+      req.ip || '127.0.0.1',
+      'SUCCESS'
+    );
+
+    res.json({ success: true, data: target });
+  } catch (err) {
+    res.status(400).json({ success: false, error: err.message });
+  }
+});
+
+// 8. Record Compliance Discrepancy (Overcharge Reporting)
+app.post('/api/v1/compliance/report', (req, res) => {
+  try {
+    const {
+      tripId,
+      routeId,
+      driverId,
+      expectedFarePaise,
+      chargedFarePaise,
+      operatorId,
+      reportedBy
+    } = req.body || {};
+
+    if (!tripId || expectedFarePaise === undefined || chargedFarePaise === undefined) {
+      return res.status(400).json({
+        success: false,
+        error: 'tripId, expectedFarePaise, and chargedFarePaise are required.'
+      });
+    }
+
+    let finalRouteId = routeId;
+    let finalDriverId = driverId;
+    let finalOperatorId = operatorId;
+
+    const existingTrip = stmts.getTripById ? stmts.getTripById.get(String(tripId)) : null;
+    if (existingTrip) {
+      if (!finalRouteId) finalRouteId = existingTrip.route_id || 'SRN-BUD-01';
+      if (!finalDriverId) finalDriverId = existingTrip.vehicle_no;
+      if (!finalOperatorId) finalOperatorId = existingTrip.vehicle_no.split('-')[0] || 'OP_DEFAULT';
+    }
+
+    finalRouteId = finalRouteId || 'SRN-BUD-01';
+    finalDriverId = finalDriverId || 'JK01-AV-9912';
+    finalOperatorId = finalOperatorId || 'OP_JK_METRO';
+
+    const discrepancy = recordComplianceDiscrepancyTx({
+      tripId,
+      routeId: finalRouteId,
+      driverId: finalDriverId,
+      expectedFarePaise: Number(expectedFarePaise),
+      chargedFarePaise: Number(chargedFarePaise),
+      operatorId: finalOperatorId,
+      reportedBy: reportedBy || req.headers['x-admin-id'] || 'system'
+    });
+
+    res.status(201).json({ success: true, data: discrepancy });
+  } catch (err) {
+    res.status(400).json({ success: false, error: err.message });
+  }
+});
+
+// 9. Transport Department Compliance Audit Statement Export
+app.get('/api/v1/admin/compliance/audit-export', (req, res) => {
+  try {
+    const { format = 'csv', operatorId, severity, routeId } = req.query || {};
+    const discrepancies = getComplianceDiscrepancies({ operatorId, severity, routeId });
+
+    if (format === 'json') {
+      const canonical = canonicalJsonStringify(discrepancies);
+      const checksum = crypto.createHash('sha256').update(canonical).digest('hex');
+      res.setHeader('X-Audit-Checksum', checksum);
+      return res.json({
+        success: true,
+        totalCount: discrepancies.length,
+        checksum,
+        exportedAt: new Date().toISOString(),
+        data: discrepancies
+      });
+    }
+
+    // CSV Format
+    const headers = [
+      'id',
+      'trip_id',
+      'route_id',
+      'driver_id',
+      'expected_fare_paise',
+      'charged_fare_paise',
+      'overcharge_paise',
+      'overcharge_percent',
+      'severity',
+      'operator_id',
+      'reported_by',
+      'reported_at',
+      'resolved_at'
+    ];
+
+    const rows = discrepancies.map(d => [
+      d.id,
+      `"${d.trip_id}"`,
+      `"${d.route_id}"`,
+      `"${d.driver_id}"`,
+      d.expected_fare_paise,
+      d.charged_fare_paise,
+      d.overcharge_paise,
+      d.overcharge_percent.toFixed(2),
+      d.severity,
+      `"${d.operator_id}"`,
+      `"${d.reported_by || ''}"`,
+      `"${d.reported_at}"`,
+      `"${d.resolved_at || ''}"`
+    ].join(','));
+
+    const csvContent = [headers.join(','), ...rows].join('\n');
+    const checksum = crypto.createHash('sha256').update(csvContent).digest('hex');
+
+    res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+    res.setHeader('Content-Disposition', `attachment; filename="safar-compliance-audit-${Date.now()}.csv"`);
+    res.setHeader('X-Audit-Checksum', checksum);
+    res.send(csvContent);
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// 10. Fleet Operator Compliance Ratings
+app.get('/api/v1/admin/compliance/operator-ratings', (req, res) => {
+  try {
+    const stats = getOperatorComplianceStats();
+    res.json({ success: true, data: stats });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// ─── ANONYMISED GOVERNMENT TELEMETRY (SPRINT 10) ──────────────────────────
+
+function authenticateAuditorOrAdmin(req, res, next) {
+  // 1. Session token
+  const authHeader = req.headers['authorization'];
+  let token = null;
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    token = authHeader.substring(7);
+  }
+  if (!token && req.headers.cookie) {
+    const cookies = req.headers.cookie.split(';').reduce((acc, cookie) => {
+      const [k, v] = cookie.trim().split('=');
+      acc[k] = v;
+      return acc;
+    }, {});
+    token = cookies['safar_admin_session'];
+  }
+
+  if (token && (activeSessions[token] || activeAdminTokens.has(token))) {
+    const session = activeSessions[token] || { id: 'admin', role: 'ADMIN', expiresAt: Date.now() + 3600000 };
+    if (Date.now() <= session.expiresAt) {
+      req.user = session;
+      return next();
+    }
+  }
+
+  // 2. Direct Admin / Auditor identifier header
+  const adminId = req.headers['x-admin-id'] || req.headers['x-auditor-id'];
+  const userRole = req.headers['x-role'] || 'AUDITOR';
+  if (adminId) {
+    req.user = { id: adminId, username: adminId, role: userRole };
+    return next();
+  }
+
+  return res.status(401).json({
+    success: false,
+    error: { code: 'UNAUTHORIZED', message: 'Authorised government auditor or administrator authentication required.' }
+  });
+}
+
+// 11. Government / Auditor Anonymised Aggregated Telemetry Export
+app.get('/api/v1/government/telemetry/aggregated', authenticateAuditorOrAdmin, (req, res) => {
+  try {
+    const { date, routeId, format = 'json', startTime, endTime } = req.query || {};
+    let start, end;
+
+    if (date) {
+      const startOfDay = new Date(date + 'T00:00:00Z').getTime();
+      const endOfDay = startOfDay + 24 * 60 * 60 * 1000;
+      start = startOfDay;
+      end = endOfDay;
+    } else if (startTime && endTime) {
+      start = new Date(startTime).getTime();
+      end = new Date(endTime).getTime();
+    } else {
+      end = Date.now();
+      start = end - 24 * 60 * 60 * 1000;
+    }
+
+    const records = queryAggregatedTelemetry(routeId || null, start, end);
+
+    const anonymized = records.map(r => ({
+      routeId: r.route_id,
+      timeBin: new Date(r.time_bin).toISOString(),
+      busCount: r.bus_count,
+      avgSpeedKmh: r.avg_speed !== null ? Number(r.avg_speed.toFixed(2)) : 0,
+      centroid: {
+        lat: r.fuzzed_centroid_lat,
+        lng: r.fuzzed_centroid_lng
+      }
+    }));
+
+    if (format === 'csv') {
+      const headers = ['routeId', 'timeBin', 'busCount', 'avgSpeedKmh', 'fuzzedLat', 'fuzzedLng'];
+      const rows = anonymized.map(d => [
+        `"${d.routeId}"`,
+        `"${d.timeBin}"`,
+        d.busCount,
+        d.avgSpeedKmh.toFixed(2),
+        d.centroid.lat.toFixed(3),
+        d.centroid.lng.toFixed(3)
+      ].join(','));
+      const csvContent = [headers.join(','), ...rows].join('\n');
+      const checksum = crypto.createHash('sha256').update(csvContent).digest('hex');
+
+      res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+      res.setHeader('Content-Disposition', `attachment; filename="safar-aggregated-telemetry-${Date.now()}.csv"`);
+      res.setHeader('X-Audit-Checksum', `sha256:${checksum}`);
+      return res.send(csvContent);
+    }
+
+    const canonical = canonicalJsonStringify(anonymized);
+    const checksum = crypto.createHash('sha256').update(canonical).digest('hex');
+    res.setHeader('X-Audit-Checksum', `sha256:${checksum}`);
+    return res.json({
+      success: true,
+      generatedAt: new Date().toISOString(),
+      date: date || new Date(start).toISOString().split('T')[0],
+      start,
+      end,
+      routeId: routeId || null,
+      totalBins: anonymized.length,
+      checksum: `sha256:${checksum}`,
+      data: anonymized
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// ─── SPRINT 12: CORRIDOR 1 PILOT FEEDBACK & KPI ANALYTICS ENDPOINTS ─────────
+
+// 1. In-App Pilot Feedback Endpoint (POST /api/v1/pilot/feedback)
+app.post('/api/v1/pilot/feedback', (req, res) => {
+  try {
+    const { userCategory, phone, vehicleNo, routeId, category, comments, rating } = req.body || {};
+
+    if (!comments || typeof comments !== 'string' || comments.trim().length === 0 || comments.length > 1000) {
+      return res.status(400).json({
+        success: false,
+        error: { code: 'INVALID_COMMENTS', message: 'Comments must be a non-empty string under 1000 characters.' }
+      });
+    }
+
+    const numRating = parseInt(rating, 10);
+    if (isNaN(numRating) || numRating < 1 || numRating > 5) {
+      return res.status(400).json({
+        success: false,
+        error: { code: 'INVALID_RATING', message: 'Rating must be an integer between 1 and 5.' }
+      });
+    }
+
+    const validUserCats = ['commuter', 'driver', 'other'];
+    const validCats = ['bug', 'suggestion', 'complaint', 'praise', 'other'];
+
+    const feedbackRecord = recordPilotFeedbackTx({
+      userCategory: validUserCats.includes(userCategory) ? userCategory : 'commuter',
+      phone: typeof phone === 'string' ? phone.trim().slice(0, 20) : null,
+      vehicleNo: typeof vehicleNo === 'string' ? vehicleNo.trim().slice(0, 30) : null,
+      routeId: typeof routeId === 'string' ? routeId.trim().slice(0, 50) : 'SRN-BUD-01',
+      category: validCats.includes(category) ? category : 'other',
+      comments: comments.trim(),
+      rating: numRating,
+      ipAddress: req.ip || req.socket.remoteAddress || '127.0.0.1'
+    });
+
+    res.status(201).json({
+      success: true,
+      message: 'Pilot feedback recorded successfully.',
+      data: feedbackRecord
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// 2. Admin Pilot Feedback Review Endpoint (GET /api/v1/admin/pilot/feedback)
+app.get('/api/v1/admin/pilot/feedback', requireAdminAuth, (req, res) => {
+  try {
+    const { status, category, limit } = req.query || {};
+    const records = getPilotFeedbackRecords({
+      status: status ? String(status).trim() : null,
+      category: category ? String(category).trim() : null,
+      limit: limit ? parseInt(limit, 10) : 50
+    });
+
+    // Mask phone numbers in admin view for privacy compliance
+    const maskedRecords = records.map(r => ({
+      ...r,
+      phone: r.phone ? (r.phone.length > 4 ? `****${r.phone.slice(-4)}` : '****') : null
+    }));
+
+    res.json({
+      success: true,
+      totalCount: maskedRecords.length,
+      data: maskedRecords
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// 3. Admin Pilot Feedback Triage Endpoint (PATCH /api/v1/admin/pilot/feedback/:id/triage)
+app.patch('/api/v1/admin/pilot/feedback/:id/triage', requireAdminAuth, (req, res) => {
+  try {
+    const id = parseInt(req.params.id, 10);
+    const { status, triageNotes } = req.body || {};
+
+    const validStatuses = ['open', 'triaged', 'resolved'];
+    if (!status || !validStatuses.includes(status)) {
+      return res.status(400).json({
+        success: false,
+        error: { code: 'INVALID_STATUS', message: 'Status must be one of: open, triaged, resolved.' }
+      });
+    }
+
+    const updated = updatePilotFeedbackTriageTx(id, {
+      status,
+      triagedBy: req.adminToken ? 'admin_authenticated' : 'admin_super',
+      triageNotes: triageNotes ? String(triageNotes).trim() : ''
+    });
+
+    if (!updated) {
+      return res.status(404).json({ success: false, error: 'Feedback record not found.' });
+    }
+
+    res.json({
+      success: true,
+      data: updated
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// 4. Admin Pilot Operational KPIs Endpoint (GET /api/v1/admin/pilot/kpis)
+app.get('/api/v1/admin/pilot/kpis', authenticateAuditorOrAdmin, (req, res) => {
+  try {
+    const kpiStats = getPilotKpiStats();
+    res.json({
+      success: true,
+      timestamp: new Date().toISOString(),
+      data: kpiStats
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// ─── SAFAR PLACE & STOP GRAPH ENDPOINTS ──────────────────────────────────────
+
+let searchRateLimitMap = new Map(); // ip -> [timestamps]
+let reportRateLimitMap = new Map(); // ip -> [timestamps]
+const captchaStore = new Map(); // token -> { answer, expiresAt }
+
+// Clean rate limiters and captcha tokens
+setInterval(() => {
+  const now = Date.now();
+  for (const [ip, times] of searchRateLimitMap.entries()) {
+    const valid = times.filter(t => now - t < 60000);
+    if (valid.length === 0) searchRateLimitMap.delete(ip);
+    else searchRateLimitMap.set(ip, valid);
+  }
+  for (const [ip, times] of reportRateLimitMap.entries()) {
+    const valid = times.filter(t => now - t < 60000);
+    if (valid.length === 0) reportRateLimitMap.delete(ip);
+    else reportRateLimitMap.set(ip, valid);
+  }
+  for (const [token, data] of captchaStore.entries()) {
+    if (now > data.expiresAt) captchaStore.delete(token);
+  }
+}, 60000);
+
+// 0. Dynamic Signed Math CAPTCHA Endpoint (GET /api/v1/captcha/challenge)
+app.get('/api/v1/captcha/challenge', (req, res) => {
+  try {
+    const num1 = Math.floor(Math.random() * 12) + 1;
+    const num2 = Math.floor(Math.random() * 10) + 1;
+    const answer = num1 + num2;
+    const challengeId = 'cap_' + crypto.randomBytes(8).toString('hex');
+    const token = crypto.createHmac('sha256', 'safar_captcha_secret').update(`${challengeId}:${answer}:${Date.now()}`).digest('hex');
+
+    captchaStore.set(token, { answer, expiresAt: Date.now() + 5 * 60 * 1000 });
+
+    res.json({
+      success: true,
+      challengeId,
+      token,
+      question: `What is ${num1} + ${num2}?`
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// 1. Multilingual Place Search Endpoint (GET /api/v1/places/search?q=...)
+app.get('/api/v1/places/search', (req, res) => {
+  try {
+    const clientIp = req.ip || req.socket.remoteAddress || '127.0.0.1';
+    const now = Date.now();
+    const times = searchRateLimitMap.get(clientIp) || [];
+    const validTimes = times.filter(t => now - t < 60000);
+
+    if (validTimes.length >= 100) {
+      return res.status(429).json({
+        success: false,
+        error: { code: 'RATE_LIMITED', message: 'Rate limit exceeded: Max 100 searches per minute.' }
+      });
+    }
+
+    validTimes.push(now);
+    searchRateLimitMap.set(clientIp, validTimes);
+
+    const { q, limit } = req.query || {};
+    if (!q || typeof q !== 'string' || q.trim().length === 0) {
+      return res.json({ success: true, count: 0, data: [] });
+    }
+
+    const numLimit = limit ? Math.min(50, parseInt(limit, 10)) : 10;
+    const places = searchPlaces(q, numLimit);
+
+    res.json({
+      success: true,
+      query: q.trim(),
+      count: places.length,
+      data: places
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// 2. Ordered Route Stops Endpoint (GET /api/v1/routes/:routeId/stops)
+app.get('/api/v1/routes/:routeId/stops', (req, res) => {
+  try {
+    const { routeId } = req.params;
+    const stops = getRouteStops(routeId);
+
+    if (!stops || stops.length === 0) {
+      return res.status(404).json({
+        success: false,
+        error: { code: 'ROUTE_NOT_FOUND', message: `No stops registered for route ID: ${routeId}` }
+      });
+    }
+
+    res.json({
+      success: true,
+      routeId,
+      totalStops: stops.length,
+      data: stops
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// 2b. Fare & ETA Estimation Endpoint (GET /api/v1/routes/:routeId/estimate)
+app.get('/api/v1/routes/:routeId/estimate', (req, res) => {
+  try {
+    const { routeId } = req.params;
+    const { fromSeq, toSeq } = req.query || {};
+
+    const stops = getRouteStops(routeId);
+    if (!stops || stops.length === 0) {
+      return res.status(404).json({ success: false, error: `Route ${routeId} not found` });
+    }
+
+    const fSeq = fromSeq ? parseInt(fromSeq, 10) : 1;
+    const tSeq = toSeq ? parseInt(toSeq, 10) : stops[stops.length - 1].stop_sequence;
+
+    const fromIdx = stops.findIndex(s => s.stop_sequence === fSeq);
+    const toIdx = stops.findIndex(s => s.stop_sequence === tSeq);
+
+    if (fromIdx === -1 || toIdx === -1) {
+      return res.status(400).json({ success: false, error: 'Invalid stop sequence provided.' });
+    }
+    if (toIdx < fromIdx) {
+      return res.status(400).json({ success: false, error: 'Destination stop must follow origin stop in sequence.' });
+    }
+
+    let totalDistance = 0;
+    let totalTime = 0;
+    for (let i = fromIdx + 1; i <= toIdx; i++) {
+      totalDistance += stops[i].distance_from_previous_m || 0;
+      totalTime += stops[i].travel_time_estimate_min || 0;
+    }
+
+    // Fare heuristic: ₹10 base + ₹5 per km (rounded to nearest ₹5)
+    const distanceKm = totalDistance / 1000;
+    const fare = Math.max(10, Math.round((10 + (distanceKm * 5)) / 5) * 5);
+
+    res.json({
+      success: true,
+      routeId,
+      data: {
+        fromStop: stops[fromIdx].name_en,
+        toStop: stops[toIdx].name_en,
+        totalDistanceKm: parseFloat(distanceKm.toFixed(2)),
+        totalTimeMin: Math.round(totalTime),
+        estimatedFareINR: fare
+      }
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// 2e. OTP Polling Fallback Endpoint (GET /api/v1/otp/status) for 2G/3G network drops
+app.get('/api/v1/otp/status', (req, res) => {
+  try {
+    const { intentId } = req.query || {};
+    if (!intentId) {
+      return res.status(400).json({ success: false, error: 'intentId query parameter is required.' });
+    }
+
+    // High-performance In-Memory cache lookup to prevent SQLite write-queue contention during 6-8 AM morning peak
+    let intent = otpMemoryCache.get(intentId);
+    if (!intent) {
+      intent = db.prepare('SELECT * FROM otp_intents WHERE intent_id = ?').get(intentId);
+      if (intent) otpMemoryCache.set(intentId, intent);
+    }
+
+    if (!intent) {
+      return res.status(404).json({ success: false, error: 'OTP intent not found or expired.' });
+    }
+
+    const now = Math.floor(Date.now() / 1000);
+    const expiresAt = intent.expires_at || intent.expiresAt || 0;
+    const isExpired = expiresAt < now;
+
+    res.json({
+      success: true,
+      data: {
+        intentId: intent.intent_id || intent.intentId,
+        otpHash: intent.otp_hash || intent.otpHash,
+        displayOtp: intent.display_otp || intent.displayOtp,
+        verified: intent.verified === 1 || intent.verified === true,
+        expired: isExpired,
+        createdAt: intent.created_at || intent.createdAt
+      }
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// 2f. Zero-Fee Driver Shift Activation Endpoint (POST /api/v1/driver/shift/activate)
+app.post('/api/v1/driver/shift/activate', (req, res) => {
+  try {
+    const { driverId, vehicleNo, routeId } = req.body || {};
+    if (!driverId && !vehicleNo) {
+      return res.status(400).json({ success: false, error: 'driverId or vehicleNo is required.' });
+    }
+
+    const id = driverId || vehicleNo;
+    db.prepare(`
+      INSERT INTO audit_events (actor_id, actor_role, action, details_json, created_at)
+      VALUES (?, 'DRIVER', 'FREE_SHIFT_ACTIVATED', ?, datetime('now'))
+    `).run(id, JSON.stringify({ routeId: routeId || 'SRN-SNM-02', fee: 0 }));
+
+    res.json({
+      success: true,
+      feeINR: 0,
+      message: `Shift activated for ${id} (100% Free Driver Access). Telemetry & Direct UPI ready.`,
+      timestamp: new Date().toISOString()
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+app.post('/api/v1/telemetry/push', (req, res) => {
+  try {
+    const { vehicleNo, routeId, lat, lng, speed, heading, nextStop } = req.body || {};
+    if (!vehicleNo || !lat || !lng) {
+      return res.status(400).json({ success: false, error: 'vehicleNo, lat, and lng are required.' });
+    }
+
+    const numLat = parseFloat(lat);
+    const numLng = parseFloat(lng);
+
+    insertGpsPing({
+      driverId: 'drv_sim',
+      vehicleNo,
+      routeId: routeId || 'SRN-SNM-02',
+      lat: numLat,
+      lng: numLng,
+      speed: speed || 0,
+      heading: heading || 0,
+      timestamp: new Date().toISOString()
+    });
+
+    broadcastRealVehicleGps({
+      vehicleNo,
+      routeId: routeId || 'SRN-SNM-02',
+      lat: numLat,
+      lng: numLng,
+      speed: speed || 0,
+      heading: heading || 0,
+      nextStop: nextStop || 'En route'
+    });
+
+    res.json({
+      success: true,
+      message: 'Real-time vehicle telemetry ingested and broadcast successfully.',
+      timestamp: new Date().toISOString()
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// 2d. Multi-Stop Route Optimization & Trip Planner (GET /api/v1/routing/plan)
+app.get('/api/v1/routing/plan', (req, res) => {
+  try {
+    const { originPlaceId, destPlaceId, origin, destination } = req.query || {};
+    
+    let originPlace = originPlaceId ? db.prepare('SELECT * FROM places WHERE id = ?').get(parseInt(originPlaceId, 10)) : null;
+    let destPlace = destPlaceId ? db.prepare('SELECT * FROM places WHERE id = ?').get(parseInt(destPlaceId, 10)) : null;
+
+    if (!originPlace && origin) {
+      originPlace = db.prepare('SELECT * FROM places WHERE name_en LIKE ? AND deleted_at IS NULL LIMIT 1').get(`%${origin}%`);
+    }
+    if (!destPlace && destination) {
+      destPlace = db.prepare('SELECT * FROM places WHERE name_en LIKE ? AND deleted_at IS NULL LIMIT 1').get(`%${destination}%`);
+    }
+
+    if (!originPlace || !destPlace) {
+      const allStops = getRouteStops('SRN-BUD-01');
+      originPlace = originPlace || allStops[0];
+      destPlace = destPlace || allStops[allStops.length - 1];
+    }
+
+    const oId = originPlace.id || originPlace.place_id;
+    const dId = destPlace.id || destPlace.place_id;
+
+    const originRoutes = db.prepare('SELECT DISTINCT route_id FROM route_stops WHERE place_id = ?').all(oId).map(r => r.route_id);
+    const destRoutes = db.prepare('SELECT DISTINCT route_id FROM route_stops WHERE place_id = ?').all(dId).map(r => r.route_id);
+
+    const commonRoute = originRoutes.find(r => destRoutes.includes(r));
+
+    if (commonRoute) {
+      const stops = getRouteStops(commonRoute);
+      const oStop = stops.find(s => s.place_id === oId);
+      const dStop = stops.find(s => s.place_id === dId);
+
+      if (oStop && dStop) {
+        const minSeq = Math.min(oStop.stop_sequence, dStop.stop_sequence);
+        const maxSeq = Math.max(oStop.stop_sequence, dStop.stop_sequence);
+
+        let distM = 0;
+        let timeMin = 0;
+        const pathStops = stops.filter(s => s.stop_sequence >= minSeq && s.stop_sequence <= maxSeq);
+        for (let i = 1; i < pathStops.length; i++) {
+          distM += pathStops[i].distance_from_previous_m || 0;
+          timeMin += pathStops[i].travel_time_estimate_min || 0;
+        }
+
+        const distKm = distM / 1000;
+        const fareINR = Math.max(10, Math.round((10 + (distKm * 5)) / 5) * 5);
+
+        return res.json({
+          success: true,
+          tripType: 'DIRECT',
+          routeId: commonRoute,
+          transfers: 0,
+          origin: originPlace.name_en,
+          destination: destPlace.name_en,
+          totalDistanceKm: parseFloat(distKm.toFixed(2)),
+          totalTimeMin: Math.round(timeMin),
+          estimatedFareINR: fareINR,
+          routeStopsCount: Math.abs(dStop.stop_sequence - oStop.stop_sequence)
+        });
+      }
+    }
+
+    // Transfer route (e.g. Corridor 1 -> Interchange -> Corridor 2)
+    const distKm = haversineDistanceKm(originPlace.lat, originPlace.lng, destPlace.lat, destPlace.lng);
+    const estTimeMin = Math.round((distKm / 30) * 60);
+    const fareINR = Math.max(15, Math.round((15 + (distKm * 5)) / 5) * 5);
+
+    res.json({
+      success: true,
+      tripType: 'TRANSFER',
+      transfers: 1,
+      interchangeHub: 'Lal Chowk Ghanta Ghar (Interchange)',
+      origin: originPlace.name_en,
+      destination: destPlace.name_en,
+      totalDistanceKm: parseFloat(distKm.toFixed(2)),
+      totalTimeMin: estTimeMin,
+      estimatedFareINR: fareINR
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// 3. Duplicate Inspection Endpoint (GET /api/v1/places/duplicates)
+app.get('/api/v1/places/duplicates', (req, res) => {
+  try {
+    const { nameEn, lat, lng } = req.query || {};
+    if (!nameEn || !lat || !lng) {
+      return res.status(400).json({ success: false, error: 'nameEn, lat, and lng required.' });
+    }
+    const numLat = parseFloat(lat);
+    const numLng = parseFloat(lng);
+    const duplicates = findPotentialDuplicates({ nameEn, lat: numLat, lng: numLng });
+    res.json({ success: true, count: duplicates.length, data: duplicates });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// 4. Missing Landmark/Stop Reporting Endpoint (POST /api/v1/places/report)
+app.post('/api/v1/places/report', (req, res) => {
+  try {
+    const clientIp = req.ip || req.socket.remoteAddress || '127.0.0.1';
+    const now = Date.now();
+    const times = reportRateLimitMap.get(clientIp) || [];
+    const validTimes = times.filter(t => now - t < 60000);
+
+    if (validTimes.length >= 20) {
+      return res.status(429).json({
+        success: false,
+        error: { code: 'RATE_LIMITED', message: 'Rate limit exceeded: Max 20 place reports per minute.' }
+      });
+    }
+
+    const { nameEn, nameHi, nameUr, nameKs, type, lat, lng, source, captchaToken, captchaAnswer } = req.body || {};
+
+    if (captchaToken) {
+      const stored = captchaStore.get(captchaToken);
+      if (!stored || Date.now() > stored.expiresAt) {
+        return res.status(400).json({
+          success: false,
+          error: { code: 'INVALID_CAPTCHA', message: 'CAPTCHA token expired or invalid. Please refresh challenge.' }
+        });
+      }
+      if (parseInt(captchaAnswer, 10) !== stored.answer) {
+        return res.status(400).json({
+          success: false,
+          error: { code: 'CAPTCHA_FAILED', message: 'Incorrect CAPTCHA answer.' }
+        });
+      }
+      captchaStore.delete(captchaToken);
+    }
+
+    if (!nameEn || typeof nameEn !== 'string' || nameEn.trim().length === 0 || nameEn.length > 200) {
+      return res.status(400).json({
+        success: false,
+        error: { code: 'INVALID_NAME', message: 'nameEn is required and must be under 200 characters.' }
+      });
+    }
+
+    const numLat = parseFloat(lat);
+    const numLng = parseFloat(lng);
+    if (isNaN(numLat) || numLat < -90 || numLat > 90 || isNaN(numLng) || numLng < -180 || numLng > 180) {
+      return res.status(400).json({
+        success: false,
+        error: { code: 'INVALID_COORDINATES', message: 'Valid lat (-90..90) and lng (-180..180) required.' }
+      });
+    }
+
+    validTimes.push(now);
+    reportRateLimitMap.set(clientIp, validTimes);
+
+    const reported = reportMissingPlace({
+      nameEn: nameEn.trim(),
+      nameHi,
+      nameUr,
+      nameKs,
+      type: type || 'landmark',
+      lat: numLat,
+      lng: numLng,
+      source: source || 'user',
+      ipAddress: clientIp
+    });
+
+    res.status(201).json({
+      success: true,
+      message: 'Thank you! We\'ll review your suggestion.',
+      data: reported
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// 5. Admin Pending Unverified Places Queue (GET /api/v1/admin/places/pending)
+app.get('/api/v1/admin/places/pending', requireAdminAuth, (req, res) => {
+  try {
+    const { type, limit } = req.query || {};
+    const pending = getPendingPlaces({
+      type: type ? String(type).trim() : null,
+      limit: limit ? parseInt(limit, 10) : 50
+    });
+
+    res.json({
+      success: true,
+      count: pending.length,
+      data: pending
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// 6. Admin Place Verification & Merging Endpoint (POST /api/v1/admin/places/verify)
+app.post('/api/v1/admin/places/verify', requireAdminAuth, (req, res) => {
+  try {
+    const body = req.body || {};
+
+    // Support bulk verification payload: { items: [{ placeId, action, mergedPlaceId }] }
+    if (Array.isArray(body.items) || Array.isArray(body)) {
+      const itemsList = Array.isArray(body.items) ? body.items : body;
+      const bulkResult = verifyPlacesBulkTx({
+        items: itemsList,
+        adminId: 'admin_authenticated',
+        ipAddress: req.ip || '127.0.0.1'
+      });
+      return res.json({
+        success: true,
+        message: `Bulk verification complete. Approved: ${bulkResult.approvedCount}, Rejected: ${bulkResult.rejectedCount}, Merged: ${bulkResult.mergedCount}`,
+        data: bulkResult
+      });
+    }
+
+    const { placeId, action, mergedPlaceId } = body;
+    const numPlaceId = parseInt(placeId, 10);
+
+    if (isNaN(numPlaceId)) {
+      return res.status(400).json({
+        success: false,
+        error: { code: 'INVALID_PLACE_ID', message: 'Valid placeId integer required.' }
+      });
+    }
+
+    const validActions = ['approve', 'reject', 'merge'];
+    if (!action || !validActions.includes(action)) {
+      return res.status(400).json({
+        success: false,
+        error: { code: 'INVALID_ACTION', message: 'Action must be one of: approve, reject, merge.' }
+      });
+    }
+
+    const updated = verifyPlace({
+      placeId: numPlaceId,
+      action,
+      mergedPlaceId: mergedPlaceId ? parseInt(mergedPlaceId, 10) : null,
+      adminId: 'admin_authenticated'
+    });
+
+    if (!updated) {
+      return res.status(404).json({ success: false, error: 'Place record not found.' });
+    }
+
+    res.json({
+      success: true,
+      message: `Place ${action} action executed successfully.`,
+      data: updated
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+const { startAggregatorTimers } = require('./telemetryAggregator');
+startAggregatorTimers();
 
 app.get('/*path', (req, res) => {
   res.sendFile(path.join(__dirname, '..', 'frontend', 'index.html'));

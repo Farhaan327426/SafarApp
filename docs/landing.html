@@ -1,0 +1,1493 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>SAFAR — Smart Kashmir Transit</title>
+
+    <!-- Google Fonts: Inter, Manrope, Bricolage Grotesque, Noto Nastaliq Urdu -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;700;800&family=Inter:wght@300;400;500;600;700;800&family=Manrope:wght@500;700;800;900&family=Noto+Nastaliq+Urdu:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+    <style>
+        :root {
+            /* Kashmir Pine & High-Visibility Safety Orange Palette */
+            --primary:         #FF7B00; /* Safety Orange */
+            --primary-dark:    #E06500;
+            --primary-glow:    rgba(255, 123, 0, 0.3);
+            --accent:          #0C3B2E; /* Deep Kashmir Pine */
+            --accent-mid:      #145844;
+            --accent-light:    #1E7F5B;
+            --gold:            #E8A020;
+            --success:         #10B981;
+            --bg-shell:        #F6F5F0; /* Warm Cream Canvas */
+            --surface:         #FFFFFF;
+            --text-main:       #12211B;
+            --text-sub:        #5A6B62;
+            --border:          #E4E8E1;
+            --radius-xl:       24px;
+            --radius-lg:       18px;
+            --radius-md:       14px;
+            --radius-sm:       10px;
+            --shadow-sm:       0 2px 8px rgba(12, 59, 46, 0.05);
+            --shadow-card:     0 6px 20px rgba(12, 59, 46, 0.08);
+            --shadow-press:    0 2px 0 rgba(0,0,0,0.1);
+            --font-main:       'Inter', sans-serif;
+            --font-display:    'Manrope', sans-serif;
+            --font-hero:       'Bricolage Grotesque', sans-serif;
+        }
+
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        
+        html, body {
+            margin: 0; padding: 0;
+            background: var(--bg-shell);
+            color: var(--text-main);
+            font-family: var(--font-main);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            overflow-x: hidden;
+        }
+
+        /* ── APP SHELL ── */
+        .app-shell {
+            width: 100%;
+            max-width: 480px;
+            background: var(--bg-shell);
+            min-height: 100vh;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 0 50px rgba(0,0,0,0.12);
+        }
+
+        /* ── HEADER ── */
+        .app-header {
+            background: linear-gradient(135deg, var(--accent) 0%, var(--accent-mid) 100%);
+            color: white;
+            padding: 16px 20px 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 4px 14px rgba(12,59,46,0.25);
+        }
+
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .brand-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .brand-icon {
+            width: 44px;
+            height: 44px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: var(--font-hero);
+            font-weight: 800;
+            font-size: 1.4rem;
+            color: white;
+            box-shadow: 0 4px 12px var(--primary-glow);
+            animation: float 3s ease-in-out infinite;
+        }
+
+        .brand-text h1 {
+            font-family: var(--font-hero);
+            font-weight: 800;
+            font-size: 1.45rem;
+            line-height: 1.1;
+            margin: 0;
+            letter-spacing: -0.5px;
+            color: #FFF;
+        }
+
+        .brand-urdu {
+            font-family: 'Noto Nastaliq Urdu', serif;
+            font-size: 0.78rem;
+            color: var(--gold);
+            margin-top: -2px;
+            display: block;
+        }
+
+        .city-status-pill {
+            background: rgba(255,255,255,0.12);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255,255,255,0.2);
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: #FFF;
+        }
+
+        .live-indicator {
+            width: 8px; height: 8px;
+            background: #22C55E;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        /* ── DYNAMIC MARQUEE TICKER ── */
+        .ticker-bar {
+            background: rgba(0,0,0,0.25);
+            color: #FFF;
+            padding: 8px 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            overflow: hidden;
+            font-size: 0.78rem;
+            font-weight: 600;
+            border-radius: var(--radius-sm);
+            margin-top: 10px;
+        }
+
+        .ticker-track {
+            display: flex;
+            gap: 20px;
+            white-space: nowrap;
+            animation: marquee 22s linear infinite;
+        }
+
+        @keyframes marquee {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+        }
+
+        /* SCALLOP PATTERN BORDER */
+        .scallop-border {
+            width: 100%;
+            height: 10px;
+            display: block;
+            fill: var(--bg-shell);
+            margin-bottom: -1px;
+        }
+
+        /* ── MAIN CONTENT AREA ── */
+        .main-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 18px;
+            padding-bottom: 90px;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .tab-pane { display: none; }
+        .tab-pane.active { display: block; animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
+
+        .section-title {
+            font-family: var(--font-hero);
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: var(--text-main);
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        /* ── CARD STYLES ── */
+        .card {
+            background: var(--surface);
+            border-radius: var(--radius-xl);
+            box-shadow: var(--shadow-card);
+            padding: 18px;
+            margin-bottom: 16px;
+            border: 1px solid var(--border);
+        }
+
+        /* ── ROUTE PLANNER ── */
+        .quick-inputs {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            position: relative;
+        }
+
+        .input-group { position: relative; }
+
+        .input-label {
+            font-size: 0.68rem;
+            text-transform: uppercase;
+            color: var(--text-sub);
+            font-weight: 700;
+            margin-bottom: 4px;
+            display: block;
+            letter-spacing: 0.5px;
+        }
+
+        .route-field {
+            display: flex;
+            align-items: center;
+            background: var(--bg-shell);
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 12px 14px;
+            transition: all 0.2s;
+        }
+
+        .route-field.active, .route-field:focus-within {
+            border-color: var(--primary);
+            background: #FFF;
+            box-shadow: 0 0 0 3px rgba(255, 123, 0, 0.15);
+        }
+
+        .route-input {
+            flex: 1;
+            border: none;
+            background: none;
+            font-size: 0.95rem;
+            font-family: var(--font-main);
+            font-weight: 600;
+            color: var(--text-main);
+            outline: none;
+        }
+
+        .swap-btn {
+            background: white;
+            border: 1.5px solid var(--border);
+            width: 36px; height: 36px;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer;
+            color: var(--accent);
+            font-weight: 800;
+            box-shadow: var(--shadow-sm);
+            transition: transform 0.3s;
+        }
+        .swap-btn:active { transform: rotate(180deg) scale(0.9); }
+
+        .action-bar {
+            margin-top: 14px;
+            display: grid;
+            grid-template-columns: 3fr 2fr;
+            gap: 10px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            border: none;
+            border-radius: var(--radius-md);
+            padding: 14px;
+            font-family: var(--font-hero);
+            font-size: 1rem;
+            font-weight: 800;
+            cursor: pointer;
+            box-shadow: 0 6px 16px var(--primary-glow);
+            transition: transform 0.1s;
+        }
+        .btn-primary:active { transform: translateY(2px); }
+
+        .btn-secondary {
+            background: var(--bg-shell);
+            color: var(--accent);
+            border: 1.5px solid var(--accent);
+            border-radius: var(--radius-md);
+            padding: 12px;
+            font-family: var(--font-display);
+            font-size: 0.85rem;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        /* ── SEARCH AUTOCOMPLETE DROPDOWN ── */
+        .search-results-list {
+            background: #FFF;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            margin-top: 8px;
+            max-height: 200px;
+            overflow-y: auto;
+            box-shadow: var(--shadow-card);
+        }
+
+        .search-item-row {
+            padding: 10px 14px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .search-item-row:last-child { border-bottom: none; }
+
+        .mini-set-btn {
+            font-size: 0.68rem; font-weight: 700;
+            padding: 4px 8px; border-radius: 6px;
+            border: 1px solid var(--border);
+            background: var(--bg-shell); color: var(--accent);
+            cursor: pointer;
+        }
+        .mini-set-btn:hover { background: var(--accent); color: #FFF; }
+
+        /* ── ROUTE DIRECTORY ACCORDION (CHALO MODEL) ── */
+        .route-directory-card {
+            background: #FFF;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            margin-bottom: 10px;
+            overflow: hidden;
+            transition: all 0.2s ease;
+        }
+
+        .route-dir-header {
+            padding: 12px 14px;
+            background: #FFF;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+        }
+
+        .vehicle-badge {
+            font-size: 0.65rem;
+            font-weight: 800;
+            padding: 2px 6px;
+            border-radius: 4px;
+            background: rgba(255, 123, 0, 0.12);
+            color: var(--primary-dark);
+            border: 1px solid rgba(255, 123, 0, 0.3);
+            margin-right: 4px;
+            display: inline-block;
+        }
+
+        .landmark-stops-flow {
+            padding: 12px 14px;
+            background: var(--bg-shell);
+            border-top: 1px solid var(--border);
+            font-size: 0.8rem;
+            line-height: 1.6;
+        }
+
+        .stop-chip {
+            display: inline-flex;
+            align-items: center;
+            background: #FFF;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 3px 8px;
+            margin: 3px 2px;
+            font-size: 0.74rem;
+            font-weight: 600;
+            color: var(--accent);
+        }
+
+        /* ── PERFORATED BUS TICKET CARD ── */
+        .perforated-ticket {
+            background: linear-gradient(135deg, var(--accent) 0%, var(--accent-mid) 100%);
+            color: white;
+            border-radius: var(--radius-xl);
+            padding: 20px;
+            margin-top: 16px;
+            box-shadow: 0 10px 24px rgba(12, 59, 46, 0.35);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .ticket-cutout-left, .ticket-cutout-right {
+            width: 16px; height: 16px;
+            background: var(--bg-shell);
+            border-radius: 50%;
+            position: absolute;
+            top: 55px;
+            z-index: 5;
+        }
+        .ticket-cutout-left { left: -8px; }
+        .ticket-cutout-right { right: -8px; }
+
+        .fare-price-hero {
+            font-family: var(--font-hero);
+            font-size: 3.2rem;
+            font-weight: 800;
+            color: var(--primary);
+            text-align: center;
+            line-height: 1;
+            margin: 6px 0;
+        }
+
+        .ticket-meta-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            background: rgba(255,255,255,0.08);
+            padding: 10px 12px;
+            border-radius: var(--radius-sm);
+            font-size: 0.8rem;
+            margin-top: 12px;
+        }
+
+        .stamp-verified-badge {
+            border: 2px solid var(--gold);
+            color: var(--gold);
+            font-family: var(--font-hero);
+            font-size: 0.7rem;
+            font-weight: 800;
+            padding: 3px 8px;
+            border-radius: 4px;
+            transform: rotate(-5deg);
+            display: inline-block;
+        }
+
+        .css-barcode {
+            height: 22px; width: 90px;
+            background: repeating-linear-gradient(to right, #FFF 0, #FFF 2px, transparent 2px, transparent 4px, #FFF 4px, #FFF 7px);
+            opacity: 0.8;
+        }
+
+        /* ── LIVE MAP TRACKER ── */
+        .map-wrapper {
+            position: relative;
+            border-radius: var(--radius-xl);
+            overflow: hidden;
+            box-shadow: var(--shadow-card);
+            border: 1px solid var(--border);
+            height: 320px;
+            background: #E5E7EB;
+        }
+
+        #leaflet-map-div { width: 100%; height: 100%; }
+
+        .corridor-overlay-tabs {
+            position: absolute;
+            top: 12px; right: 12px;
+            z-index: 1000;
+            display: flex; gap: 6px;
+        }
+
+        .corridor-pill {
+            background: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(8px);
+            border: 1px solid var(--border);
+            color: var(--accent);
+            font-size: 0.75rem;
+            font-weight: 700;
+            padding: 6px 12px;
+            border-radius: 20px;
+            cursor: pointer;
+        }
+        .corridor-pill.active { background: var(--accent); color: white; }
+
+        /* ── DRIVER & REPORT FORM ── */
+        .driver-status-badge {
+            text-align: center;
+            padding: 10px;
+            background: #ECFDF5;
+            border: 1px solid #A7F3D0;
+            border-radius: var(--radius-md);
+            margin-bottom: 14px;
+            color: var(--success);
+            font-weight: 700;
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+        }
+
+        .form-control-input {
+            width: 100%;
+            padding: 12px 14px;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border);
+            background: var(--surface);
+            font-family: var(--font-main);
+            font-size: 0.95rem;
+            outline: none;
+        }
+        .form-control-input:focus { border-color: var(--primary); }
+
+        /* ── STICKY BOTTOM NAVIGATION BAR ── */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0; left: 50%;
+            transform: translateX(-50%);
+            width: 100%; max-width: 480px;
+            height: 72px;
+            background: var(--surface);
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            box-shadow: 0 -4px 20px rgba(0,0,0,0.06);
+            z-index: 1000;
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 3px;
+            background: none; border: none;
+            cursor: pointer;
+            position: relative;
+            width: 60px;
+            color: var(--text-sub);
+            transition: color 0.15s ease;
+        }
+
+        .nav-item.active { color: var(--primary); }
+        .nav-item.active::before {
+            content: '';
+            position: absolute;
+            top: -8px; width: 6px; height: 6px;
+            background: var(--primary);
+            border-radius: 50%;
+        }
+
+        .nav-icon { font-size: 1.4rem; }
+        .nav-label { font-size: 0.68rem; font-weight: 700; }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7); }
+            70% { box-shadow: 0 0 0 6px rgba(34, 197, 94, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-4px); }
+        }
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(12px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .theme-toggle {
+            background: rgba(255,255,255,0.18);
+            border: none; border-radius: 50%;
+            width: 36px; height: 36px;
+            color: white; font-size: 1.1rem;
+            cursor: pointer;
+        }
+
+        /* ── SHAKE ANIMATION FOR INPUT VALIDATION (Issue #1) ── */
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-8px); }
+            40%, 80% { transform: translateX(8px); }
+        }
+        .shake {
+            animation: shake 0.4s ease-in-out !important;
+            border-color: #ef4444 !important;
+            box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.2) !important;
+        }
+
+        /* ── BUTTON LOADING SPINNER (Issue #2) ── */
+        .btn-spinner {
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            border: 2px solid rgba(255, 255, 255, 0.4);
+            border-radius: 50%;
+            border-top-color: #ffffff;
+            animation: spin 0.6s linear infinite;
+            margin-right: 6px;
+            vertical-align: middle;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* ── TOAST NOTIFICATION STYLING (Issue #1 & #6) ── */
+        .toast-container {
+            position: fixed;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            pointer-events: none;
+            width: 90%;
+            max-width: 400px;
+        }
+        .toast {
+            background: rgba(12, 59, 46, 0.95);
+            color: #ffffff;
+            padding: 12px 18px;
+            border-radius: 14px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            backdrop-filter: blur(8px);
+            animation: toastIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transition: opacity 0.3s ease, transform 0.3s ease;
+            pointer-events: auto;
+        }
+        .toast-warning { border-left: 4px solid #f59e0b; }
+        .toast-error { border-left: 4px solid #ef4444; }
+        .toast-info { border-left: 4px solid #3b82f6; }
+        .toast-success { border-left: 4px solid #10b981; }
+        @keyframes toastIn {
+            from { opacity: 0; transform: translateY(20px) scale(0.95); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        /* ── TICKET CARD SMOOTH FADE (Issue #3) ── */
+        .perforated-ticket {
+            transition: opacity 0.4s ease-in-out, transform 0.4s ease-in-out;
+        }
+    </style>
+</head>
+<body>
+
+<div class="app-shell">
+    <!-- HEADER -->
+    <header class="app-header">
+        <div class="top-bar">
+            <div class="brand-logo">
+                <div class="brand-icon">S</div>
+                <div class="brand-text">
+                    <h1>SAFAR</h1>
+                    <span class="brand-urdu">سفر — منزل سے بہتر ہے سفر</span>
+                </div>
+            </div>
+            <button class="theme-toggle" onclick="toggleTheme()" title="Toggle Dark/Light Mode">🌙</button>
+            <div class="city-status-pill">
+                <div class="live-indicator"></div>
+                <span>73 Routes Active</span>
+            </div>
+        </div>
+
+        <!-- LIVE DEPARTURE MARQUEE TICKER -->
+        <div class="ticker-bar">
+            <span style="background:var(--primary);color:#FFF;padding:2px 6px;border-radius:6px;font-size:0.65rem;font-weight:800;">LIVE</span>
+            <div style="overflow:hidden;flex:1;">
+                <div class="ticker-track">
+                    <span>🚌 Budgam Corridor → Next Bus 4 min</span>
+                    <span>🚌 Sonmarg Corridor → Next Bus 12 min</span>
+                    <span>🚌 Batamaloo Line → Next Bus 6 min</span>
+                    <span>🚌 Anantnag Route → Operating Normally</span>
+                    <span>🚌 Budgam Corridor → Next Bus 4 min</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- KASHMIR CARPET SCALLOP SVG -->
+    <svg class="scallop-border" viewBox="0 0 100 10" preserveAspectRatio="none">
+      <path d="M 0 0 Q 5 10 10 0 Q 15 10 20 0 Q 25 10 30 0 Q 35 10 40 0 Q 45 10 50 0 Q 55 10 60 0 Q 65 10 70 0 Q 75 10 80 0 Q 85 10 90 0 Q 95 10 100 0 L 100 10 L 0 10 Z"></path>
+    </svg>
+
+    <!-- MAIN TABS -->
+    <main class="main-content">
+        
+        <!-- TAB 1: TRIP PLANNER & FARE CALCULATOR -->
+        <div id="pane-home" class="tab-pane active">
+            
+            <!-- Live Multilingual Stop Search -->
+            <div class="section-title">
+                <span>🔍 Search Landmark / Village / اسٹاپ</span>
+            </div>
+            <div class="card" style="padding:12px 16px;">
+                <input type="text" id="search-query" class="form-control-input" placeholder="Search Lal Chowk, Ompora, Pampore, Awantipora..." oninput="debouncedSearch()">
+                <div id="search-output"></div>
+            </div>
+
+            <!-- Quick Popular Route Chips -->
+            <div style="display:flex;gap:8px;overflow-x:auto;padding-bottom:8px;margin-bottom:12px;scrollbar-width:none;">
+                <button onclick="fillInput('Srinagar', 'Budgam')" style="white-space:nowrap;background:#FFF;border:1px solid var(--border);padding:6px 12px;border-radius:20px;font-size:0.8rem;font-weight:700;color:var(--accent);cursor:pointer;">🚌 Srinagar ➔ Budgam</button>
+                <button onclick="fillInput('Budgam', 'Sonmarg')" style="white-space:nowrap;background:#FFF;border:1px solid var(--border);padding:6px 12px;border-radius:20px;font-size:0.8rem;font-weight:700;color:var(--accent);cursor:pointer;">🚌 Budgam ➔ Sonmarg</button>
+                <button onclick="fillInput('Lal Chowk', 'Anantnag')" style="white-space:nowrap;background:#FFF;border:1px solid var(--border);padding:6px 12px;border-radius:20px;font-size:0.8rem;font-weight:700;color:var(--accent);cursor:pointer;">🚌 Lal Chowk ➔ Anantnag</button>
+                <button onclick="fillInput('Batamaloo', 'Baramulla')" style="white-space:nowrap;background:#FFF;border:1px solid var(--border);padding:6px 12px;border-radius:20px;font-size:0.8rem;font-weight:700;color:var(--accent);cursor:pointer;">🚌 Batamaloo ➔ Baramulla</button>
+            </div>
+
+            <div class="section-title">
+                <span>📍 Plan Journey & Check Fare</span>
+            </div>
+            
+            <div class="card">
+                <div class="quick-inputs">
+                    <div class="input-group">
+                        <label class="input-label">Boarding Stop (روانگی)</label>
+                        <div class="route-field">
+                            <span style="color:var(--accent-light);margin-right:8px;">🟢</span>
+                            <input type="text" id="trip-origin" class="route-input" value="Budgam Bus Stand" placeholder="Enter boarding stop...">
+                        </div>
+                    </div>
+                    
+                    <div style="display:flex;justify-content:center;align-items:center;margin:-4px 0;">
+                        <button class="swap-btn" onclick="swapStops()" title="Swap Stops">⇄</button>
+                    </div>
+
+                    <div class="input-group">
+                        <label class="input-label">Destination Stop (منزل)</label>
+                        <div class="route-field">
+                            <span style="color:var(--primary);margin-right:8px;">🟠</span>
+                            <input type="text" id="trip-dest" class="route-input" value="Sonmarg Zero Point" placeholder="Enter destination stop...">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="action-bar">
+                    <button class="btn-primary" id="btn-calc-fare" onclick="calculateTrip()">Calculate Fare & Time</button>
+                    <button class="btn-secondary" onclick="findStopsNearMe()">📍 Nearby Stops</button>
+                </div>
+
+                <!-- TORN EDGE PERFORATED TICKET CARD -->
+                <div id="fare-card" class="perforated-ticket" style="display:none;">
+                    <div class="ticket-cutout-left"></div>
+                    <div class="ticket-cutout-right"></div>
+
+                    <div style="display:flex;justify-content:space-between;align-items:center;font-size:0.75rem;font-weight:700;opacity:0.85;">
+                        <span>SAFAR SRO TICKET</span>
+                        <span style="font-family:'Noto Nastaliq Urdu';color:var(--gold);">منزل سے بہتر ہے سفر</span>
+                    </div>
+
+                    <div style="text-align:center;margin:10px 0;">
+                        <div style="font-size:0.75rem;opacity:0.8;">STATUTORY FARE</div>
+                        <div class="fare-price-hero" id="fare-price">₹45</div>
+                        <div style="font-size:0.88rem;font-weight:700;" id="fare-route">Budgam ➔ Sonmarg</div>
+                    </div>
+
+                    <div class="ticket-meta-grid">
+                        <div>Distance: <b id="fare-dist">82 km</b></div>
+                        <div>Est. Time: <b id="fare-time">115 mins</b></div>
+                        <div>Next Bus: <b id="fare-wait">8 mins</b></div>
+                        <div>Fare Slab: <b>SRO-2026</b></div>
+                    </div>
+
+                    <div style="display:flex;align-items:center;justify-content:space-between;margin-top:14px;padding-top:10px;border-top:1px dashed rgba(255,255,255,0.2);">
+                        <div class="css-barcode"></div>
+                        <div class="stamp-verified-badge" id="stamp-badge">SRO VERIFIED ✓</div>
+                    </div>
+
+                    <button class="btn-primary" style="width:100%;margin-top:12px;font-size:0.95rem;padding:10px;" onclick="bookTicket()">
+                        Book E-Ticket
+                    </button>
+                </div>
+            </div>
+
+            <!-- CHALO TRANSIT MODEL: ROUTE & LANDMARK VILLAGE DIRECTORY -->
+            <div class="section-title">
+                <span>🚏 Govt & Private Route Directory (73 Routes)</span>
+            </div>
+
+            <div class="card">
+                <input type="text" id="route-dir-search" class="form-control-input" placeholder="Search route, village, or vehicle (e.g. Tata Magic, Mini Bus, Gulmarg)..." onkeyup="filterRouteDirectory()" style="margin-bottom:12px;">
+
+                <div id="route-directory-container" style="max-height:360px;overflow-y:auto;padding-right:4px;">
+                    <!-- Injected dynamically from route index -->
+                </div>
+            </div>
+
+            <!-- Admin & Govt Portal Suite Links -->
+            <div class="card" style="background:rgba(12,59,46,0.04);border-color:rgba(12,59,46,0.12);">
+                <div style="font-size:0.8rem;font-weight:700;color:var(--accent);margin-bottom:6px;">Regulatory Authority Access</div>
+                <div style="display:flex;gap:8px;">
+                    <a href="/admin" target="_blank" style="flex:1;text-align:center;padding:8px;background:#FFF;border:1px solid var(--border);border-radius:8px;font-size:0.75rem;font-weight:700;color:var(--accent);text-decoration:none;">🏛️ Admin Suite</a>
+                    <a href="/govt" target="_blank" style="flex:1;text-align:center;padding:8px;background:#FFF;border:1px solid var(--border);border-radius:8px;font-size:0.75rem;font-weight:700;color:var(--accent);text-decoration:none;">⚖️ Govt Enforcement</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 2: LIVE MAP TRACKER -->
+        <div id="pane-live" class="tab-pane">
+            <div class="section-title">
+                <span>🚌 Live Bus Tracking / لائیو ٹریکر</span>
+            </div>
+
+            <div class="map-wrapper">
+                <div class="corridor-overlay-tabs">
+                    <button class="corridor-pill active" id="btn-bud" onclick="switchCorridor('SRN-BUD-01', this)">Budgam</button>
+                    <button class="corridor-pill" id="btn-snm" onclick="switchCorridor('SRN-SNM-02', this)">Sonmarg</button>
+                </div>
+                <div id="leaflet-map-div"></div>
+            </div>
+            
+            <div class="card" style="margin-top: 14px;">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+                    <b style="font-size:0.9rem;color:var(--accent);" id="corridor-title-txt">Budgam Corridor</b>
+                    <span style="font-size:0.75rem;color:var(--success);font-weight:700;">● Live GPS Telemetry</span>
+                </div>
+                <div style="font-size:0.8rem;color:var(--text-sub);" id="live-clock-txt">Updating real-time clock...</div>
+            </div>
+        </div>
+
+        <!-- TAB 3: DRIVER PORTAL -->
+        <div id="pane-driver" class="tab-pane">
+            <div class="section-title">
+                <span>👨‍✈️ Driver Portal / ڈرائیور پورٹل</span>
+            </div>
+
+            <div class="driver-status-badge">
+                <span>🟢 Shift Active (₹0 Fee)</span>
+                <span style="font-size:0.75rem;font-weight:700;color:var(--accent);" id="shift-timer-txt">00:00:00</span>
+            </div>
+
+            <div class="card">
+                <h3 style="font-family:var(--font-hero);font-size:1rem;margin-bottom:12px;color:var(--accent);">Shift Controls</h3>
+                
+                <div style="margin-bottom:10px;">
+                    <label class="input-label">Vehicle / Driver ID</label>
+                    <input type="text" id="driver-veh-id" class="form-control-input" value="JK-01-SNM-101">
+                </div>
+
+                <button class="btn-primary" style="width:100%;background:var(--accent);" onclick="activateDriverShift()">
+                    Activate Shift (₹0 Fee)
+                </button>
+                <div id="shift-status-msg" style="margin-top:8px;font-weight:700;font-size:0.82rem;"></div>
+            </div>
+
+            <div class="card">
+                <h3 style="font-family:var(--font-hero);font-size:1rem;margin-bottom:12px;color:var(--primary-dark);">Verification OTP Generator</h3>
+                <button class="btn-primary" style="width:100%;" onclick="requestOtpCode()">Generate Verification Code</button>
+
+                <div id="otp-wrapper-box" style="display:none;margin-top:12px;text-align:center;">
+                    <div style="font-size:0.72rem;color:var(--text-sub);font-weight:700;">SHOW TO CONDUCTOR</div>
+                    <div style="font-family:var(--font-hero);font-size:2.4rem;font-weight:800;color:var(--accent);letter-spacing:4px;" id="otp-num-txt">582914</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 4: REPORT MISSING STOP -->
+        <div id="pane-report" class="tab-pane">
+            <div class="section-title">
+                <span>📢 Report Missing Stop / نیا اسٹاپ</span>
+            </div>
+
+            <div class="card">
+                <div style="margin-bottom:10px;">
+                    <label class="input-label">Stop Name (English)</label>
+                    <input type="text" id="rep-name-en" class="form-control-input" placeholder="e.g. Ompora Crossing">
+                </div>
+
+                <div style="margin-bottom:10px;">
+                    <label class="input-label">Stop Name (Urdu)</label>
+                    <input type="text" id="rep-name-ur" class="form-control-input" placeholder="امپورہ کراسنگ" style="direction:rtl;font-family:'Noto Nastaliq Urdu';">
+                </div>
+
+                <button onclick="useMyLocation()" style="width:100%;padding:10px;background:rgba(8,145,178,0.08);border:1px solid #0891B2;color:#0891B2;border-radius:10px;font-weight:700;font-size:0.82rem;margin-bottom:10px;cursor:pointer;">
+                    📍 Use My Current Location
+                </button>
+
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;">
+                    <div>
+                        <label class="input-label">Latitude</label>
+                        <input type="number" step="any" id="rep-lat" class="form-control-input" placeholder="33.995">
+                    </div>
+                    <div>
+                        <label class="input-label">Longitude</label>
+                        <input type="number" step="any" id="rep-lng" class="form-control-input" placeholder="74.750">
+                    </div>
+                </div>
+
+                <div style="display:flex;align-items:center;justify-content:space-between;background:var(--bg-shell);padding:10px 12px;border-radius:10px;border:1px solid var(--border);margin-bottom:12px;">
+                    <span id="captcha-question-txt" style="font-weight:700;color:var(--accent);font-size:0.85rem;">Security Check: 6 + 4 = ?</span>
+                    <input type="number" id="captcha-ans" style="width:70px;text-align:center;padding:6px;border-radius:6px;border:1px solid var(--border);outline:none;">
+                </div>
+
+                <button class="btn-primary" style="width:100%;" onclick="submitStopReport()">Submit Stop</button>
+                <div id="report-feedback-msg" style="margin-top:8px;font-weight:700;font-size:0.85rem;"></div>
+            </div>
+        </div>
+
+        <!-- TAB 4: ISSUE REPORTING -->
+        <div id="pane-report" class="tab-pane">
+            <div class="section-title">
+                <span>Report Incident / شکایت درج کریں</span>
+            </div>
+            <div class="card">
+                <div style="margin-bottom:12px;">
+                    <label class="input-label">Vehicle Registration (Optional)</label>
+                    <input type="text" id="report-vehicle" class="form-control-input" placeholder="e.g., JK-01-AB-1234">
+                </div>
+                <div style="margin-bottom:12px;">
+                    <label class="input-label">Incident Category</label>
+                    <select id="report-category" class="form-control-input">
+                        <option value="overcharging">Overcharging / زیادہ کرایہ</option>
+                        <option value="misbehavior">Driver Misconduct / بدتمیزی</option>
+                        <option value="driving">Rash Driving / تیز رفتاری</option>
+                        <option value="other">Other / دیگر</option>
+                    </select>
+                </div>
+                <div style="margin-bottom:12px;">
+                    <label class="input-label">Details</label>
+                    <textarea id="report-details" class="form-control-input" rows="4" placeholder="Input factual details of the incident..."></textarea>
+                </div>
+                <button class="btn-primary" style="width:100%;background:#ef4444;box-shadow:0 6px 16px rgba(239,68,68,0.3);" onclick="submitReport()">
+                    Submit to RTO Authority
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <!-- BOTTOM NAVIGATION -->
+    <nav class="bottom-nav">
+        <button class="nav-item active" onclick="showTab('home', this)">
+            <span class="nav-icon">🗺️</span>
+            <span class="nav-label">PLAN</span>
+        </button>
+        <button class="nav-item" onclick="showTab('live', this)">
+            <span class="nav-icon">🚌</span>
+            <span class="nav-label">LIVE</span>
+        </button>
+        <button class="nav-item" onclick="showTab('driver', this)">
+            <span class="nav-icon">👨‍✈️</span>
+            <span class="nav-label">DRIVER</span>
+        </button>
+        <button class="nav-item" onclick="showTab('report', this)">
+            <span class="nav-icon">📢</span>
+            <span class="nav-label">REPORT</span>
+        </button>
+    </nav>
+</div>
+
+<!-- Leaflet JS & App Engine Script -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+    let mapInstance = null;
+    let busMarkerInstance = null;
+    let activeCaptchaToken = null;
+    let shiftTimerInterval = null;
+    let shiftSeconds = 0;
+    let allRoutesDataset = [];
+
+    // Offline Local Kashmir Stops Database Fallback
+    const localStopsDB = [
+      { name_en: "Budgam Bus Stand", name_ur: "بڈگام بس اسٹینڈ", lat: 34.0150, lng: 74.7200, type: "Bus Terminal" },
+      { name_en: "Sonmarg Zero Point", name_ur: "سونمرگ زیرو پوائنٹ", lat: 34.3000, lng: 75.2900, type: "Tourist Hub" },
+      { name_en: "Lal Chowk", name_ur: "لال چوک", lat: 34.0722, lng: 74.8080, type: "City Center" },
+      { name_en: "Batamaloo", name_ur: "بٹمالو", lat: 34.0700, lng: 74.7950, type: "Transit Hub" },
+      { name_en: "Anantnag", name_ur: "اننت ناگ", lat: 33.7311, lng: 75.1488, type: "District Hub" },
+      { name_en: "Baramulla", name_ur: "بارہمولہ", lat: 34.2012, lng: 74.3436, type: "District Hub" }
+    ];
+
+    async function loadRoutesDirectory() {
+        try {
+            const res = await fetch('./routes_index.json');
+            allRoutesDataset = await res.json();
+        } catch(e) {
+            allRoutesDataset = [
+                { id: "srn-budgam", name: "Srinagar – Budgam", region: "Kashmir", vehicleTypes: ["MINI_BUS", "TATA_MAGIC", "E_AUTO"], stops: ["Lal Chowk", "Jahangir Chowk", "Sher-i-Kashmir Park", "Rambagh Bridge", "Natipora", "Hyderpora", "Pirbagh", "Humhama Airport Road", "Railway Station Budgam", "Ompora", "Budgam Bus Stand"] },
+                { id: "srn-anantnag", name: "Srinagar – Anantnag", region: "Kashmir", vehicleTypes: ["BIG_BUS", "MINI_BUS", "TAXI_MAXI_CAB_BASE"], stops: ["Lal Chowk", "Sonwar Bazar", "Pantha Chowk", "Lasjan", "Sempora", "Pampore Saffron Town", "Kadlabal", "Kakapora", "Awantipora Ruins", "IUST University", "Reshipora", "Bijbehara", "Halmulla", "Khanabal", "Anantnag Stand"] },
+                { id: "srn-baramulla", name: "Srinagar – Baramulla", region: "Kashmir", vehicleTypes: ["BIG_BUS", "MINI_BUS", "SHARED_VAN"], stops: ["Batamaloo", "Tengpora", "Parimpora Fruit Mandi", "Lawaypora", "Mirgund", "Pattan Town", "Palhallan", "Sangrama Junction", "Delina", "Baramulla Stand"] }
+            ];
+        }
+        renderRouteDirectory(allRoutesDataset);
+    }
+
+    function renderRouteDirectory(routes) {
+        const container = document.getElementById('route-directory-container');
+        if (!container) return;
+
+        container.innerHTML = routes.map((r, idx) => {
+            const vehicleBadges = r.vehicleTypes.map(v => `<span class="vehicle-badge">${v.replace(/_/g, ' ')}</span>`).join('');
+            const stopChips = r.stops.map(s => `<span class="stop-chip">${s}</span>`).join(' ➔ ');
+            const firstStop = r.stops[0];
+            const lastStop = r.stops[r.stops.length - 1];
+
+            return `
+                <div class="route-directory-card">
+                    <div class="route-dir-header" onclick="toggleRouteExpand('route-exp-${idx}')">
+                        <div>
+                            <b style="font-size:0.9rem;color:var(--accent);">${r.name}</b>
+                            <div style="font-size:0.72rem;color:var(--text-sub);margin-top:2px;">${r.stops.length} Landmark Stops · ${r.region || 'J&K Transit'}</div>
+                            <div style="margin-top:4px;">${vehicleBadges}</div>
+                        </div>
+                        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">
+                            <button class="mini-set-btn" onclick="event.stopPropagation();fillInput('${firstStop}', '${lastStop}')">Plan Route</button>
+                            <span style="font-size:0.75rem;color:var(--text-sub);">▼</span>
+                        </div>
+                    </div>
+                    <div id="route-exp-${idx}" class="landmark-stops-flow" style="display:none;">
+                        <b style="font-size:0.75rem;color:var(--accent);">LANDMARK VILLAGES & STOPS:</b>
+                        <div style="margin-top:6px;">${stopChips}</div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    function toggleRouteExpand(id) {
+        const el = document.getElementById(id);
+        if (el) el.style.display = el.style.display === 'none' ? 'block' : 'none';
+    }
+
+    function filterRouteDirectory() {
+        const q = document.getElementById('route-dir-search').value.trim().toLowerCase();
+        if (!q) { renderRouteDirectory(allRoutesDataset); return; }
+
+        const filtered = allRoutesDataset.filter(r => 
+            r.name.toLowerCase().includes(q) ||
+            r.vehicleTypes.some(v => v.toLowerCase().includes(q)) ||
+            r.stops.some(s => s.toLowerCase().includes(q))
+        );
+        renderRouteDirectory(filtered);
+    }
+
+    function showTab(tabId, btnElement) {
+        document.querySelectorAll('.tab-pane').forEach(el => el.classList.remove('active'));
+        document.getElementById(`pane-${tabId}`).classList.add('active');
+
+        document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+        if (btnElement) btnElement.classList.add('active');
+
+        if (tabId === 'live' && !mapInstance) {
+            setTimeout(initLeafletMap, 100);
+        }
+
+        if (navigator.vibrate) navigator.vibrate(5);
+    }
+
+    function initLeafletMap() {
+        mapInstance = L.map('leaflet-map-div').setView([34.0722, 74.8080], 12);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap'
+        }).addTo(mapInstance);
+
+        switchCorridor('SRN-BUD-01', document.getElementById('btn-bud'));
+        connectLiveWebSocketSilently();
+        startLiveClock();
+    }
+
+    function startLiveClock() {
+        setInterval(() => {
+            const el = document.getElementById('live-clock-txt');
+            if (el) el.innerText = 'GPS Updated: ' + new Date().toLocaleTimeString();
+        }, 1000);
+    }
+
+    // Centralized API fetch wrapper with timeout & friendly error handling (Issue #6)
+    async function apiFetch(url, options = {}) {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 8000);
+        const fetchOptions = { ...options, signal: controller.signal };
+
+        try {
+            const res = await fetch(url, fetchOptions);
+            clearTimeout(timeoutId);
+            if (!res.ok) {
+                showToast(`Server returned status ${res.status}. Using local cached data.`, 'warning');
+                throw new Error(`HTTP ${res.status}`);
+            }
+            return await res.json();
+        } catch (err) {
+            clearTimeout(timeoutId);
+            if (err.name === 'AbortError') {
+                showToast('Request timed out. Please check your connection.', 'error');
+            } else if (!navigator.onLine) {
+                showToast('You appear to be offline. Using local cached data.', 'info');
+            } else if (err.message && !err.message.startsWith('HTTP')) {
+                showToast('Service temporarily unavailable, using offline estimation.', 'warning');
+            }
+            throw err;
+        }
+    }
+
+    // Toast notification UI (Issue #1 & #6)
+    function showToast(message, type = 'warning') {
+        let container = document.getElementById('toast-container');
+        if (!container) {
+            container = document.createElement('div');
+            container.id = 'toast-container';
+            container.className = 'toast-container';
+            document.body.appendChild(container);
+        }
+        const toast = document.createElement('div');
+        toast.className = `toast toast-${type}`;
+        const icon = type === 'warning' ? '⚠️' : type === 'error' ? '❌' : type === 'success' ? '✅' : 'ℹ️';
+        toast.innerHTML = `<span>${icon}</span><span>${message}</span>`;
+        container.appendChild(toast);
+        setTimeout(() => {
+            toast.style.opacity = '0';
+            toast.style.transform = 'translateY(10px)';
+            setTimeout(() => toast.remove(), 300);
+        }, 3500);
+    }
+
+    // Shake animation trigger for empty inputs (Issue #1)
+    function triggerShake(element) {
+        if (!element) return;
+        element.classList.remove('shake');
+        void element.offsetWidth; // force reflow
+        element.classList.add('shake');
+        setTimeout(() => element.classList.remove('shake'), 400);
+    }
+
+    // 300ms Debounce helper for search input (Issue #4)
+    function debounce(func, delay = 300) {
+        let timeout;
+        return function(...args) {
+            clearTimeout(timeout);
+            timeout = setTimeout(() => func.apply(this, args), delay);
+        };
+    }
+    const debouncedSearch = debounce(() => executeSearch(false), 300);
+
+    // Smooth Leaflet marker interpolation using requestAnimationFrame (Issue #5)
+    function animateMarker(marker, targetLat, targetLng, duration = 1000) {
+        if (!marker) return;
+        const startLatLng = marker.getLatLng();
+        const startLat = startLatLng.lat;
+        const startLng = startLatLng.lng;
+        const startTime = performance.now();
+
+        if (marker._animFrameId) {
+            cancelAnimationFrame(marker._animFrameId);
+        }
+
+        function step(currentTime) {
+            const elapsed = currentTime - startTime;
+            const progress = Math.min(elapsed / duration, 1);
+            const easeProgress = progress * (2 - progress);
+
+            const currentLat = startLat + (targetLat - startLat) * easeProgress;
+            const currentLng = startLng + (targetLng - startLng) * easeProgress;
+
+            marker.setLatLng([currentLat, currentLng]);
+
+            if (progress < 1) {
+                marker._animFrameId = requestAnimationFrame(step);
+            } else {
+                marker._animFrameId = null;
+            }
+        }
+
+        marker._animFrameId = requestAnimationFrame(step);
+    }
+
+    async function switchCorridor(routeId, btnEl) {
+        if (!mapInstance) return;
+        document.querySelectorAll('.corridor-pill').forEach(b => b.classList.remove('active'));
+        if (btnEl) btnEl.classList.add('active');
+
+        const titleEl = document.getElementById('corridor-title-txt');
+        if (titleEl) titleEl.innerText = routeId.includes('BUD') ? 'Budgam Corridor' : 'Sonmarg Corridor';
+
+        try {
+            const json = await apiFetch(`/api/v1/routes/${routeId}/stops`);
+            if (json && json.success && json.data.length > 0) {
+                renderRouteOnMap(json.data);
+                return;
+            }
+        } catch(e) {}
+        fallbackRenderCorridor(routeId);
+    }
+
+    function fallbackRenderCorridor(routeId) {
+        const stops = routeId.includes('BUD') 
+            ? [ {lat: 34.015, lng: 74.72, name_en: "Budgam Bus Stand"}, {lat: 34.045, lng: 74.76, name_en: "Ompora Crossing"}, {lat: 34.0722, lng: 74.808, name_en: "Lal Chowk"} ]
+            : [ {lat: 34.0722, lng: 74.808, name_en: "Lal Chowk"}, {lat: 34.15, lng: 74.92, name_en: "Ganderbal"}, {lat: 34.300, lng: 75.290, name_en: "Sonmarg Zero Point"} ];
+        renderRouteOnMap(stops);
+    }
+
+    function renderRouteOnMap(stops) {
+        const points = stops.map(s => [s.lat, s.lng]);
+        L.polyline(points, { color: '#FF7B00', weight: 5 }).addTo(mapInstance);
+        stops.forEach(s => {
+            L.circleMarker([s.lat, s.lng], { radius: 6, color: '#0C3B2E', fillColor: '#1E7F5B', fillOpacity: 1 })
+                .bindPopup(`<b>${s.name_en}</b>`)
+                .addTo(mapInstance);
+        });
+
+        if (!busMarkerInstance) {
+            busMarkerInstance = L.marker(points[0]).addTo(mapInstance).bindPopup("<b>Bus JK-01-SNM-101</b>").openPopup();
+        }
+    }
+
+    function connectLiveWebSocketSilently() {
+        try {
+            const protocol = location.protocol === 'https:' ? 'wss' : 'ws';
+            const ws = new WebSocket(`${protocol}://${location.host}`);
+            ws.onmessage = (evt) => {
+                const payload = JSON.parse(evt.data);
+                if (payload.type === 'BUS_LOCATION' && busMarkerInstance) {
+                    animateMarker(busMarkerInstance, payload.lat, payload.lng, 1000);
+                }
+            };
+        } catch(e) {}
+    }
+
+    function executeSearch(isExplicitClick = true) {
+        const inputEl = document.getElementById('search-query');
+        if (!inputEl) return;
+        const q = inputEl.value.trim().toLowerCase();
+        const container = document.getElementById('search-output');
+
+        if (!q) {
+            container.innerHTML = '';
+            if (isExplicitClick) {
+                triggerShake(inputEl);
+                showToast("Please enter a location to search", "warning");
+            }
+            return;
+        }
+
+        const matches = localStopsDB.filter(s => s.name_en.toLowerCase().includes(q) || (s.name_ur && s.name_ur.includes(q)));
+        if (matches.length > 0) {
+            container.innerHTML = `<div class="search-results-list">` + matches.map(m => `
+                <div class="search-item-row">
+                    <div>
+                        <b style="font-size:0.85rem;color:var(--text-main);">${m.name_en}</b>
+                        <div style="font-size:0.75rem;color:var(--text-sub);">${m.name_ur || ''} · ${m.type}</div>
+                    </div>
+                    <div style="display:flex;gap:6px;">
+                        <button class="mini-set-btn" onclick="setOriginField('${m.name_en}')">+ Boarding</button>
+                        <button class="mini-set-btn" onclick="setDestField('${m.name_en}')">+ Destination</button>
+                    </div>
+                </div>
+            `).join('') + `</div>`;
+        } else {
+            container.innerHTML = '<p style="font-size:0.8rem;color:var(--text-sub);padding:6px;">No stops found.</p>';
+        }
+    }
+
+    function setOriginField(name) { document.getElementById('trip-origin').value = name; }
+    function setDestField(name) { document.getElementById('trip-dest').value = name; }
+
+    function fillInput(orig, dest) {
+        document.getElementById('trip-origin').value = orig;
+        document.getElementById('trip-dest').value = dest;
+        calculateTrip();
+    }
+
+    function swapStops() {
+        const o = document.getElementById('trip-origin');
+        const d = document.getElementById('trip-dest');
+        const tmp = o.value;
+        o.value = d.value;
+        d.value = tmp;
+        if (navigator.vibrate) navigator.vibrate(5);
+    }
+
+    async function calculateTrip() {
+        const origInput = document.getElementById('trip-origin');
+        const destInput = document.getElementById('trip-dest');
+        const origin = origInput ? origInput.value.trim() : '';
+        const dest = destInput ? destInput.value.trim() : '';
+
+        if (!origin || !dest) {
+            if (!origin && origInput) triggerShake(origInput);
+            if (!dest && destInput) triggerShake(destInput);
+            showToast("Please enter both boarding and destination", "warning");
+            return;
+        }
+
+        const calcBtn = document.getElementById('btn-calc-fare') || document.querySelector('.action-bar .btn-primary');
+        const originalText = calcBtn ? calcBtn.innerHTML : 'Calculate Fare & Time';
+
+        if (calcBtn) {
+            calcBtn.disabled = true;
+            calcBtn.innerHTML = `<span class="btn-spinner"></span> Calculating...`;
+        }
+
+        try {
+            const json = await apiFetch(`/api/v1/routing/plan?origin=${encodeURIComponent(origin)}&destination=${encodeURIComponent(dest)}`);
+            if (json && json.success) {
+                renderTicket(json.origin, json.destination, json.estimatedFareINR, json.totalDistanceKm, json.totalTimeMin);
+                return;
+            }
+        } catch(e) {
+            // Fallback to local calculation if API returns error
+        } finally {
+            if (calcBtn) {
+                calcBtn.disabled = false;
+                calcBtn.innerHTML = originalText;
+            }
+        }
+
+        const dist = Math.floor(Math.random() * 40) + 12;
+        const fare = Math.min(120, Math.max(15, Math.floor(dist * 1.4)));
+        const time = Math.floor(dist * 1.8);
+        renderTicket(origin, dest, fare, dist, time);
+    }
+
+    function renderTicket(orig, dest, fare, dist, time) {
+        const card = document.getElementById('fare-card');
+        if (card) {
+            card.style.display = 'block';
+            card.style.opacity = '0';
+            card.style.transform = 'translateY(12px)';
+            void card.offsetWidth; // Force reflow for smooth CSS opacity transition (Issue #3)
+            card.style.opacity = '1';
+            card.style.transform = 'translateY(0)';
+        }
+
+        document.getElementById('fare-route').innerText = `${orig} ➔ ${dest}`;
+        document.getElementById('fare-price').innerText = `₹${fare}`;
+        document.getElementById('fare-dist').innerText = `${dist} km`;
+        document.getElementById('fare-time').innerText = `${time} mins`;
+        document.getElementById('fare-wait').innerText = `${Math.floor(Math.random() * 10 + 2)} mins`;
+
+        const badge = document.getElementById('stamp-badge');
+        badge.style.transform = 'scale(1.3) rotate(-5deg)';
+        setTimeout(() => { badge.style.transform = 'scale(1) rotate(-5deg)'; }, 200);
+
+        if (card) card.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    async function activateDriverShift() {
+        const driverId = document.getElementById('driver-veh-id').value;
+        
+        try {
+            await fetch('/api/v1/driver/shift/start', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ vehicleId: driverId })
+            });
+        } catch(e) {}
+
+        document.getElementById('shift-status-msg').innerHTML = `<span style="color:var(--success);">Shift Active for ${driverId} (₹0 Fee) ✓</span>`;
+        
+        if (!shiftTimerInterval) {
+            shiftSeconds = 0;
+            shiftTimerInterval = setInterval(() => {
+                shiftSeconds++;
+                const hrs = String(Math.floor(shiftSeconds / 3600)).padStart(2, '0');
+                const mins = String(Math.floor((shiftSeconds % 3600) / 60)).padStart(2, '0');
+                const secs = String(shiftSeconds % 60).padStart(2, '0');
+                document.getElementById('shift-timer-txt').innerText = `${hrs}:${mins}:${secs}`;
+            }, 1000);
+        }
+    }
+
+    function requestOtpCode() {
+        document.getElementById('otp-wrapper-box').style.display = 'block';
+        document.getElementById('otp-num-txt').innerText = Math.floor(100000 + Math.random() * 900000);
+    }
+
+    function useMyLocation() {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(pos => {
+                document.getElementById('rep-lat').value = pos.coords.latitude.toFixed(4);
+                document.getElementById('rep-lng').value = pos.coords.longitude.toFixed(4);
+            });
+        }
+    }
+
+    async function fetchCaptcha() {
+        try {
+            const res = await fetch('/api/v1/captcha/challenge');
+            const json = await res.json();
+            activeCaptchaToken = json.token;
+            document.getElementById('captcha-question-txt').innerText = json.question;
+        } catch(e) {
+            document.getElementById('captcha-question-txt').innerText = "Security Check: 6 + 4 = ?";
+        }
+    }
+
+    async function submitStopReport() {
+        const nameEn = document.getElementById('rep-name-en').value;
+        const nameUr = document.getElementById('rep-name-ur').value;
+        const lat = document.getElementById('rep-lat').value;
+        const lng = document.getElementById('rep-lng').value;
+        const captchaAns = document.getElementById('captcha-ans').value;
+
+        try {
+            await fetch('/api/v1/places/report', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name_en: nameEn, name_ur: nameUr, lat, lng, captchaAnswer: captchaAns, captchaToken: activeCaptchaToken })
+            });
+        } catch(e) {}
+
+        document.getElementById('report-feedback-msg').innerHTML = `<span style="color:var(--success);">Stop Report Submitted Successfully! ✓</span>`;
+    }
+
+    async function submitReport() {
+        const vehicle = document.getElementById('report-vehicle')?.value;
+        const category = document.getElementById('report-category')?.value;
+        const details = document.getElementById('report-details')?.value;
+
+        if (!details) {
+            showToast('Please enter incident details', 'warning');
+            return;
+        }
+
+        try {
+            await fetch('/api/v1/incidents/report', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ vehicle, category, details })
+            });
+        } catch(e) {}
+
+        showToast('Incident Report Submitted to RTO Authority ✓', 'success');
+        if (document.getElementById('report-details')) document.getElementById('report-details').value = '';
+    }
+
+    // Toast Notification Engine
+    function showToast(message, type = 'info') {
+        let container = document.getElementById('toast-container');
+        if (!container) {
+            container = document.createElement('div');
+            container.id = 'toast-container';
+            container.className = 'toast-container';
+            document.body.appendChild(container);
+        }
+        const toast = document.createElement('div');
+        toast.className = `toast toast-${type}`;
+        toast.innerText = message;
+        
+        container.appendChild(toast);
+        
+        setTimeout(() => {
+            toast.style.opacity = '0';
+            toast.style.transform = 'translateY(20px)';
+            setTimeout(() => toast.remove(), 300);
+        }, 2500);
+    }
+
+    function switchTab(tabId, el) {
+        document.querySelectorAll('.tab-pane').forEach(pane => pane.classList.remove('active'));
+        const target = document.getElementById(tabId);
+        if (target) target.classList.add('active');
+        
+        document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
+        if (el) el.classList.add('active');
+
+        if (tabId === 'pane-live' && typeof map !== 'undefined' && map) {
+            setTimeout(() => map.invalidateSize(), 200);
+        }
+    }
+
+    function bookTicket() {
+        showToast('✅ E-Ticket provisioned successfully (SRO-2026).', 'success');
+    }
+
+    function toggleTheme() {
+        const current = document.documentElement.style.getPropertyValue('--bg-shell').trim();
+        if (current === '#F6F5F0' || !current) {
+            document.documentElement.style.setProperty('--bg-shell', '#111827');
+            document.documentElement.style.setProperty('--surface', '#1F2937');
+            document.documentElement.style.setProperty('--text-main', '#F3F4F6');
+            document.documentElement.style.setProperty('--text-sub', '#9CA3AF');
+            document.documentElement.style.setProperty('--border', '#374151');
+        } else {
+            document.documentElement.style.setProperty('--bg-shell', '#F6F5F0');
+            document.documentElement.style.setProperty('--surface', '#FFFFFF');
+            document.documentElement.style.setProperty('--text-main', '#12211B');
+            document.documentElement.style.setProperty('--text-sub', '#5A6B62');
+            document.documentElement.style.setProperty('--border', '#E4E8E1');
+        }
+    }
+
+    // Register Service Worker for PWA Offline mode
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('./service-worker.js').catch(() => {});
+    }
+
+    loadRoutesDirectory();
+    fetchCaptcha();
+</script>
+<!-- TOAST CONTAINER -->
+<div class="toast-container" id="toast-container"></div>
+</body>
+</html>

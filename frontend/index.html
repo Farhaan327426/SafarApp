@@ -1,531 +1,1867 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Safar — Verified Fares & Live Bus Tracking (J&K)</title>
-  <meta name="description" content="Safar gives J&K passengers the exact fare and live location of every verified local bus.">
-  
-  <!-- CSP is enforced via server-generated Content-Security-Policy header with dynamic per-request nonces.
-       No meta CSP tag here — a static meta tag with hardcoded nonce + unsafe-inline defeats the purpose. -->
-  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Safar — Smart J&K Transit Ecosystem</title>
+
+  <!-- Google Fonts: Inter, Noto Nastaliq Urdu, Noto Sans Devanagari, Material Symbols -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Nastaliq+Urdu:wght@400;700&family=Noto+Sans+Devanagari:wght@400;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+
+  <!-- Tailwind CSS via CDN -->
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+
+  <!-- Leaflet CSS & JS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <!-- QR Code Generator & Canvas Helper -->
+  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+
   <link rel="manifest" href="manifest.webmanifest">
-  <link rel="icon" type="image/svg+xml" href="assets/icons/icon-maple.svg">
-  <link rel="alternate icon" type="image/png" href="assets/icons/icon-32.png">
-  <link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png">
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="anonymous">
-  <link rel="stylesheet" href="css/style.css">
-  
-  <script src="js/lang-init.js"></script>
+  <link rel="stylesheet" href="styles.css">
+
+  <script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "pine": "#2D6A4F",
+            "pine-dark": "#1B4332",
+            "pine-light": "#40916C",
+            "saffron": "#FF8C00",
+            "saffron-light": "#FFA233",
+            "copper": "#8B5E3C",
+            "surface-sand": "#F7F5F0",
+            "safar-error": "#D62828",
+            "safar-success": "#52B788",
+            "slate-sub": "#5A5D61",
+            "slate-main": "#1A1C1E"
+          },
+          borderRadius: {
+            "card": "12px",
+            "chip": "8px",
+            "cta": "24px"
+          },
+          boxShadow: {
+            "safar": "0 2px 8px rgba(0,0,0,0.08)",
+            "safar-lg": "0 8px 24px rgba(0,0,0,0.12)"
+          },
+          fontFamily: {
+            "inter": ["Inter", "sans-serif"],
+            "urdu": ["Noto Nastaliq Urdu", "serif"],
+            "hindi": ["Noto Sans Devanagari", "sans-serif"]
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    :root {
+      --primary: #2D6A4F;
+      --accent: #FF8C00;
+      --copper: #8B5E3C;
+      --surface: #F7F5F0;
+      --error: #D62828;
+      --success: #52B788;
+    }
+
+    body {
+      background-color: #E8E5DC;
+      color: #1A1C1E;
+      font-family: 'Inter', sans-serif;
+    }
+
+    /* Screen Transitions */
+    .screen-view {
+      display: none;
+      opacity: 0;
+      transform: translateY(6px);
+      transition: opacity 0.25s ease, transform 0.25s ease;
+    }
+    .screen-view.active {
+      display: block;
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* Modern Device Frames */
+    .mobile-frame {
+      width: 100%;
+      max-width: 380px;
+      min-height: 800px;
+      background-color: var(--surface);
+      border-radius: 28px;
+      box-shadow: 0 16px 40px rgba(0,0,0,0.18), 0 0 0 1px rgba(0,0,0,0.06);
+      overflow: hidden;
+      position: relative;
+      margin: 0 auto;
+    }
+
+    .desktop-frame {
+      width: 100%;
+      max-width: 1280px;
+      min-height: 840px;
+      background-color: #FFFFFF;
+      border-radius: 20px;
+      box-shadow: 0 16px 40px rgba(0,0,0,0.15);
+      overflow: hidden;
+      margin: 0 auto;
+    }
+
+    /* Custom Notification Banner */
+    .notification-toast {
+      position: fixed;
+      top: 16px;
+      left: 50%;
+      transform: translateX(-50%) translateY(-100px);
+      z-index: 9999;
+      transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    .notification-toast.show {
+      transform: translateX(-50%) translateY(0);
+    }
+
+    /* Printable QR Container */
+    @media print {
+      body * { visibility: hidden; }
+      #screen-cash-receipt, #screen-cash-receipt * { visibility: visible; }
+      #screen-cash-receipt {
+        position: absolute; left: 0; top: 0; width: 100%; height: 100%; background: #FFF;
+      }
+    }
+  </style>
 </head>
-<body>
-  <!-- ─── OFFLINE STATUS BANNER ──────────────────────────────────────────────── -->
-  <div id="offline-banner" class="offline-status-banner" style="display:none;" role="status" aria-live="polite"></div>
 
-  <!-- ─── UNIFIED MASTER PORTAL NAVIGATION (safar.in) ────────────────────────── -->
-  <nav class="safar-master-portal-bar" aria-label="Safar Unified Network Navigation">
-    <div class="safar-master-portal-inner">
-      <a href="/commuter" class="master-domain-brand" title="SAFAR Mountain Transit Ecosystem">
-        <svg class="switchback-mini-icon" viewBox="0 0 40 40" width="22" height="22" fill="none" style="vertical-align:middle; display:inline-block;">
-          <path d="M 8 34 C 14 34, 26 31, 30 26 C 35 20, 32 16, 22 14 C 15 12, 12 10, 18 6 L 30 4" stroke="url(#sbGradMaster)" stroke-width="3.5" stroke-linecap="round"/>
-          <circle cx="8" cy="34" r="3" fill="#10b981"/>
-          <circle cx="30" cy="4" r="3" fill="none" stroke="#ffffff" stroke-width="1.5"/>
-          <circle cx="30" cy="4" r="1.5" fill="#f97316"/>
-          <defs>
-            <linearGradient id="sbGradMaster" x1="0%" y1="100%" x2="100%" y2="0%">
-              <stop offset="0%" stop-color="#10b981"/>
-              <stop offset="50%" stop-color="#38bdf8"/>
-              <stop offset="100%" stop-color="#f97316"/>
-            </linearGradient>
-          </defs>
-        </svg>
-        <span>SAFAR</span>
-        <span class="domain-pill">safar.in</span>
-      </a>
+<body class="p-2 md:p-6 antialiased flex flex-col items-center justify-start min-h-screen">
 
-      <div class="master-portal-links">
-        <a href="landing.html" class="portal-nav-link" id="masterNavLanding">
-          <span>ℹ️ Overview</span>
-          <span class="portal-url-tag">/landing</span>
-        </a>
-        <a href="/commuter" class="portal-nav-link active-portal" id="masterNavCommuter">
-          <span>🚌 Commuter</span>
-          <span class="portal-url-tag">/commuter</span>
-        </a>
-        <a href="/driver" class="portal-nav-link" id="masterNavDriver">
-          <span>🚗 Driver</span>
-          <span class="portal-url-tag">/driver</span>
-        </a>
-        <a href="/admin" class="portal-nav-link" id="masterNavAdmin">
-          <span>🛡️ Admin Suite</span>
-          <span class="portal-url-tag">/admin</span>
-        </a>
-        <a href="/govt" class="portal-nav-link" id="masterNavGovt">
-          <span>🏛️ Government</span>
-          <span class="portal-url-tag">/govt</span>
-        </a>
+  <!-- TOP MULTI-SURFACE SWITCHER & STATUS BAR -->
+  <div class="w-full max-w-[1280px] bg-white rounded-2xl shadow-safar p-3 mb-6 flex flex-wrap items-center justify-between gap-3 border border-stone-200">
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 rounded-xl bg-pine flex items-center justify-center text-white font-black text-xl shadow-sm">
+        S
       </div>
-
-      <div class="master-network-status">
-        <span class="network-badge online">🟢 safar.in Hub</span>
+      <div>
+        <div class="flex items-center gap-2">
+          <span class="font-bold text-pine-dark text-base tracking-tight">Safar</span>
+          <span class="text-xs bg-saffron/15 text-saffron font-bold px-2 py-0.5 rounded-md">v1.0 Production</span>
+          <span class="text-xs bg-emerald-100 text-emerald-800 font-semibold px-2 py-0.5 rounded-md flex items-center gap-1">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping"></span>
+            Auto-Push Stream Active
+          </span>
+        </div>
+        <p class="text-xs text-stone-500 font-urdu">منزل سے بہتر ہے سفر — J&K State Road Transport Regulation</p>
       </div>
     </div>
-  </nav>
 
-  <a href="#main-content" class="skip-link">Skip to main content</a>
+    <!-- Surface Switcher Tabs -->
+    <div class="flex items-center gap-1.5 bg-stone-100 p-1 rounded-xl">
+      <button onclick="switchSurface('commuter')" id="btn-surface-commuter" class="px-4 py-2 rounded-lg text-xs font-bold transition-all bg-white text-pine shadow-sm">
+        📱 Surface 1: Commuter PWA (380px)
+      </button>
+      <button onclick="switchSurface('driver')" id="btn-surface-driver" class="px-4 py-2 rounded-lg text-xs font-bold transition-all text-stone-600 hover:text-pine">
+        👨‍✈️ Surface 2: Driver APK (380px)
+      </button>
+      <button onclick="switchSurface('admin')" id="btn-surface-admin" class="px-4 py-2 rounded-lg text-xs font-bold transition-all text-stone-600 hover:text-pine">
+        🏛️ Surface 3: SRTA Admin (1280px)
+      </button>
+    </div>
 
-  <div class="app-container">
-    <!-- APP HEADER WITH LANGUAGE SWITCHER & NETWORK BADGE -->
-    <header class="app-header">
-      <div class="brand">
-        <h1>
-          <span class="brand-logo" aria-hidden="true" style="display:inline-flex; align-items:center;">
-            <svg class="switchback-brand-mark" viewBox="0 0 50 50" width="34" height="34" fill="none">
-              <path d="M 10 42 C 18 42, 33 39, 38 33 C 44 26, 40 20, 26 18 C 18 16, 16 12, 24 8 L 38 5" stroke="url(#sbGradHeader)" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/>
-              <circle cx="10" cy="42" r="4" fill="#10b981"/>
-              <circle cx="38" cy="5" r="4" fill="none" stroke="#ffffff" stroke-width="2"/>
-              <circle cx="38" cy="5" r="2" fill="#f97316"/>
-              <defs>
-                <linearGradient id="sbGradHeader" x1="0%" y1="100%" x2="100%" y2="0%">
-                  <stop offset="0%" stop-color="#10b981"/>
-                  <stop offset="40%" stop-color="#2563eb"/>
-                  <stop offset="75%" stop-color="#38bdf8"/>
-                  <stop offset="100%" stop-color="#f97316"/>
-                </linearGradient>
-              </defs>
-            </svg>
-          </span> 
-          Safar
-        </h1>
-        <p data-i18n="tagline">Exact fare &amp; live location of every verified J&amp;K local bus</p>
+    <!-- Quick Screen Selector for Fast Showcase Navigation -->
+    <div class="flex items-center gap-2">
+      <label class="text-xs font-bold text-stone-500">Screen:</label>
+      <select id="quick-screen-select" onchange="jumpToScreen(this.value)" class="text-xs font-semibold bg-stone-50 border border-stone-300 rounded-lg px-2.5 py-1.5 text-stone-800 focus:ring-pine focus:border-pine">
+        <optgroup label="Surface 1 — Commuter PWA">
+          <option value="screen-onboarding">Screen 1: Onboarding / Language Select</option>
+          <option value="screen-home" selected>Screen 2: Home / Search Hub</option>
+          <option value="screen-route-explorer">Screen 3: Route Explorer (All SRTC)</option>
+          <option value="screen-route-detail">Screen 4: Route Detail & Timeline</option>
+          <option value="screen-live-track">Screen 5: Live Bus Tracking (Map)</option>
+          <option value="screen-overcrowding">Screen 6: Overcrowding Analytics</option>
+          <option value="screen-fare-calc">Screen 7: SRO Fare Calculator</option>
+          <option value="screen-receipt">Screen 8: Fare Breakdown Receipt</option>
+          <option value="screen-payment">Screen 9: Payment Interface (Hybrid)</option>
+          <option value="screen-cash-receipt">Screen 10: Print QR Receipt (Cash)</option>
+          <option value="screen-ai-assistant">Screen 11: Multilingual AI Assistant</option>
+          <option value="screen-dispute">Screen 12: Dispute Filing</option>
+          <option value="screen-trip-history">Screen 13: Trip History</option>
+          <option value="screen-alerts">Screen 14: Alerts & Notifications</option>
+        </optgroup>
+        <optgroup label="Surface 2 — Driver APK">
+          <option value="screen-driver-login">Screen 15: Driver Auth & OTP</option>
+          <option value="screen-driver-shift-start">Screen 16: Shift Start & Route</option>
+          <option value="screen-driver-hud">Screen 17: Driver Active HUD (60km/h)</option>
+          <option value="screen-driver-fare-confirm">Screen 18: Fare Verification</option>
+        </optgroup>
+        <optgroup label="Surface 3 — SRTA Admin Dashboard">
+          <option value="screen-admin-login">Screen 20: SRTA Portal Login</option>
+          <option value="screen-admin-overview">Screen 21: Compliance Overview</option>
+          <option value="screen-admin-audit-log">Screen 22: Fare Audit Log & Export</option>
+          <option value="screen-admin-vehicles">Screen 23: Vehicle Registry</option>
+          <option value="screen-admin-coverage">Screen 24: Route Coverage Map</option>
+          <option value="screen-admin-crowding">Screen 25: Overcrowding Report</option>
+        </optgroup>
+      </select>
+    </div>
+  </div>
+
+  <!-- IN-APP REALTIME PUSH NOTIFICATION TOAST -->
+  <div id="live-notification-banner" class="notification-toast bg-white border-l-4 border-saffron rounded-xl shadow-safar-lg p-3.5 max-w-sm flex items-start gap-3">
+    <div class="w-8 h-8 rounded-full bg-saffron/15 text-saffron flex items-center justify-center shrink-0">
+      <span class="material-symbols-outlined text-[18px]">notifications_active</span>
+    </div>
+    <div class="flex-1">
+      <div class="flex items-center justify-between">
+        <h4 id="toast-title" class="text-xs font-bold text-slate-main">Live Route Alert</h4>
+        <span class="text-[10px] text-stone-400">Just now</span>
+      </div>
+      <p id="toast-message" class="text-xs text-stone-600 mt-0.5">Bus 14 is 2 stops away from Lal Chowk.</p>
+    </div>
+    <button onclick="dismissNotificationToast()" class="text-stone-400 hover:text-stone-600">
+      <span class="material-symbols-outlined text-[16px]">close</span>
+    </button>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- SURFACE 1: COMMUTER PWA (380px MOBILE CONTAINER) -->
+  <!-- ========================================================================= -->
+  <div id="surface-commuter-container" class="mobile-frame flex flex-col justify-between">
+
+    <!-- SCREEN 1: ONBOARDING / LANGUAGE SELECT -->
+    <div id="screen-onboarding" class="screen-view p-6 flex flex-col justify-between min-h-[780px]">
+      <div>
+        <div class="flex flex-col items-center text-center mt-12 mb-8">
+          <div class="w-20 h-20 rounded-2xl bg-pine flex items-center justify-center text-white text-4xl font-extrabold shadow-md mb-4">
+            S
+          </div>
+          <h1 class="text-2xl font-bold text-pine-dark tracking-tight">Safar</h1>
+          <p class="text-xs text-stone-500 font-urdu mt-1">سفر — منزل سے بہتر ہے سفر</p>
+          <p class="text-xs text-stone-400 mt-0.5">J&K Fair-Fare Transit Network</p>
+        </div>
+
+        <h2 class="text-sm font-bold text-slate-main mb-3 text-center">Choose your language / اپنی زبان منتخب کریں</h2>
+        
+        <!-- 2x2 Language Grid -->
+        <div class="grid grid-cols-2 gap-3 mb-6">
+          <div onclick="selectLanguage('en', this)" class="lang-tile p-4 rounded-card border-2 border-pine bg-white shadow-safar flex flex-col items-center justify-center cursor-pointer transition relative">
+            <span class="text-sm font-bold text-slate-main">English</span>
+            <span class="text-[11px] text-stone-400 mt-0.5">Default</span>
+            <span class="material-symbols-outlined text-pine text-[18px] absolute top-2 right-2 check-icon">check_circle</span>
+          </div>
+          <div onclick="selectLanguage('ur', this)" class="lang-tile p-4 rounded-card border-2 border-stone-200 bg-white shadow-safar flex flex-col items-center justify-center cursor-pointer transition relative">
+            <span class="text-base font-bold font-urdu text-slate-main">اردو</span>
+            <span class="text-[11px] text-stone-400 mt-0.5">Urdu</span>
+            <span class="material-symbols-outlined text-pine text-[18px] absolute top-2 right-2 check-icon hidden">check_circle</span>
+          </div>
+          <div onclick="selectLanguage('hi', this)" class="lang-tile p-4 rounded-card border-2 border-stone-200 bg-white shadow-safar flex flex-col items-center justify-center cursor-pointer transition relative">
+            <span class="text-base font-bold font-hindi text-slate-main">हिन्दी</span>
+            <span class="text-[11px] text-stone-400 mt-0.5">Hindi</span>
+            <span class="material-symbols-outlined text-pine text-[18px] absolute top-2 right-2 check-icon hidden">check_circle</span>
+          </div>
+          <div onclick="selectLanguage('ks', this)" class="lang-tile p-4 rounded-card border-2 border-stone-200 bg-white shadow-safar flex flex-col items-center justify-center cursor-pointer transition relative">
+            <span class="text-base font-bold font-urdu text-slate-main">کٲشُر</span>
+            <span class="text-[11px] text-stone-400 mt-0.5">Kashmiri</span>
+            <span class="material-symbols-outlined text-pine text-[18px] absolute top-2 right-2 check-icon hidden">check_circle</span>
+          </div>
+        </div>
       </div>
 
-      <div class="header-actions">
-        <!-- Real-time Network Status Badge -->
-        <span id="networkStatusBadge" class="network-badge online" aria-live="polite">🟢 Online</span>
-
-        <!-- Global Language Switcher -->
-        <label for="lang-switcher" class="sr-only" data-i18n="language">Language</label>
-        <select id="lang-switcher" class="lang-switcher-select lang-switcher" aria-label="Select Interface Language" data-i18n-aria-label="language">
-          <option value="en">English</option>
-          <option value="hi">हिन्दी (Hindi)</option>
-          <option value="ur">اردو (Urdu)</option>
-          <option value="ks">کٲشُر (Kashmiri)</option>
-        </select>
-
-        <!-- SRO trigger button -->
-        <button id="sroModalTrigger" class="btn btn--ghost btn--sro icon-btn" type="button" aria-haspopup="dialog" title="Official SRO Fare Schedules" aria-label="Official SRO Fare Schedules">
-          📜
+      <div class="flex flex-col gap-2 mb-6">
+        <button onclick="goToScreen('screen-home')" class="w-full bg-pine text-white py-3.5 rounded-cta font-bold text-sm shadow-md hover:bg-pine-dark active:scale-[0.99] transition">
+          Continue
         </button>
-
-        <!-- Emergency SOS Button -->
-        <button id="sosBtn" class="icon-btn" aria-label="Emergency SOS">🚨</button>
+        <button onclick="goToScreen('screen-home')" class="text-xs text-stone-500 font-semibold text-center hover:underline py-1">
+          Skip for now
+        </button>
       </div>
-    </header>
+    </div>
 
-    <nav class="corridor-bar" aria-label="Live corridors">
-      <span class="chip active">Srinagar–Budgam</span>
-      <span class="chip">Anantnag Express</span>
-      <span class="chip">Baramulla Corridor</span>
-      <span class="chip">Jammu–Katra</span>
-    </nav>
-
-    <main id="main-content">
-      <!-- 1. COMMUTER VIEW -->
-      <div id="viewCommuter" class="view-panel" role="tabpanel" aria-labelledby="tabCommuter">
-        <!-- OFFICIAL ROUTE & FARE CARD (With Structural Arch Notch Top Corner) -->
-        <section class="card card-official" aria-labelledby="fare-heading">
-          <div class="arch-notch-badge">JKMT Notified ✓</div>
-          <h2 id="fare-heading" data-i18n="fareCalcTitle">
-            <span>Fare Calculator</span>
-            <span class="urdu-label" style="font-size:0.9rem; font-weight:normal; margin-left:8px; display:inline;">کرایہ گائیڈ</span>
-          </h2>
-          <form id="fareForm" novalidate>
-            <div class="form-group">
-              <label for="routeSelect">Route</label>
-              <select id="routeSelect" required>
-              <option value="srn-budgam">Srinagar – Budgam (14 km)</option>
-              <option value="srn-anantnag">Srinagar – Anantnag (54 km)</option>
-              <option value="srn-baramulla">Srinagar – Baramulla (54 km)</option>
-              <option value="srn-ganderbal">Srinagar – Ganderbal (21 km)</option>
-              <option value="srn-pulwama">Srinagar – Pulwama (31 km)</option>
-              <option value="srn-kupwara">Parimpora – Kupwara (85 km)</option>
-              <option value="srn-bandipora">Parimpora – Bandipora (55 km)</option>
-              <option value="srn-shopian">Batamaloo – Shopian (51 km)</option>
-              <option value="srn-kulgam">Lal Chowk – Kulgam (68 km)</option>
-              <option value="srn-charar-e-sharief">Parimpora – Charar‑e‑Sharief (32 km)</option>
-              <option value="srn-sonamarg">Srinagar – Sonamarg (80 km)</option>
-              <option value="srn-gulmarg">Parimpora – Gulmarg (51 km)</option>
-              <option value="srn-pahalgam">Srinagar – Pahalgam (90 km)</option>
-              <option value="srn-dachigam">Srinagar – Dachigam (22 km)</option>
-              <option value="srn-aharbal">Batamaloo – Aharbal (68 km)</option>
-              <option value="srn-kokernag">Srinagar – Kokernag (78 km)</option>
-              <option value="srn-verinag">Srinagar – Verinag (82 km)</option>
-              <option value="srn-uri">Baramulla – Uri (48 km)</option>
-              <option value="srn-tangdhar">Kupwara – Tangdhar (67 km)</option>
-              <option value="srn-machil">Kupwara – Machil (56 km)</option>
-              <option value="srn-doodhpathri">Parimpora – Doodhpathri (42 km)</option>
-              <option value="srn-tulmulla">Srinagar – Tulmulla (26 km)</option>
-              <option value="srn-manasbal">Srinagar – Manasbal (30 km)</option>
-              <option value="srn-watlab">Parimpora – Watlab (58 km)</option>
-              <option value="srn-tral">Srinagar – Tral (46 km)</option>
-              <option value="srn-achabal">Anantnag – Achabal (9 km)</option>
-              <option value="srn-ranbirpora">Anantnag – Ranbirpora (14 km)</option>
-              <option value="srn-nunwan">Pahalgam – Nunwan Base Camp (6 km)</option>
-              <option value="srn-betab-valley">Pahalgam – Betaab Valley (15 km)</option>
-              <option value="srn-aripal">Tral – Aripal (12 km)</option>
-              <option value="jmu-katra">Jammu – Katra (45 km)</option>
-              <option value="jmu-udhampur">Jammu – Udhampur (65 km)</option>
-              <option value="jmu-samba">Jammu – Samba (40 km)</option>
-              <option value="jmu-akhnoor">Jammu – Akhnoor (28 km)</option>
-              <option value="jmu-r-s-pura">Jammu – R.S. Pura (22 km)</option>
-              <option value="jmu-bishnah">Jammu – Bishnah (29 km)</option>
-              <option value="jmu-rajouri">Jammu – Rajouri (155 km)</option>
-              <option value="jmu-poonch">Jammu – Poonch (235 km)</option>
-              <option value="jmu-kishtwar">Jammu – Kishtwar (225 km)</option>
-              <option value="jmu-bhaderwah">Jammu – Bhaderwah (195 km)</option>
-              <option value="jmu-kathua">Jammu – Kathua (88 km)</option>
-              <option value="jmu-billawar">Kathua – Billawar (65 km)</option>
-              <option value="jmu-bani">Kathua – Bani (125 km)</option>
-              <option value="jmu-ramban">Jammu – Ramban (130 km)</option>
-              <option value="jmu-banihal">Jammu – Banihal (165 km)</option>
-              <option value="jmu-mendhar">Rajouri – Mendhar (60 km)</option>
-              <option value="jmu-surankote">Rajouri – Surankote (55 km)</option>
-              <option value="jmu-nowshera">Rajouri – Nowshera (39 km)</option>
-              <option value="srn-botraj-colony">Lal Chowk – Botraj Colony (KU Campus) (13.5 km)</option>
-              <option value="srn-soura-alijan">Lal Chowk – Soura SKIMS (Ali Jan Road) (10.5 km)</option>
-              <option value="srn-dalgate-harwan">Dalgate – Harwan Gardens (18 km)</option>
-              <option value="srn-parimpora-magam">Parimpora – Magam Stand (14 km)</option>
-              <option value="magam-tangmarg">Magam – Tangmarg Base (22 km)</option>
-              <option value="tangmarg-gulmarg">Tangmarg – Gulmarg Meadow (13 km)</option>
-              <option value="anantnag-pahalgam">Anantnag – Pahalgam Valley (42 km)</option>
-              <option value="anantnag-kokernag">Anantnag – Kokernag Gardens (25 km)</option>
-              <option value="kokernag-sinthan">Kokernag – Sinthan Top Summit (48 km)</option>
-              <option value="anantnag-verinag">Anantnag – Verinag Spring (26 km)</option>
-              <option value="kulgam-aharbal">Kulgam – Aharbal Waterfall (35 km)</option>
-              <option value="shopian-peerkigali">Shopian – Peer Ki Gali (Mughal Road) (43 km)</option>
-              <option value="bandipora-gurez">Bandipora – Dawar Gurez Valley (86 km)</option>
-              <option value="kupwara-tangdhar">Kupwara – Tangdhar (Sadhna Pass) (67 km)</option>
-              <option value="baramulla-uri">Baramulla – Uri Border (48 km)</option>
-              <option value="jmu-parade-satwari">Jammu Parade Ground – Satwari Airport (8.5 km)</option>
-              <option value="jmu-railway-nagrota">Jammu Tawi Railway – Nagrota (14.5 km)</option>
-              <option value="jmu-rs-pura">Jammu – RS Pura (Suchetgarh Border) (28 km)</option>
-              <option value="jmu-katra-express">Jammu Tawi – Katra Express (Vaishno Devi) (45 km)</option>
-              <option value="katra-shivkhori">Katra – Shiv Khori Cave Shrine (78 km)</option>
-              <option value="udhampur-patnitop">Udhampur – Patnitop Hill Resort (46 km)</option>
-              <option value="batote-bhaderwah">Batote – Bhaderwah Valley (82 km)</option>
-              <option value="rajouri-thanamandi">Rajouri – Thanamandi (DKG Pass) (36 km)</option>
-              <option value="poonch-mandi">Poonch – Mandi (Buddha Amarnath) (24 km)</option>
-              <option value="kathua-basohli">Kathua – Basohli (Atal Setu) (62 km)</option>
-            </select>
+    <!-- SCREEN 2: HOME / SEARCH HUB -->
+    <div id="screen-home" class="screen-view active flex flex-col justify-between min-h-[780px] pb-20">
+      <div class="p-4">
+        <!-- Top App Bar -->
+        <div class="flex items-center justify-between mb-4">
+          <div class="flex items-center gap-2">
+            <div class="w-8 h-8 rounded-lg bg-pine flex items-center justify-center text-white font-black text-base shadow-sm">
+              S
             </div>
-            <div class="form-row">
-              <div class="form-group">
-                <label for="boardingSelect" data-i18n="selectOrigin">Boarding</label>
-                <select id="boardingSelect" required>
-                  <option value="my_location">📍 My Current Location</option>
-                </select>
-              </div>
-              <div class="form-group">
-                <label for="deboardingSelect" data-i18n="selectDestination">Deboarding</label>
-                <select id="deboardingSelect" required>
-                  <option value="">Select destination</option>
-                </select>
-              </div>
-            </div>
-            <div class="form-group">
-              <label for="vehicleSelect" data-i18n="selectVehicle">Vehicle Type</label>
-              <select id="vehicleSelect" required></select>
-            </div>
-            <!-- Vehicle Category Selector & JKMT Badge -->
-            <div class="form-group" id="vehicleCategoryGroup">
-              <label for="vehicleCategorySelect" class="form-label">Vehicle Category</label>
-              <select id="vehicleCategorySelect" class="form-select" aria-label="Vehicle category">
-                <option value="STAGE_CARRIAGE" selected>Stage Carriage (JKSRTC / Ordinary Bus)</option>
-                <option value="CONTRACT_CARRIAGE">Contract Carriage (Private Hire / Maxi Cab)</option>
-                <option value="TOURIST_PERMIT">Tourist Permit Vehicle</option>
-              </select>
-              <span id="jkmtRouteBadge" class="badge badge--jkmt" style="display:none; margin-top:6px; padding:4px 8px; background:rgba(16,185,129,0.15); color:#10b981; border:1px solid #10b981; border-radius:4px; font-size:12px; font-weight:600;">
-                ✓ JKMT Notified Route — <span id="jkmtRef"></span>
-              </span>
-            </div>
-            <div class="form-group">
-              <label for="concessionSelect">Passenger Concession Category</label>
-              <select id="concessionSelect" class="form-select">
-                <option value="General" selected>General (Standard Rate)</option>
-                <option value="Student">Student (50% Concession)</option>
-                <option value="Senior Citizen">Senior Citizen (25% Concession)</option>
-                <option value="Specially Abled">Specially Abled (50% Concession)</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label for="distanceInput" data-i18n="enterDistance">Distance (km)</label>
-              <input type="number" id="distanceInput" min="0.1" max="500" step="0.1" value="1" required>
-            </div>
-            <button type="submit" id="btnCalculateFare" class="btn-primary" data-i18n="calculateBtn">Calculate Fare</button>
-            <button type="button" id="bookTripBtn" class="btn-secondary">Book Trip</button>
-          </form>
-
-          <div class="sync-bar">
-            <button type="button" id="flushSyncBtn" class="btn-outline">🔄 Sync Offline Queue</button>
-            <span id="syncBadge" class="sync-badge synced">Synced</span>
+            <span class="font-bold text-pine-dark text-lg tracking-tight">Safar</span>
           </div>
+          <button onclick="goToScreen('screen-alerts')" class="relative p-2 rounded-full hover:bg-stone-200/60 transition">
+            <span class="material-symbols-outlined text-stone-700 text-[22px]">notifications</span>
+            <span id="notif-badge-dot" class="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-saffron rounded-full border-2 border-white"></span>
+          </button>
+        </div>
 
-          <!-- Fare Result & Show to Conductor Action -->
-          <div id="fareResult" class="fare-result" aria-live="polite">
-            <div class="fare-amount" id="fareAmount">—</div>
-            <div class="fare-meta" id="fareMeta"></div>
-            <div class="fare-source" id="fareSource"></div>
-            <button type="button" id="btnShowConductorCard" class="btn-outline btn-dispute hidden">
-              📋 Show to Conductor (Official Rate Badge)
-            </button>
-          </div>
-        </section>
-
-
-        <section class="card" aria-labelledby="map-heading">
-          <h2 id="map-heading" data-i18n="liveMapTitle">Live Tracker</h2>
-          <div id="map" class="map-box"></div>
-        </section>
-      </div>
-
-      <!-- 2. DRIVER & CONDUCTOR VIEW -->
-      <div id="viewDriver" class="view-panel hidden" role="tabpanel" aria-labelledby="tabDriver" aria-hidden="true">
-        <!-- Driver/Conductor Console Card -->
-        <section class="card" aria-labelledby="conductor-console-heading">
-          <h2 id="conductor-console-heading" data-i18n="conductorTitle">🧑‍✈️ Driver & Conductor Console</h2>
-          
-          <form id="conductorConsoleForm" novalidate>
-            <div class="form-group">
-              <label for="conductorRouteSelect" data-i18n="assignedRoute">Assigned Route</label>
-              <select id="conductorRouteSelect" required>
-                <option value="">-- Select Assigned Route --</option>
-              </select>
+        <!-- Elevated Search Card -->
+        <div class="bg-white rounded-card p-4 shadow-safar border border-stone-200/80 mb-4">
+          <div class="flex flex-col gap-2 relative">
+            <!-- From Row -->
+            <div class="flex items-center gap-2.5 bg-stone-50 rounded-lg px-3 py-2.5 border border-stone-200 focus-within:border-pine">
+              <span class="material-symbols-outlined text-emerald-600 text-[20px]">location_on</span>
+              <input id="commuter-from-input" type="text" value="Lal Chowk, Srinagar" placeholder="From (Boarding Stop)" class="w-full bg-transparent text-xs font-semibold text-slate-main outline-none border-none p-0 focus:ring-0" />
             </div>
 
-            <div class="form-row">
-              <div class="form-group">
-                <label for="conductorVehicleNo" data-i18n="vehicleRegNo">Vehicle Number</label>
-                <input type="text" id="conductorVehicleNo" placeholder="e.g. JK01-AV-9912" value="JK01-AV-9912" required>
-              </div>
-
-              <div class="form-group">
-                <label for="conductorVehicleType" data-i18n="selectVehicle">Vehicle Type</label>
-                <select id="conductorVehicleType" required>
-                  <option value="MINI_BUS">Mini Bus (22 Seats)</option>
-                  <option value="BIG_BUS">Big Bus (42 Seats)</option>
-                  <option value="TATA_MAGIC">Tata Magic (7 Seats)</option>
-                  <option value="SHARED_VAN">Shared Van (8 Seats)</option>
-                  <option value="E_RICKSHAW">E-Rickshaw (4 Seats)</option>
-                  <option value="E_AUTO">E-Auto (3 Seats)</option>
-                  <option value="PETROL_AUTO">Petrol Auto (3 Seats)</option>
-                  <option value="TAXI_MAXI_CAB_BASE">Maxi Cab / Sumo (7 Seats)</option>
-                  <option value="TAXI_MEDIUM_TOURIST">Medium Tourist Taxi (4 Seats)</option>
-                  <option value="TAXI_PREMIUM_TOURIST">Premium Tourist Taxi (4 Seats)</option>
-                </select>
-              </div>
-            </div>
-
-            <!-- Live Passenger Count Widget -->
-            <div class="form-group">
-              <label id="passenger-count-label">Live Passenger Count</label>
-              <div class="passenger-counter" role="group" aria-labelledby="passenger-count-label">
-                <button type="button" id="btnPassengerMinus" class="counter-btn" aria-label="Decrease passenger count">−</button>
-                <div class="counter-display-box">
-                  <div id="driverPassengerCount" class="counter-val" aria-live="polite">0</div>
-                  <div class="counter-capacity">Max Capacity: <span id="driverMaxCapacity">22</span></div>
-                </div>
-                <button type="button" id="btnPassengerPlus" class="counter-btn" aria-label="Increase passenger count">+</button>
-              </div>
-            </div>
-
-            <!-- Toggle Broadcast Button -->
-            <div class="form-group">
-              <button type="button" id="btnToggleBroadcast" class="btn-broadcast btn-broadcast-idle">
-                📡 Start GPS Broadcast
+            <!-- Swap Icon Button (Saffron) -->
+            <div class="flex justify-center -my-2 relative z-10">
+              <button onclick="swapCommuterStops()" class="w-7 h-7 rounded-full bg-white border border-stone-300 shadow-sm flex items-center justify-center hover:scale-110 active:rotate-180 transition-all text-saffron">
+                <span class="material-symbols-outlined text-[18px]">swap_vert</span>
               </button>
             </div>
-          </form>
 
-          <!-- Conductor Receipt Verification Form -->
-          <div class="verify-box" aria-labelledby="verify-heading">
-            <h3 id="verify-heading">🎫 Conductor Receipt Verification</h3>
-            <p class="section-desc">Verify commuter e-tickets and QR transaction codes against transport authority registry.</p>
-            <div class="form-group">
-              <label for="conductorVerifyInput">Receipt / Ticket Code</label>
-              <div class="verify-input-row">
-                <input type="text" id="conductorVerifyInput" placeholder="Enter ticket code (e.g. TKT-78219)">
+            <!-- To Row -->
+            <div class="flex items-center gap-2.5 bg-stone-50 rounded-lg px-3 py-2.5 border border-stone-200 focus-within:border-pine">
+              <span class="material-symbols-outlined text-saffron text-[20px]">tour</span>
+              <input id="commuter-to-input" type="text" value="Hazratbal Dargah" placeholder="To (Destination Stop)" class="w-full bg-transparent text-xs font-semibold text-slate-main outline-none border-none p-0 focus:ring-0" />
+            </div>
+
+            <!-- Find Bus CTA -->
+            <button onclick="goToScreen('screen-route-explorer')" class="w-full mt-2 bg-pine text-white py-3 rounded-cta font-bold text-xs shadow hover:bg-pine-dark active:scale-[0.99] transition flex items-center justify-center gap-1.5">
+              <span class="material-symbols-outlined text-[16px]">search</span>
+              Find Bus & Calculate Fare
+            </button>
+          </div>
+        </div>
+
+        <!-- Section: Live Near You (Horizontal Scroll of 3 Bus Cards) -->
+        <div class="mb-4">
+          <div class="flex items-center justify-between mb-2">
+            <h3 class="text-xs font-bold text-slate-main uppercase tracking-wider">Live Near You</h3>
+            <span class="text-[11px] text-pine font-semibold cursor-pointer" onclick="goToScreen('screen-live-track')">View Map ➔</span>
+          </div>
+          <div class="flex gap-2.5 overflow-x-auto pb-1 scrollbar-none">
+            <!-- Card 1 -->
+            <div onclick="goToScreen('screen-live-track')" class="shrink-0 w-36 bg-white p-3 rounded-card border border-stone-200 shadow-safar cursor-pointer hover:border-pine transition">
+              <div class="flex justify-between items-start">
+                <span class="text-xs font-bold bg-pine/10 text-pine px-1.5 py-0.5 rounded">R-14</span>
+                <span class="w-2 h-2 rounded-full bg-emerald-500 live-pulse"></span>
+              </div>
+              <div class="text-[11px] font-bold text-slate-main mt-1.5">Lal Chowk ↔ Haz</div>
+              <div class="text-[10px] text-emerald-600 font-semibold mt-0.5">ETA: 3 min</div>
+              <div class="text-[9px] text-stone-400 flex items-center gap-1 mt-1">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Low crowd
               </div>
             </div>
-            <div class="button-row">
-              <button type="button" id="btnConductorVerifySubmit" class="btn-primary">Verify Receipt</button>
-              <button type="button" id="btnScanQrCode" class="btn-secondary">📋 Enter Ticket Code</button>
-            </div>
-            <div id="conductorVerifyResult" class="verify-result" aria-live="polite">
-              Ready to verify tickets.
-            </div>
-          </div>
-        </section>
 
-        <!-- Driver Stats Widgets -->
-        <section class="card" aria-labelledby="stats-heading">
-          <h2 id="stats-heading">📊 Driver Shift Statistics</h2>
-          <div class="driver-stats-grid">
-            <div class="stat-card">
-              <span class="stat-lbl" data-i18n="pingsSent">Pings Dispatched</span>
-              <strong id="conductorPingsCount" class="stat-val">0</strong>
-            </div>
-            <div class="stat-card">
-              <span class="stat-lbl" data-i18n="todayEarnings">Est. Earnings</span>
-              <strong id="conductorEarnings" class="stat-val">₹0</strong>
-            </div>
-          </div>
-          <div id="driverMap" class="map-box"></div>
-        </section>
-      </div>
-
-      <!-- 3. AI ASSISTANT VIEW -->
-      <div id="viewAi" class="view-panel hidden" role="tabpanel" aria-labelledby="tabAi" aria-hidden="true">
-        <section class="card" aria-labelledby="ai-heading">
-          <h2 id="ai-heading">🤖 Safar Multilingual AI Assistant</h2>
-          <p class="section-desc">Ask fare questions, route details, live bus locations, or student concession rules in English, Kashmiri (कॉशुर / کٲشُر), Urdu, or Hindi.</p>
-          
-          <div id="aiChatContainer" class="ai-chat-box" aria-live="polite"></div>
-
-          <!-- Suggested Prompt Chips -->
-          <div class="ai-chips-bar" role="group" aria-label="Suggested questions">
-            <button type="button" class="ai-chip" data-query="Cheapest fare to Lal Chowk?">Cheapest fare to Lal Chowk?</button>
-            <button type="button" class="ai-chip" data-query="Fare for Budgam?">Fare for Budgam?</button>
-            <button type="button" class="ai-chip" data-query="Is Kashmir University bus crowded?">Is Kashmir University bus crowded?</button>
-            <button type="button" class="ai-chip" data-query="Student discount rules?">Student discount rules?</button>
-          </div>
-
-          <!-- Input Bar -->
-          <form id="aiInputForm" class="ai-input-form" novalidate>
-            <label for="aiInputText" class="sr-only">Ask AI Assistant</label>
-            <input type="text" id="aiInputText" class="ai-input-field" placeholder="Ask in English, हिन्दी, or कॉशुर (e.g. Fare for Budgam)..." autocomplete="off" required>
-            <button type="button" id="aiMicBtn" class="ai-mic-btn" aria-label="Voice input">🎙️</button>
-            <button type="submit" id="btnSendAiMessage" class="btn-primary ai-send-btn" aria-label="Send message">Send</button>
-          </form>
-        </section>
-      </div>
-
-      <!-- 4. MIND MAP / BLUEPRINT VIEW -->
-      <div id="viewMindmap" class="view-panel hidden" role="tabpanel" aria-labelledby="tabMindmap" aria-hidden="true">
-        <section class="card" aria-labelledby="mindmap-heading">
-          <h2 id="mindmap-heading">🧠 Shared Mobility Platform Blueprint</h2>
-          <p class="section-desc">Interactive architectural mind map & operational system graph. Use Arrow keys to navigate, Space/Enter to expand or inspect, or launch related SAFAR services.</p>
-
-          <div class="mindmap-header-tools">
-            <div class="mindmap-toolbar">
-              <div class="mindmap-search-bar">
-                <input type="text" id="mindmapSearchInput" placeholder="🔍 Search blueprint nodes (e.g. Fare, Safety, Telemetry)..." aria-label="Search blueprint nodes">
+            <!-- Card 2 -->
+            <div onclick="goToScreen('screen-live-track')" class="shrink-0 w-36 bg-white p-3 rounded-card border border-stone-200 shadow-safar cursor-pointer hover:border-pine transition">
+              <div class="flex justify-between items-start">
+                <span class="text-xs font-bold bg-pine/10 text-pine px-1.5 py-0.5 rounded">R-07</span>
+                <span class="w-2 h-2 rounded-full bg-amber-500"></span>
               </div>
-              <div class="mindmap-btn-group">
-                <button type="button" id="btnMindmapExpandAll" class="btn-outline">Expand All</button>
-                <button type="button" id="btnMindmapCollapseAll" class="btn-outline">Collapse All</button>
-                <button type="button" id="btnMindmapZoomIn" class="btn-outline" aria-label="Zoom in">+</button>
-                <button type="button" id="btnMindmapZoomOut" class="btn-outline" aria-label="Zoom out">−</button>
-                <button type="button" id="btnMindmapZoomReset" class="btn-outline" aria-label="Reset zoom">Reset</button>
+              <div class="text-[11px] font-bold text-slate-main mt-1.5">Budgam ↔ Batamaloo</div>
+              <div class="text-[10px] text-amber-600 font-semibold mt-0.5">ETA: 8 min</div>
+              <div class="text-[9px] text-stone-400 flex items-center gap-1 mt-1">
+                <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span> Moderate crowd
+              </div>
+            </div>
+
+            <!-- Card 3 -->
+            <div onclick="goToScreen('screen-live-track')" class="shrink-0 w-36 bg-white p-3 rounded-card border border-stone-200 shadow-safar cursor-pointer hover:border-pine transition">
+              <div class="flex justify-between items-start">
+                <span class="text-xs font-bold bg-pine/10 text-pine px-1.5 py-0.5 rounded">R-22</span>
+                <span class="w-2 h-2 rounded-full bg-rose-500"></span>
+              </div>
+              <div class="text-[11px] font-bold text-slate-main mt-1.5">Srinagar ↔ Anantnag</div>
+              <div class="text-[10px] text-rose-600 font-semibold mt-0.5">ETA: 14 min</div>
+              <div class="text-[9px] text-stone-400 flex items-center gap-1 mt-1">
+                <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span> High crowd
               </div>
             </div>
           </div>
+        </div>
 
-          <div id="mindmapViewport" class="mindmap-viewport" role="region" aria-label="Interactive Mind Map Viewport">
-            <div id="mindmapCanvas" class="mindmap-canvas">
-              <svg id="mindmapSvg" class="mindmap-svg-layer" aria-hidden="true"></svg>
-              <div id="mindmapTree" class="mindmap-tree-container" role="tree" aria-label="Shared Mobility Architecture Hierarchy"></div>
+        <!-- Section: Quick Access Chips Row -->
+        <div class="mb-4">
+          <h3 class="text-xs font-bold text-slate-main uppercase tracking-wider mb-2">Quick Access</h3>
+          <div class="flex gap-1.5 overflow-x-auto pb-1">
+            <button onclick="goToScreen('screen-live-track')" class="shrink-0 px-3 py-1.5 rounded-chip bg-white border border-stone-300 text-xs font-semibold text-slate-main hover:bg-stone-100 flex items-center gap-1 shadow-xs">
+              <span class="material-symbols-outlined text-[16px] text-pine">my_location</span> Live Track
+            </button>
+            <button onclick="goToScreen('screen-fare-calc')" class="shrink-0 px-3 py-1.5 rounded-chip bg-white border border-stone-300 text-xs font-semibold text-slate-main hover:bg-stone-100 flex items-center gap-1 shadow-xs">
+              <span class="material-symbols-outlined text-[16px] text-saffron">calculate</span> Fare Rules
+            </button>
+            <button onclick="goToScreen('screen-trip-history')" class="shrink-0 px-3 py-1.5 rounded-chip bg-white border border-stone-300 text-xs font-semibold text-slate-main hover:bg-stone-100 flex items-center gap-1 shadow-xs">
+              <span class="material-symbols-outlined text-[16px] text-copper">receipt_long</span> My Receipts
+            </button>
+            <button onclick="goToScreen('screen-ai-assistant')" class="shrink-0 px-3 py-1.5 rounded-chip bg-white border border-stone-300 text-xs font-semibold text-slate-main hover:bg-stone-100 flex items-center gap-1 shadow-xs">
+              <span class="material-symbols-outlined text-[16px] text-purple-600">smart_toy</span> AI Assistant
+            </button>
+            <button onclick="goToScreen('screen-dispute')" class="shrink-0 px-3 py-1.5 rounded-chip bg-white border border-stone-300 text-xs font-semibold text-slate-main hover:bg-stone-100 flex items-center gap-1 shadow-xs">
+              <span class="material-symbols-outlined text-[16px] text-safar-error">report_problem</span> Dispute
+            </button>
+          </div>
+        </div>
+
+        <!-- Statutory SRO Notice Card -->
+        <div class="bg-emerald-50 border border-emerald-200 rounded-card p-3 flex items-center gap-2.5">
+          <span class="material-symbols-outlined text-emerald-700 text-[22px]">verified</span>
+          <div>
+            <div class="text-xs font-bold text-emerald-900">J&K SRO-2026 Statutory Protection</div>
+            <div class="text-[10px] text-emerald-700">Driver overcharging is strictly penalized. Always verify fare.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SCREEN 3: ROUTE EXPLORER -->
+    <div id="screen-route-explorer" class="screen-view p-4 pb-20 min-h-[780px]">
+      <div class="flex items-center justify-between mb-3">
+        <button onclick="goToScreen('screen-home')" class="p-1 rounded-full hover:bg-stone-200">
+          <span class="material-symbols-outlined text-stone-700">arrow_back</span>
+        </button>
+        <h2 class="text-sm font-bold text-slate-main">All J&K SRTC Routes</h2>
+        <span class="w-6"></span>
+      </div>
+
+      <!-- Search & Filters -->
+      <div class="bg-white rounded-lg p-2 border border-stone-300 shadow-xs flex items-center gap-2 mb-3">
+        <span class="material-symbols-outlined text-stone-400 text-[18px]">search</span>
+        <input type="text" placeholder="Filter by route # or stop name..." class="w-full text-xs font-semibold border-none p-0 outline-none focus:ring-0" />
+      </div>
+
+      <!-- Filter Chips -->
+      <div class="flex gap-1.5 mb-4 overflow-x-auto">
+        <span class="px-3 py-1 bg-pine text-white text-xs font-bold rounded-chip cursor-pointer">All (73)</span>
+        <span class="px-3 py-1 bg-white text-stone-700 border border-stone-300 text-xs font-bold rounded-chip cursor-pointer">Minibus</span>
+        <span class="px-3 py-1 bg-white text-stone-700 border border-stone-300 text-xs font-bold rounded-chip cursor-pointer">SRTC</span>
+        <span class="px-3 py-1 bg-white text-stone-700 border border-stone-300 text-xs font-bold rounded-chip cursor-pointer">Shared Cab</span>
+      </div>
+
+      <!-- Route Cards List -->
+      <div class="flex flex-col gap-2.5">
+        <!-- Route 1 -->
+        <div onclick="goToScreen('screen-route-detail')" class="bg-white p-3.5 rounded-card border border-stone-200 shadow-safar cursor-pointer hover:border-pine transition">
+          <div class="flex items-center justify-between mb-1.5">
+            <span class="bg-pine text-white text-xs font-bold px-2 py-0.5 rounded-full">Route 14</span>
+            <span class="text-xs font-bold text-pine">₹15 – ₹35</span>
+          </div>
+          <div class="text-xs font-bold text-slate-main">Lal Chowk ➔ Hazratbal Dargah</div>
+          <div class="text-[10px] text-stone-500 mt-0.5">12 Stops • Every 6 mins • 06:00 - 21:00</div>
+          <div class="flex justify-between items-center mt-2 pt-2 border-t border-stone-100 text-[10px] text-stone-600">
+            <span>🚌 SRTC Electric Bus</span>
+            <span class="text-emerald-600 font-bold">● 4 Live Buses</span>
+          </div>
+        </div>
+
+        <!-- Route 2 -->
+        <div onclick="goToScreen('screen-route-detail')" class="bg-white p-3.5 rounded-card border border-stone-200 shadow-safar cursor-pointer hover:border-pine transition">
+          <div class="flex items-center justify-between mb-1.5">
+            <span class="bg-pine text-white text-xs font-bold px-2 py-0.5 rounded-full">Route 07</span>
+            <span class="text-xs font-bold text-pine">₹10 – ₹25</span>
+          </div>
+          <div class="text-xs font-bold text-slate-main">Budgam Bus Stand ➔ Batamaloo</div>
+          <div class="text-[10px] text-stone-500 mt-0.5">9 Stops • Every 10 mins • 06:30 - 20:30</div>
+          <div class="flex justify-between items-center mt-2 pt-2 border-t border-stone-100 text-[10px] text-stone-600">
+            <span>🚐 Private Minibus</span>
+            <span class="text-emerald-600 font-bold">● 6 Live Buses</span>
+          </div>
+        </div>
+
+        <!-- Route 3 -->
+        <div onclick="goToScreen('screen-route-detail')" class="bg-white p-3.5 rounded-card border border-stone-200 shadow-safar cursor-pointer hover:border-pine transition">
+          <div class="flex items-center justify-between mb-1.5">
+            <span class="bg-pine text-white text-xs font-bold px-2 py-0.5 rounded-full">Route 22</span>
+            <span class="text-xs font-bold text-pine">₹30 – ₹70</span>
+          </div>
+          <div class="text-xs font-bold text-slate-main">Pantha Chowk ➔ Anantnag General Stand</div>
+          <div class="text-[10px] text-stone-500 mt-0.5">18 Stops • Every 15 mins • 07:00 - 19:30</div>
+          <div class="flex justify-between items-center mt-2 pt-2 border-t border-stone-100 text-[10px] text-stone-600">
+            <span>🚖 Shared Maxi Cab</span>
+            <span class="text-emerald-600 font-bold">● 2 Live Buses</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- FAB: Suggest Missing Route (Copper color) -->
+      <button onclick="goToScreen('screen-dispute')" class="w-full mt-4 bg-copper text-white py-3 rounded-cta font-bold text-xs shadow flex items-center justify-center gap-1.5 hover:opacity-90">
+        <span class="material-symbols-outlined text-[16px]">add_location_alt</span>
+        Suggest Missing Route (Crowdsource)
+      </button>
+    </div>
+
+    <!-- SCREEN 4: ROUTE DETAIL -->
+    <div id="screen-route-detail" class="screen-view p-4 pb-20 min-h-[780px]">
+      <div class="flex items-center justify-between mb-3">
+        <button onclick="goToScreen('screen-route-explorer')" class="p-1 rounded-full hover:bg-stone-200">
+          <span class="material-symbols-outlined text-stone-700">arrow_back</span>
+        </button>
+        <h2 class="text-sm font-bold text-slate-main">Route 14 Details</h2>
+        <button class="p-1 text-stone-600"><span class="material-symbols-outlined text-[20px]">share</span></button>
+      </div>
+
+      <!-- Route Header -->
+      <div class="bg-white p-3 rounded-card border border-stone-200 shadow-safar mb-3">
+        <div class="flex items-center justify-between">
+          <span class="text-sm font-bold text-pine-dark">Lal Chowk ➔ Hazratbal</span>
+          <span class="text-xs bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded">Active</span>
+        </div>
+        <p class="text-[11px] text-stone-500 mt-0.5">Regulated Fare: ₹15 Base • SRO-2026 Compliant</p>
+      </div>
+
+      <!-- Horizontal Scrollable Stop Timeline -->
+      <div class="bg-white p-3 rounded-card border border-stone-200 shadow-safar mb-3">
+        <h3 class="text-xs font-bold text-slate-main uppercase mb-2">Stop Timeline</h3>
+        <div class="flex items-center gap-4 overflow-x-auto pb-2">
+          <div class="flex flex-col items-center shrink-0">
+            <div class="w-4 h-4 rounded-full bg-emerald-600 border-2 border-white shadow"></div>
+            <span class="text-[10px] font-bold mt-1 text-slate-main">Lal Chowk</span>
+          </div>
+          <div class="w-8 h-0.5 bg-stone-300 -mt-3 shrink-0"></div>
+          <div class="flex flex-col items-center shrink-0">
+            <div class="w-4 h-4 rounded-full bg-saffron border-2 border-white shadow"></div>
+            <span class="text-[10px] font-bold mt-1 text-saffron">Khanyar</span>
+          </div>
+          <div class="w-8 h-0.5 bg-stone-300 -mt-3 shrink-0"></div>
+          <div class="flex flex-col items-center shrink-0">
+            <div class="w-4 h-4 rounded-full bg-stone-400 border-2 border-white shadow"></div>
+            <span class="text-[10px] font-bold mt-1 text-stone-600">Rainawari</span>
+          </div>
+          <div class="w-8 h-0.5 bg-stone-300 -mt-3 shrink-0"></div>
+          <div class="flex flex-col items-center shrink-0">
+            <div class="w-4 h-4 rounded-full bg-stone-400 border-2 border-white shadow"></div>
+            <span class="text-[10px] font-bold mt-1 text-stone-600">Hazratbal</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Fare Table Card with Concession Toggle -->
+      <div class="bg-white p-3.5 rounded-card border border-stone-200 shadow-safar mb-3">
+        <div class="flex items-center justify-between mb-2">
+          <h3 class="text-xs font-bold text-slate-main uppercase">Statutory Fare Slabs</h3>
+          <div class="flex gap-1 bg-stone-100 p-0.5 rounded-lg text-[10px] font-bold">
+            <button class="px-2 py-0.5 bg-white text-pine rounded shadow-xs">General</button>
+            <button class="px-2 py-0.5 text-stone-500">Student (-50%)</button>
+            <button class="px-2 py-0.5 text-stone-500">Senior (-25%)</button>
+          </div>
+        </div>
+        <div class="text-[11px] divide-y divide-stone-100">
+          <div class="flex justify-between py-1.5"><span>Lal Chowk ➔ Khanyar</span><span class="font-bold text-slate-main">₹15</span></div>
+          <div class="flex justify-between py-1.5"><span>Lal Chowk ➔ Rainawari</span><span class="font-bold text-slate-main">₹20</span></div>
+          <div class="flex justify-between py-1.5"><span>Lal Chowk ➔ Hazratbal</span><span class="font-bold text-slate-main">₹25</span></div>
+        </div>
+      </div>
+
+      <!-- Live Buses & Set Alert Button -->
+      <div class="flex gap-2 mb-4">
+        <button onclick="goToScreen('screen-live-track')" class="flex-1 bg-pine text-white py-2.5 rounded-cta font-bold text-xs shadow hover:bg-pine-dark">
+          Track Live Bus
+        </button>
+        <button onclick="triggerSimulatedPush('Alert Set', 'You will be notified 2 stops before Hazratbal.')" class="px-4 py-2.5 bg-saffron text-white rounded-cta font-bold text-xs shadow hover:bg-saffron-light flex items-center gap-1">
+          <span class="material-symbols-outlined text-[16px]">add_alert</span> Set Alert
+        </button>
+      </div>
+
+      <!-- Overcrowding History Chart (7 Days Bar Chart) -->
+      <div class="bg-white p-3.5 rounded-card border border-stone-200 shadow-safar">
+        <h3 class="text-xs font-bold text-slate-main uppercase mb-2">7-Day Hourly Crowding Heat</h3>
+        <div class="flex items-end justify-between h-20 pt-2 px-1">
+          <div class="flex flex-col items-center gap-1"><div class="w-4 bg-emerald-400 rounded-t h-8"></div><span class="text-[9px] text-stone-400">8AM</span></div>
+          <div class="flex flex-col items-center gap-1"><div class="w-4 bg-rose-500 rounded-t h-16"></div><span class="text-[9px] text-stone-400">10AM</span></div>
+          <div class="flex flex-col items-center gap-1"><div class="w-4 bg-amber-400 rounded-t h-10"></div><span class="text-[9px] text-stone-400">12PM</span></div>
+          <div class="flex flex-col items-center gap-1"><div class="w-4 bg-amber-400 rounded-t h-12"></div><span class="text-[9px] text-stone-400">2PM</span></div>
+          <div class="flex flex-col items-center gap-1"><div class="w-4 bg-rose-600 rounded-t h-18"></div><span class="text-[9px] text-stone-400">5PM</span></div>
+          <div class="flex flex-col items-center gap-1"><div class="w-4 bg-emerald-400 rounded-t h-6"></div><span class="text-[9px] text-stone-400">8PM</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SCREEN 5: LIVE BUS TRACKING (45% MAP, 55% BOTTOM SHEET) -->
+    <div id="screen-live-track" class="screen-view min-h-[780px] pb-20 relative">
+      <!-- Map Area (45% Screen Height) -->
+      <div class="h-[340px] w-full relative bg-stone-300">
+        <div id="leaflet-live-map" class="w-full h-full"></div>
+        <button onclick="goToScreen('screen-home')" class="absolute top-4 left-4 z-[1000] p-2 rounded-full bg-white/90 shadow text-stone-700">
+          <span class="material-symbols-outlined text-[18px]">arrow_back</span>
+        </button>
+        <button onclick="goToScreen('screen-dispute')" class="absolute top-4 right-4 z-[1000] px-3 py-1.5 rounded-full bg-white/90 shadow text-safar-error font-bold text-[11px] flex items-center gap-1">
+          <span class="material-symbols-outlined text-[14px]">flag</span> Report Issue
+        </button>
+      </div>
+
+      <!-- Bottom Sheet Area (55% Height) -->
+      <div class="p-4 bg-white rounded-t-3xl shadow-safar-lg -mt-4 relative z-10 border-t border-stone-200">
+        <div class="w-12 h-1 bg-stone-300 rounded-full mx-auto mb-3"></div>
+
+        <div class="flex justify-between items-start mb-2">
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="text-base font-bold text-slate-main">Bus JK-01-EB-4402</span>
+              <span class="bg-pine text-white text-[10px] font-bold px-2 py-0.5 rounded">SRTC e-Bus</span>
+            </div>
+            <p class="text-xs text-stone-500 mt-0.5">Driver: Bashir Ahmad Lone (SRTC #4829)</p>
+          </div>
+          <span class="text-xs bg-emerald-100 text-emerald-800 font-bold px-2 py-1 rounded-md">Verified ✓</span>
+        </div>
+
+        <!-- ETA Strip -->
+        <div class="bg-saffron/10 border border-saffron/30 rounded-lg p-2.5 flex items-center justify-between mb-3">
+          <div class="flex items-center gap-2">
+            <span class="material-symbols-outlined text-saffron text-[20px]">timer</span>
+            <span class="text-xs font-bold text-slate-main">Arriving at Khanyar in 3 mins</span>
+          </div>
+          <span class="text-xs font-extrabold text-saffron">3 stops away</span>
+        </div>
+
+        <!-- Stop Progress Bar -->
+        <div class="mb-3">
+          <div class="flex justify-between text-[10px] font-bold text-stone-400 mb-1">
+            <span>Lal Chowk (Passed)</span>
+            <span class="text-pine font-bold">Khanyar (Approaching)</span>
+            <span>Hazratbal</span>
+          </div>
+          <div class="w-full bg-stone-200 h-2 rounded-full overflow-hidden">
+            <div class="bg-pine h-full w-2/3"></div>
+          </div>
+        </div>
+
+        <!-- Crowding & Fare Lock -->
+        <div class="grid grid-cols-2 gap-2 mb-3">
+          <div class="bg-stone-50 p-2 rounded-lg border border-stone-200 flex items-center gap-2">
+            <span class="material-symbols-outlined text-amber-500">groups</span>
+            <div>
+              <div class="text-[10px] text-stone-400 font-bold">Crowding</div>
+              <div class="text-xs font-bold text-amber-600">Moderate (23/45)</div>
+            </div>
+          </div>
+          <div class="bg-stone-50 p-2 rounded-lg border border-stone-200 flex items-center gap-2">
+            <span class="material-symbols-outlined text-pine">lock</span>
+            <div>
+              <div class="text-[10px] text-stone-400 font-bold">Locked Rate</div>
+              <div class="text-xs font-bold text-pine">₹25 Statutory</div>
+            </div>
+          </div>
+        </div>
+
+        <button onclick="goToScreen('screen-payment')" class="w-full bg-pine text-white py-3 rounded-cta font-bold text-xs shadow hover:bg-pine-dark">
+          Pay ₹25 Fare Now
+        </button>
+      </div>
+    </div>
+
+    <!-- SCREEN 6: OVERCROWDING SCREEN -->
+    <div id="screen-overcrowding" class="screen-view p-4 pb-20 min-h-[780px]">
+      <div class="flex items-center justify-between mb-3">
+        <button onclick="goToScreen('screen-home')" class="p-1 rounded-full hover:bg-stone-200">
+          <span class="material-symbols-outlined text-stone-700">arrow_back</span>
+        </button>
+        <h2 class="text-sm font-bold text-slate-main">Route 14 Crowding Level</h2>
+        <span class="w-6"></span>
+      </div>
+
+      <!-- Live Passenger Count Card -->
+      <div class="bg-white p-4 rounded-card border border-stone-200 shadow-safar mb-3">
+        <div class="text-xs text-stone-500 font-semibold">Current Bus Capacity</div>
+        <div class="text-3xl font-extrabold text-pine my-1">23 Passengers</div>
+        <div class="w-full bg-stone-200 h-3 rounded-full overflow-hidden my-2">
+          <div class="bg-amber-500 h-full w-[51%]"></div>
+        </div>
+        <div class="flex justify-between text-xs font-bold">
+          <span class="text-amber-600">Status: Moderately Crowded</span>
+          <span class="text-stone-500">23 / 45 Seats</span>
+        </div>
+      </div>
+
+      <!-- Next Bus Predicted Card -->
+      <div class="bg-stone-50 p-3 rounded-card border border-stone-200 mb-3 flex items-center justify-between">
+        <div>
+          <div class="text-xs font-bold text-slate-main">Next Bus (JK-01-EB-4410)</div>
+          <div class="text-[11px] text-stone-500">ETA: 12 mins • Predicted: Low Crowding (14/45)</div>
+        </div>
+        <span class="w-3 h-3 rounded-full bg-emerald-500"></span>
+      </div>
+
+      <!-- Interactive Crowding Passive Vote -->
+      <div class="bg-white p-3.5 rounded-card border border-stone-200 shadow-safar mb-3">
+        <h4 class="text-xs font-bold text-slate-main mb-1.5">How crowded is your bus right now?</h4>
+        <div class="flex gap-2">
+          <button onclick="recordCrowdFeedback('empty')" class="flex-1 py-2 bg-emerald-50 border border-emerald-300 text-emerald-800 rounded-lg text-xs font-bold hover:bg-emerald-100">
+            🟢 Empty Seats
+          </button>
+          <button onclick="recordCrowdFeedback('full')" class="flex-1 py-2 bg-amber-50 border border-amber-300 text-amber-800 rounded-lg text-xs font-bold hover:bg-amber-100">
+            🟡 Standing
+          </button>
+          <button onclick="recordCrowdFeedback('overcrowded')" class="flex-1 py-2 bg-rose-50 border border-rose-300 text-rose-800 rounded-lg text-xs font-bold hover:bg-rose-100">
+            🔴 Jam Packed
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- SCREEN 7: FARE CALCULATOR -->
+    <div id="screen-fare-calc" class="screen-view p-4 pb-20 min-h-[780px]">
+      <div class="flex items-center justify-between mb-3">
+        <button onclick="goToScreen('screen-home')" class="p-1 rounded-full hover:bg-stone-200">
+          <span class="material-symbols-outlined text-stone-700">arrow_back</span>
+        </button>
+        <h2 class="text-sm font-bold text-slate-main">SRO Statutory Fare Calculator</h2>
+        <span class="w-6"></span>
+      </div>
+
+      <div class="bg-white p-4 rounded-card border border-stone-200 shadow-safar mb-3">
+        <div class="flex flex-col gap-3">
+          <div>
+            <label class="text-[11px] font-bold text-stone-500 uppercase">Assigned Route</label>
+            <select id="calc-route-select" class="w-full bg-stone-50 border border-stone-300 rounded-lg p-2 text-xs font-bold text-slate-main mt-1">
+              <option>Route 14: Lal Chowk ↔ Hazratbal</option>
+              <option>Route 07: Budgam ↔ Batamaloo</option>
+              <option>Route 22: Srinagar ↔ Anantnag</option>
+            </select>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="text-[11px] font-bold text-stone-500 uppercase">Boarding</label>
+              <select id="calc-boarding" class="w-full bg-stone-50 border border-stone-300 rounded-lg p-2 text-xs font-bold text-slate-main mt-1">
+                <option>Lal Chowk</option>
+                <option>Khanyar</option>
+                <option>Rainawari</option>
+              </select>
+            </div>
+            <div>
+              <label class="text-[11px] font-bold text-stone-500 uppercase">Deboarding</label>
+              <select id="calc-dest" class="w-full bg-stone-50 border border-stone-300 rounded-lg p-2 text-xs font-bold text-slate-main mt-1">
+                <option>Hazratbal</option>
+                <option>Rainawari</option>
+                <option>Khanyar</option>
+              </select>
             </div>
           </div>
 
-          <!-- Dynamic Node Inspector Drawer -->
-          <div id="mindmapInspector" class="mindmap-inspector" aria-live="polite">
-            <div class="inspector-header">
-              <div id="inspectorTitle" class="inspector-title">Shared Mobility Platform Blueprint</div>
-              <span id="inspectorCategory" class="inspector-category">Root Architecture</span>
+          <!-- Vehicle Type Selector (4 Icon Tiles) -->
+          <div>
+            <label class="text-[11px] font-bold text-stone-500 uppercase mb-1 block">Vehicle Type</label>
+            <div class="grid grid-cols-4 gap-1.5">
+              <div class="p-2 rounded-lg bg-pine/10 border-2 border-pine text-center cursor-pointer">
+                <span class="text-base">🚌</span>
+                <div class="text-[9px] font-bold text-pine mt-0.5">Minibus</div>
+              </div>
+              <div class="p-2 rounded-lg bg-stone-50 border border-stone-200 text-center cursor-pointer">
+                <span class="text-base">🚎</span>
+                <div class="text-[9px] font-bold text-stone-600 mt-0.5">SRTC e-Bus</div>
+              </div>
+              <div class="p-2 rounded-lg bg-stone-50 border border-stone-200 text-center cursor-pointer">
+                <span class="text-base">🚖</span>
+                <div class="text-[9px] font-bold text-stone-600 mt-0.5">Shared Cab</div>
+              </div>
+              <div class="p-2 rounded-lg bg-stone-50 border border-stone-200 text-center cursor-pointer">
+                <span class="text-base">🚐</span>
+                <div class="text-[9px] font-bold text-stone-600 mt-0.5">Tempo</div>
+              </div>
             </div>
-            <div id="inspectorBody" class="inspector-body">
-              Click or navigate with keyboard to any node in the interactive tree diagram above to examine technical architecture, transit regulatory workflows, and instant feature shortcuts.
-            </div>
-            <div id="inspectorActionBar" class="inspector-action-bar"></div>
           </div>
-        </section>
-      </div>
-    </main>
 
-    <!-- FIXED BOTTOM NAVIGATION BAR (4 TABS) -->
-    <nav class="bottom-nav" role="tablist" aria-label="Primary Navigation">
-      <div class="bottom-nav-inner">
-        <button type="button" role="tab" id="tabCommuter" class="bottom-nav-item active" aria-selected="true" aria-controls="viewCommuter" tabindex="0">
-          <span class="nav-icon" aria-hidden="true">🚌</span>
-          <span class="nav-label" data-i18n="navCommuter">Commuter</span>
-        </button>
-        <button type="button" role="tab" id="tabDriver" class="bottom-nav-item" aria-selected="false" aria-controls="viewDriver" tabindex="-1">
-          <span class="nav-icon" aria-hidden="true">🧑‍✈️</span>
-          <span class="nav-label" data-i18n="navConductor">Driver</span>
-        </button>
-        <button type="button" role="tab" id="tabAi" class="bottom-nav-item" aria-selected="false" aria-controls="viewAi" tabindex="-1">
-          <span class="nav-icon" aria-hidden="true">🤖</span>
-          <span class="nav-label">AI</span>
-        </button>
-        <button type="button" role="tab" id="tabMindmap" class="bottom-nav-item" aria-selected="false" aria-controls="viewMindmap" tabindex="-1">
-          <span class="nav-icon" aria-hidden="true">🧠</span>
-          <span class="nav-label">Blueprint</span>
-        </button>
-      </div>
-    </nav>
-  </div>
+          <!-- Concession Toggle -->
+          <div>
+            <label class="text-[11px] font-bold text-stone-500 uppercase mb-1 block">Concession Category</label>
+            <div class="flex gap-1 bg-stone-100 p-1 rounded-lg text-xs font-semibold">
+              <button class="flex-1 py-1 bg-white text-pine rounded font-bold shadow-xs">General</button>
+              <button class="flex-1 py-1 text-stone-500">Student</button>
+              <button class="flex-1 py-1 text-stone-500">Senior</button>
+            </div>
+          </div>
 
-  <!-- Accessible Full-screen Dispute / Official Rate Modal -->
-  <div id="disputeModal" class="dispute-modal hidden" role="dialog" aria-modal="true" aria-labelledby="disputeModalTitle">
-    <div class="dispute-modal-card card-official">
-      <div class="arch-notch-badge">SRO Statutory Badge ✓</div>
-      <div class="dispute-badge-stamp">🍁 OFFICIAL REGULATED FARE BADGE</div>
-      <h2 id="disputeModalTitle" class="dispute-fare-title">₹0</h2>
-      <p id="disputeModalMeta" class="dispute-fare-meta">Mini Bus · Standard Corridor</p>
-      
-      <div id="qr-container" style="background:#fff; padding:10px; border-radius:8px; display:inline-block; margin-bottom:12px;"></div>
-      <div id="disputeSignatureNotice" style="font-size:11px; color:#10b981; font-weight:700; margin-bottom:12px; display:none;">
-        ✓ Calculated from official notification — verify online when possible.
+          <button onclick="calculateStatutoryFare()" class="w-full bg-pine text-white py-3 rounded-cta font-bold text-xs shadow hover:bg-pine-dark mt-1">
+            Calculate Statutory Rate
+          </button>
+        </div>
       </div>
-      
-      <div class="dispute-legal-notice">
-        ⚖️ Mandated as per official J&K Regional Transport Authority fare notification. For overcharge grievances or enforcement inquiries, contact J&K Transport Helpline (112) or the Regional Transport Officer.
+
+      <!-- Result Card -->
+      <div id="calc-result-card" class="bg-white p-4 rounded-card border border-stone-200 shadow-safar mb-3">
+        <div class="flex justify-between items-center text-xs text-stone-500">
+          <span>Distance: 12.4 km</span>
+          <span class="bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded text-[10px]">SRO Rate</span>
+        </div>
+        <div class="flex justify-between items-baseline my-2">
+          <span class="text-xs font-semibold text-stone-600">Total Statutory Fare</span>
+          <span class="text-3xl font-extrabold text-pine">₹25.00</span>
+        </div>
+        <div class="flex gap-2 mt-3">
+          <button onclick="goToScreen('screen-receipt')" class="flex-1 bg-pine text-white py-2 rounded-lg text-xs font-bold shadow">
+            Save Receipt
+          </button>
+          <button onclick="triggerSimulatedPush('Fare Shared', 'Link copied to clipboard for WhatsApp')" class="px-3 py-2 bg-stone-100 text-stone-700 rounded-lg text-xs font-bold border border-stone-200">
+            Share
+          </button>
+        </div>
       </div>
-      <div style="display:flex; gap:12px;">
-        <button type="button" id="btnShareDispute" class="btn-outline" style="flex:1;">Share</button>
-        <button type="button" id="btnCloseDisputeModal" class="btn-primary" style="flex:1;">Done / Close</button>
+    </div>
+
+    <!-- SCREEN 8: FARE BREAKDOWN / RECEIPT (PAPER RECEIPT AESTHETIC) -->
+    <div id="screen-receipt" class="screen-view p-4 pb-20 min-h-[780px]">
+      <div class="flex items-center justify-between mb-3">
+        <button onclick="goToScreen('screen-home')" class="p-1 rounded-full hover:bg-stone-200">
+          <span class="material-symbols-outlined text-stone-700">arrow_back</span>
+        </button>
+        <h2 class="text-sm font-bold text-slate-main">Official Fare Record</h2>
+        <button onclick="window.print()" class="p-1 text-stone-600"><span class="material-symbols-outlined text-[20px]">print</span></button>
       </div>
+
+      <!-- Paper Aesthetic Card with Scalloped Edge -->
+      <div class="receipt-paper p-5 mb-4">
+        <div class="text-center pb-3 border-b border-dashed border-stone-300">
+          <div class="w-10 h-10 rounded-xl bg-pine text-white font-black text-xl flex items-center justify-center mx-auto mb-1">
+            S
+          </div>
+          <div class="text-sm font-bold text-slate-main">Safar Transit Authority</div>
+          <div class="text-[10px] text-stone-400">Statutory SRO-2026 Audit Record</div>
+        </div>
+
+        <div class="py-3 border-b border-dashed border-stone-300 flex justify-center">
+          <!-- Live Generated QR -->
+          <canvas id="receipt-qr-canvas" class="w-28 h-28"></canvas>
+        </div>
+
+        <div class="text-xs py-3 border-b border-dashed border-stone-300 space-y-1.5">
+          <div class="flex justify-between"><span class="text-stone-500">Trip ID:</span><span class="font-mono font-bold">#SFR-2026-8942</span></div>
+          <div class="flex justify-between"><span class="text-stone-500">Route:</span><span class="font-bold">Lal Chowk ➔ Hazratbal</span></div>
+          <div class="flex justify-between"><span class="text-stone-500">Vehicle Reg:</span><span class="font-bold">JK-01-EB-4402</span></div>
+          <div class="flex justify-between"><span class="text-stone-500">Payment:</span><span class="bg-emerald-100 text-emerald-800 px-1.5 py-0.2 rounded font-bold text-[10px]">UPI Verified</span></div>
+        </div>
+
+        <div class="py-3 space-y-1 text-xs">
+          <div class="flex justify-between"><span class="text-stone-500">Base SRO Fare:</span><span>₹25.00</span></div>
+          <div class="flex justify-between font-extrabold text-sm text-pine pt-1 border-t border-stone-200">
+            <span>Total Paid:</span><span>₹25.00</span>
+          </div>
+        </div>
+
+        <div class="flex gap-2 mt-2">
+          <button onclick="goToScreen('screen-dispute')" class="flex-1 bg-stone-100 text-safar-error border border-safar-error/30 py-2 rounded-lg text-xs font-bold">
+            Dispute This Fare
+          </button>
+          <button onclick="goToScreen('screen-cash-receipt')" class="flex-1 bg-pine text-white py-2 rounded-lg text-xs font-bold">
+            Full QR Card
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- SCREEN 9: PAYMENT INTERFACE (HYBRID UPI / CARD / CASH) -->
+    <div id="screen-payment" class="screen-view p-4 pb-20 min-h-[780px]">
+      <div class="flex items-center justify-between mb-3">
+        <button onclick="goToScreen('screen-home')" class="p-1 rounded-full hover:bg-stone-200">
+          <span class="material-symbols-outlined text-stone-700">arrow_back</span>
+        </button>
+        <h2 class="text-sm font-bold text-slate-main">Secure Fare Payment</h2>
+        <span class="w-6"></span>
+      </div>
+
+      <!-- Amount Header -->
+      <div class="bg-white p-4 rounded-card border border-stone-200 text-center shadow-safar mb-3">
+        <div class="text-xs text-stone-500">Amount Due</div>
+        <div class="text-4xl font-extrabold text-pine my-1">₹25.00</div>
+        <div class="text-xs font-semibold text-stone-600">Route 14: Lal Chowk ➔ Hazratbal</div>
+      </div>
+
+      <!-- Payment Method Selector Tabs -->
+      <div class="flex bg-stone-200/80 p-1 rounded-xl mb-3">
+        <button onclick="switchPayTab('upi')" id="tab-btn-upi" class="flex-1 py-2 rounded-lg text-xs font-bold bg-white text-pine shadow-xs">UPI</button>
+        <button onclick="switchPayTab('card')" id="tab-btn-card" class="flex-1 py-2 rounded-lg text-xs font-bold text-stone-600">Card</button>
+        <button onclick="switchPayTab('cash')" id="tab-btn-cash" class="flex-1 py-2 rounded-lg text-xs font-bold text-stone-600">Cash / Conductor</button>
+      </div>
+
+      <!-- UPI Tab Content -->
+      <div id="pay-content-upi" class="bg-white p-4 rounded-card border border-stone-200 shadow-safar mb-3">
+        <label class="text-[11px] font-bold text-stone-500 uppercase">Enter UPI ID / VPA</label>
+        <input type="text" placeholder="username@okhdfcbank" value="commuter@upi" class="w-full bg-stone-50 border border-stone-300 rounded-lg p-2 text-xs font-bold text-slate-main mt-1 mb-3" />
+        
+        <button onclick="processSimulatedPayment('UPI')" class="w-full bg-pine text-white py-3 rounded-cta font-bold text-xs shadow hover:bg-pine-dark">
+          Pay ₹25.00 via UPI
+        </button>
+
+        <div class="flex items-center justify-center gap-4 mt-3 text-stone-400 text-xs font-bold">
+          <span>GPay</span> • <span>PhonePe</span> • <span>Paytm</span>
+        </div>
+      </div>
+
+      <!-- Card Tab Content -->
+      <div id="pay-content-card" class="hidden bg-white p-4 rounded-card border border-stone-200 shadow-safar mb-3">
+        <div class="flex flex-col gap-2.5">
+          <input type="text" placeholder="Card Number" value="4532 •••• •••• 8821" class="w-full bg-stone-50 border border-stone-300 rounded-lg p-2 text-xs font-bold" />
+          <div class="grid grid-cols-2 gap-2">
+            <input type="text" placeholder="MM/YY" value="08/28" class="bg-stone-50 border border-stone-300 rounded-lg p-2 text-xs font-bold" />
+            <input type="password" placeholder="CVV" value="821" class="bg-stone-50 border border-stone-300 rounded-lg p-2 text-xs font-bold" />
+          </div>
+          <button onclick="processSimulatedPayment('Card')" class="w-full bg-pine text-white py-3 rounded-cta font-bold text-xs shadow hover:bg-pine-dark mt-1 flex items-center justify-center gap-1">
+            <span class="material-symbols-outlined text-[16px]">lock</span> Pay Securely ₹25.00
+          </button>
+        </div>
+      </div>
+
+      <!-- Cash Tab Content -->
+      <div id="pay-content-cash" class="hidden bg-white p-4 rounded-card border border-stone-200 shadow-safar mb-3">
+        <div class="bg-amber-50 border border-amber-200 rounded-lg p-3 text-center mb-3">
+          <div class="text-xs font-bold text-amber-900">Show Screen to Conductor</div>
+          <div class="text-3xl font-extrabold text-amber-700 my-1">₹25.00 Cash</div>
+          <div class="text-[10px] text-amber-800">Conductor will validate and hand paper slip if needed.</div>
+        </div>
+        <button onclick="goToScreen('screen-cash-receipt')" class="w-full bg-stone-800 text-white py-3 rounded-cta font-bold text-xs shadow">
+          Generate Offline QR Slip
+        </button>
+      </div>
+
+      <!-- Security Badges -->
+      <div class="text-center text-[10px] text-stone-400 font-semibold mt-4">
+        🔒 256-Bit Encrypted • DPDP Act 2023 Compliant • SRO-2026 Direct Audit Log
+      </div>
+    </div>
+
+    <!-- SCREEN 10: QR RECEIPT (FOR CASH PASSENGERS / PRINT OPTIMIZED) -->
+    <div id="screen-cash-receipt" class="screen-view p-6 bg-white min-h-[780px] flex flex-col justify-between text-center">
+      <div>
+        <div class="flex justify-between items-center mb-4">
+          <button onclick="goToScreen('screen-home')" class="p-1 text-stone-600"><span class="material-symbols-outlined">close</span></button>
+          <span class="text-xs font-bold text-pine tracking-wider uppercase">Safar Cash Validation Slip</span>
+          <button onclick="window.print()" class="p-1 text-stone-600"><span class="material-symbols-outlined">print</span></button>
+        </div>
+
+        <h3 class="text-sm font-bold text-slate-main">Show QR Code to Conductor</h3>
+        <p class="text-[11px] text-stone-500 font-urdu mt-0.5">کنڈکٹر کو دکھائیں برائے تصدیق کرایہ</p>
+
+        <!-- 200x200 QR Canvas -->
+        <div class="my-6 flex justify-center">
+          <canvas id="cash-qr-large" class="w-48 h-48 border-4 border-pine p-1 rounded-xl shadow"></canvas>
+        </div>
+
+        <div class="bg-stone-50 p-3 rounded-card border border-stone-200 text-left text-xs space-y-1">
+          <div class="flex justify-between font-bold text-slate-main"><span>Route:</span><span>Lal Chowk ➔ Hazratbal</span></div>
+          <div class="flex justify-between text-stone-600"><span>Statutory Fare:</span><span class="font-bold text-pine">₹25.00</span></div>
+          <div class="flex justify-between text-stone-600"><span>Date & Time:</span><span>22 Aug 2026, 12:15 PM</span></div>
+          <div class="flex justify-between text-stone-600"><span>Bus:</span><span>JK-01-EB-4402</span></div>
+        </div>
+      </div>
+
+      <div class="flex flex-col gap-2 mt-4">
+        <button onclick="window.print()" class="w-full bg-pine text-white py-3 rounded-cta font-bold text-xs shadow">
+          Print Receipt Slip
+        </button>
+        <button onclick="triggerSimulatedPush('WhatsApp Slip', 'Receipt shared to WhatsApp successfully')" class="w-full bg-emerald-600 text-white py-2.5 rounded-cta font-bold text-xs shadow">
+          Share via WhatsApp
+        </button>
+      </div>
+    </div>
+
+    <!-- SCREEN 11: MULTILINGUAL AI ASSISTANT (GEMINI) -->
+    <div id="screen-ai-assistant" class="screen-view p-4 pb-20 min-h-[780px] flex flex-col justify-between">
+      <div>
+        <div class="flex items-center justify-between mb-3">
+          <button onclick="goToScreen('screen-home')" class="p-1 rounded-full hover:bg-stone-200">
+            <span class="material-symbols-outlined text-stone-700">arrow_back</span>
+          </button>
+          <div class="flex items-center gap-1.5">
+            <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+            <h2 class="text-sm font-bold text-slate-main">Safar AI Assistant</h2>
+          </div>
+          <span class="text-xs bg-purple-100 text-purple-800 font-bold px-2 py-0.5 rounded">Gemini</span>
+        </div>
+
+        <!-- Pre-Conversation Prompt Chips -->
+        <div class="flex gap-1.5 overflow-x-auto pb-2 mb-3">
+          <button onclick="sendAiPrompt('What is the fare from Batamaloo to Lal Chowk?')" class="shrink-0 px-2.5 py-1 rounded-full bg-white border border-stone-300 text-[10px] font-semibold text-stone-700 hover:border-pine">
+            Fare: Batamaloo ➔ Lal Chowk?
+          </button>
+          <button onclick="sendAiPrompt('Is Bus 14 running today?')" class="shrink-0 px-2.5 py-1 rounded-full bg-white border border-stone-300 text-[10px] font-semibold text-stone-700 hover:border-pine">
+            Is Bus 14 running?
+          </button>
+          <button onclick="sendAiPrompt('Senior citizen concession rules in J&K')" class="shrink-0 px-2.5 py-1 rounded-full bg-white border border-stone-300 text-[10px] font-semibold text-stone-700 hover:border-pine">
+            Senior Concession Rules
+          </button>
+        </div>
+
+        <!-- Chat Feed Area -->
+        <div id="ai-chat-feed" class="flex flex-col gap-3 overflow-y-auto max-h-[480px] pr-1">
+          <!-- Assistant Bubble -->
+          <div class="flex items-start gap-2">
+            <div class="w-7 h-7 rounded-full bg-pine text-white flex items-center justify-center text-xs font-bold shrink-0">S</div>
+            <div class="bg-white p-3 rounded-2xl rounded-tl-none border-l-4 border-pine shadow-safar text-xs text-slate-main max-w-[85%]">
+              Hello! I am your Safar AI transit guide for J&K. How can I help you navigate bus schedules, SRO fares, or dispute overcharging?
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Chat Input Box -->
+      <div class="mt-3 flex items-center gap-1.5 bg-white p-1.5 rounded-full border border-stone-300 shadow-sm">
+        <input id="ai-input-field" type="text" placeholder="Ask in English, Urdu, or Kashmiri..." class="w-full text-xs font-semibold border-none pl-3 outline-none focus:ring-0" onkeydown="if(event.key==='Enter') sendCustomAiMessage()" />
+        <button onclick="sendCustomAiMessage()" class="w-8 h-8 rounded-full bg-pine text-white flex items-center justify-center shrink-0">
+          <span class="material-symbols-outlined text-[16px]">send</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- SCREEN 12: DISPUTE FILING -->
+    <div id="screen-dispute" class="screen-view p-4 pb-20 min-h-[780px]">
+      <div class="flex items-center justify-between mb-3">
+        <button onclick="goToScreen('screen-home')" class="p-1 rounded-full hover:bg-stone-200">
+          <span class="material-symbols-outlined text-stone-700">arrow_back</span>
+        </button>
+        <h2 class="text-sm font-bold text-safar-error">Report Overcharging / Fare Dispute</h2>
+        <span class="w-6"></span>
+      </div>
+
+      <div class="bg-white p-4 rounded-card border border-stone-200 shadow-safar mb-3">
+        <div class="flex flex-col gap-2.5 text-xs">
+          <div>
+            <label class="font-bold text-stone-500 uppercase text-[10px]">Route Travelled</label>
+            <select class="w-full bg-stone-50 border border-stone-300 rounded-lg p-2 font-bold text-slate-main mt-0.5">
+              <option>Route 14: Lal Chowk ➔ Hazratbal</option>
+              <option>Route 07: Budgam ➔ Batamaloo</option>
+              <option>Route 22: Srinagar ➔ Anantnag</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="font-bold text-stone-500 uppercase text-[10px]">Bus Registration #</label>
+            <div class="flex gap-1.5">
+              <input type="text" value="JK-01-EB-4402" class="w-full bg-stone-50 border border-stone-300 rounded-lg p-2 font-bold" />
+              <button class="px-3 bg-stone-100 border border-stone-300 rounded-lg font-bold text-[10px] text-stone-700 shrink-0">Scan OCR</button>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="font-bold text-stone-500 uppercase text-[10px]">Amount Charged (₹)</label>
+              <input type="number" value="40" class="w-full bg-stone-50 border border-stone-300 rounded-lg p-2 font-bold text-safar-error" />
+            </div>
+            <div>
+              <label class="font-bold text-stone-500 uppercase text-[10px]">SRO Sactioned (₹)</label>
+              <input type="number" value="25" readonly class="w-full bg-stone-100 border border-stone-200 rounded-lg p-2 font-bold text-pine" />
+            </div>
+          </div>
+
+          <div>
+            <label class="font-bold text-stone-500 uppercase text-[10px]">Evidence / Ticket Photo</label>
+            <input type="file" class="w-full text-[10px] file:bg-stone-100 file:border-0 file:rounded-md file:py-1 file:px-2 file:text-xs file:font-bold" />
+          </div>
+
+          <button onclick="submitDisputeForm()" class="w-full bg-safar-error text-white py-3 rounded-cta font-bold text-xs shadow hover:bg-rose-700 mt-2">
+            File Statutory Dispute (SRTA Audit)
+          </button>
+        </div>
+      </div>
+
+      <!-- Dispute Status Stepper (Appears after submission) -->
+      <div id="dispute-stepper-box" class="hidden bg-stone-50 p-4 rounded-card border border-stone-200">
+        <h4 class="text-xs font-bold text-slate-main mb-2">Dispute Tracking #DSP-2026-991</h4>
+        <div class="flex items-center justify-between text-[10px] font-bold">
+          <span class="text-emerald-700">1. Submitted ✓</span>
+          <span class="text-amber-600">2. Under Review ●</span>
+          <span class="text-stone-400">3. Resolved</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- SCREEN 13: TRIP HISTORY -->
+    <div id="screen-trip-history" class="screen-view p-4 pb-20 min-h-[780px]">
+      <div class="flex items-center justify-between mb-3">
+        <button onclick="goToScreen('screen-home')" class="p-1 rounded-full hover:bg-stone-200">
+          <span class="material-symbols-outlined text-stone-700">arrow_back</span>
+        </button>
+        <h2 class="text-sm font-bold text-slate-main">My Trip Receipts & History</h2>
+        <span class="w-6"></span>
+      </div>
+
+      <!-- Summary Metrics Strip -->
+      <div class="grid grid-cols-3 gap-2 bg-pine text-white p-3 rounded-card mb-3 text-center">
+        <div>
+          <div class="text-[10px] opacity-80 uppercase font-bold">Total Trips</div>
+          <div class="text-lg font-extrabold">24</div>
+        </div>
+        <div>
+          <div class="text-[10px] opacity-80 uppercase font-bold">Spend (Aug)</div>
+          <div class="text-lg font-extrabold">₹640</div>
+        </div>
+        <div>
+          <div class="text-[10px] opacity-80 uppercase font-bold">Avg Fare</div>
+          <div class="text-lg font-extrabold">₹26.6</div>
+        </div>
+      </div>
+
+      <!-- Trip Cards List -->
+      <div class="flex flex-col gap-2">
+        <div onclick="goToScreen('screen-receipt')" class="bg-white p-3 rounded-card border border-stone-200 shadow-safar flex items-center justify-between cursor-pointer hover:border-pine">
+          <div>
+            <div class="text-xs font-bold text-slate-main">Lal Chowk ➔ Hazratbal</div>
+            <div class="text-[10px] text-stone-400">22 Aug • 12:15 PM • Route 14</div>
+          </div>
+          <div class="text-right">
+            <div class="text-xs font-extrabold text-pine">₹25.00</div>
+            <span class="text-[9px] bg-emerald-100 text-emerald-800 font-bold px-1.5 py-0.2 rounded">Completed</span>
+          </div>
+        </div>
+
+        <div onclick="goToScreen('screen-receipt')" class="bg-white p-3 rounded-card border border-stone-200 shadow-safar flex items-center justify-between cursor-pointer hover:border-pine">
+          <div>
+            <div class="text-xs font-bold text-slate-main">Budgam ➔ Batamaloo</div>
+            <div class="text-[10px] text-stone-400">21 Aug • 09:30 AM • Route 07</div>
+          </div>
+          <div class="text-right">
+            <div class="text-xs font-extrabold text-pine">₹15.00</div>
+            <span class="text-[9px] bg-emerald-100 text-emerald-800 font-bold px-1.5 py-0.2 rounded">Completed</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SCREEN 14: ALERTS & NOTIFICATIONS -->
+    <div id="screen-alerts" class="screen-view p-4 pb-20 min-h-[780px]">
+      <div class="flex items-center justify-between mb-3">
+        <button onclick="goToScreen('screen-home')" class="p-1 rounded-full hover:bg-stone-200">
+          <span class="material-symbols-outlined text-stone-700">arrow_back</span>
+        </button>
+        <h2 class="text-sm font-bold text-slate-main">Notifications & Alerts Center</h2>
+        <button onclick="clearAllNotifications()" class="text-xs text-pine font-bold">Clear</button>
+      </div>
+
+      <div class="flex flex-col gap-2.5 mb-4" id="alerts-list-container">
+        <!-- Alert 1 (Saffron border) -->
+        <div class="bg-white p-3 rounded-card border-l-4 border-saffron shadow-safar">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-slate-main">Bus 14 Delayed 15 min</span>
+            <span class="text-[10px] text-stone-400">2m ago</span>
+          </div>
+          <p class="text-[11px] text-stone-600 mt-0.5">Heavy congestion near Dalgate. Next bus arriving at 12:30 PM.</p>
+        </div>
+
+        <!-- Alert 2 (Red border) -->
+        <div class="bg-white p-3 rounded-card border-l-4 border-safar-error shadow-safar">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-slate-main">Route 12 Suspended Today</span>
+            <span class="text-[10px] text-stone-400">1h ago</span>
+          </div>
+          <p class="text-[11px] text-stone-600 mt-0.5">Road maintenance on Sonmarg corridor. Alternate minibuses via Wayil.</p>
+        </div>
+
+        <!-- Alert 3 (Pine Green) -->
+        <div class="bg-white p-3 rounded-card border-l-4 border-pine shadow-safar">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-slate-main">Statutory SRO-2026 Active</span>
+            <span class="text-[10px] text-stone-400">Today</span>
+          </div>
+          <p class="text-[11px] text-stone-600 mt-0.5">All student and senior citizen concession rates enforced across J&K.</p>
+        </div>
+      </div>
+
+      <div class="bg-stone-50 p-3 rounded-card border border-stone-200 text-xs">
+        <h4 class="font-bold text-slate-main mb-2">Notification Preferences</h4>
+        <div class="flex justify-between items-center py-1.5 border-b border-stone-200">
+          <span>Live Bus Approaching (2 stops)</span>
+          <input type="checkbox" checked class="rounded text-pine focus:ring-pine" />
+        </div>
+        <div class="flex justify-between items-center py-1.5">
+          <span>Overcrowding Warnings</span>
+          <input type="checkbox" checked class="rounded text-pine focus:ring-pine" />
+        </div>
+      </div>
+    </div>
+
+    <!-- COMMUTER STICKY BOTTOM NAVIGATION BAR -->
+    <div class="w-full bg-white border-t border-stone-200 py-2 px-4 flex justify-around items-center absolute bottom-0 left-0 z-50">
+      <button onclick="goToScreen('screen-home')" class="flex flex-col items-center text-pine font-bold text-[10px]">
+        <span class="material-symbols-outlined text-[20px]">home</span>
+        Home
+      </button>
+      <button onclick="goToScreen('screen-route-explorer')" class="flex flex-col items-center text-stone-500 font-bold text-[10px] hover:text-pine">
+        <span class="material-symbols-outlined text-[20px]">route</span>
+        Routes
+      </button>
+      <button onclick="goToScreen('screen-live-track')" class="flex flex-col items-center text-stone-500 font-bold text-[10px] hover:text-pine">
+        <span class="material-symbols-outlined text-[20px]">my_location</span>
+        Track
+      </button>
+      <button onclick="goToScreen('screen-payment')" class="flex flex-col items-center text-stone-500 font-bold text-[10px] hover:text-pine">
+        <span class="material-symbols-outlined text-[20px]">payments</span>
+        Pay
+      </button>
+      <button onclick="goToScreen('screen-trip-history')" class="flex flex-col items-center text-stone-500 font-bold text-[10px] hover:text-pine">
+        <span class="material-symbols-outlined text-[20px]">person</span>
+        Profile
+      </button>
     </div>
   </div>
 
-  <!-- SRO Notification Drawer / Modal -->
-  <div id="sroModal" class="modal dispute-modal hidden" role="dialog" aria-modal="true" aria-labelledby="sroModalTitle" style="display:none;">
-    <div id="sroModalBackdrop" class="modal__backdrop"></div>
-    <div class="dispute-modal-card modal__panel" style="max-width:550px; max-height:85vh; overflow-y:auto; position:relative; z-index:2;">
-      <header class="modal__header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; border-bottom:1px solid rgba(255,255,255,0.1); padding-bottom:8px;">
-        <h2 id="sroModalTitle" class="modal__title" style="font-size:18px; margin:0;">📜 Active SRO Fare Schedules</h2>
-        <button class="modal__close icon-btn" id="sroModalClose" aria-label="Close" style="background:none; border:none; color:#fff; font-size:20px; cursor:pointer;">&times;</button>
-      </header>
-      <div class="modal__body" id="sroModalBody" style="font-size:13px; line-height:1.5;">
-        <p class="loading-text">Loading official fare schedules…</p>
+
+  <!-- ========================================================================= -->
+  <!-- SURFACE 2: DRIVER APK (380px MOBILE CONTAINER) -->
+  <!-- ========================================================================= -->
+  <div id="surface-driver-container" class="mobile-frame hidden flex flex-col justify-between bg-stone-900 text-white">
+
+    <!-- SCREEN 15: DRIVER LOGIN -->
+    <div id="screen-driver-login" class="screen-view active p-6 min-h-[780px] flex flex-col justify-between">
+      <div>
+        <div class="text-center mt-8 mb-6">
+          <div class="w-16 h-16 rounded-2xl bg-pine text-white text-3xl font-extrabold flex items-center justify-center mx-auto mb-2">
+            S
+          </div>
+          <h2 class="text-xl font-bold">Safar Driver APK</h2>
+          <p class="text-xs text-stone-400 font-urdu mt-0.5">ڈرائیور ڈیوٹی پورٹل — صفر فیس</p>
+        </div>
+
+        <div class="flex flex-col gap-3 text-xs">
+          <div>
+            <label class="text-stone-400 font-bold">Registered Mobile Number</label>
+            <input type="tel" value="+91 94190 12345" class="w-full bg-stone-800 border border-stone-700 rounded-lg p-3 text-sm font-bold text-white mt-1" />
+          </div>
+          <div>
+            <label class="text-stone-400 font-bold">Vehicle Registration Number</label>
+            <input type="text" value="JK-01-EB-4402" class="w-full bg-stone-800 border border-stone-700 rounded-lg p-3 text-sm font-bold text-white mt-1" />
+          </div>
+
+          <div class="flex items-start gap-2 bg-stone-800/80 p-3 rounded-lg border border-stone-700 mt-2">
+            <input type="checkbox" checked class="rounded text-pine focus:ring-pine mt-0.5" />
+            <span class="text-[11px] text-stone-300 leading-tight">
+              I agree to share GPS telemetry during active shift as mandated by J&K SRTA (DPDP Act Compliant).
+            </span>
+          </div>
+        </div>
       </div>
-      <footer class="modal__footer" style="margin-top:16px; border-top:1px solid rgba(255,255,255,0.1); padding-top:8px;">
-        <small style="color:var(--text-secondary,#94a3b8); font-size:11px;">Source: J&amp;K Transport Department official SRO notifications. Verified fare data only.</small>
-      </footer>
+
+      <button onclick="goToDriverScreen('screen-driver-shift-start')" class="w-full bg-pine text-white py-3.5 rounded-cta font-bold text-sm shadow hover:bg-pine-light mb-6">
+        Verify & Start Shift ➔
+      </button>
+    </div>
+
+    <!-- SCREEN 16: SHIFT START / ROUTE SELECT -->
+    <div id="screen-driver-shift-start" class="screen-view p-6 min-h-[780px] flex flex-col justify-between">
+      <div>
+        <h2 class="text-lg font-bold mb-4">Shift Configuration</h2>
+
+        <div class="flex flex-col gap-3 text-xs">
+          <div>
+            <label class="text-stone-400 font-bold">Assigned Daily Route</label>
+            <select class="w-full bg-stone-800 border border-stone-700 rounded-lg p-3 text-xs font-bold text-white mt-1">
+              <option>Route 14: Lal Chowk ↔ Hazratbal</option>
+              <option>Route 07: Budgam ↔ Batamaloo</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="text-stone-400 font-bold">Direction of Trip</label>
+            <div class="flex gap-2 mt-1">
+              <button class="flex-1 py-2 bg-pine rounded-lg font-bold text-white border border-pine-light">Lal Chowk ➔ Haz</button>
+              <button class="flex-1 py-2 bg-stone-800 rounded-lg font-bold text-stone-400">Haz ➔ Lal Chowk</button>
+            </div>
+          </div>
+
+          <div class="bg-stone-800 p-3.5 rounded-card border border-stone-700 mt-3 text-xs space-y-1">
+            <div class="text-stone-400 font-bold uppercase text-[10px]">Verified Vehicle Details</div>
+            <div class="flex justify-between font-bold"><span>Reg:</span><span>JK-01-EB-4402</span></div>
+            <div class="flex justify-between text-stone-400"><span>Vehicle:</span><span>SRTC Electric 45-Seater</span></div>
+            <div class="flex justify-between text-stone-400"><span>SRO Fare Engine:</span><span class="text-emerald-400">Locked Active ✓</span></div>
+          </div>
+        </div>
+      </div>
+
+      <button onclick="goToDriverScreen('screen-driver-hud')" class="w-full bg-pine text-white py-3.5 rounded-cta font-bold text-sm shadow hover:bg-pine-light mb-6">
+        Begin Active Driving HUD 🚦
+      </button>
+    </div>
+
+    <!-- SCREEN 17: DRIVER ACTIVE HUD (GLANCEABLE AT 60KM/H) -->
+    <div id="screen-driver-hud" class="screen-view p-4 min-h-[780px] flex flex-col justify-between">
+      <!-- Top Strip: Route + Shift Timer -->
+      <div class="flex items-center justify-between bg-stone-800 p-3 rounded-card border border-stone-700">
+        <div>
+          <span class="text-xs font-bold text-saffron">Route 14</span>
+          <div class="text-[11px] text-stone-400">Lal Chowk ➔ Hazratbal</div>
+        </div>
+        <div class="text-right">
+          <span class="text-[10px] text-stone-400 font-bold uppercase">Shift Timer</span>
+          <div id="driver-shift-clock" class="text-sm font-mono font-bold text-emerald-400">01:42:19</div>
+        </div>
+      </div>
+
+      <!-- Center Dominant: Next Stop (32px+) -->
+      <div class="text-center py-6">
+        <div class="text-xs text-stone-400 font-bold uppercase tracking-wider">Upcoming Stop</div>
+        <div class="text-3xl font-extrabold text-white my-2 tracking-tight">Khanyar Chowk</div>
+        <div class="text-sm font-bold text-saffron">Distance: 450 meters (2 min)</div>
+      </div>
+
+      <!-- Passenger Count +/- Live Buttons -->
+      <div class="bg-stone-800 p-4 rounded-card border border-stone-700 text-center">
+        <div class="text-xs text-stone-400 font-bold uppercase mb-2">Live Onboard Passengers</div>
+        <div class="flex items-center justify-center gap-6 my-2">
+          <button onclick="adjustPassengerCount(-1)" class="w-16 h-16 rounded-2xl bg-stone-700 text-3xl font-black text-white hover:bg-stone-600 active:scale-95 transition flex items-center justify-center">
+            −
+          </button>
+          <span id="driver-hud-count" class="text-5xl font-extrabold text-white font-mono">23</span>
+          <button onclick="adjustPassengerCount(1)" class="w-16 h-16 rounded-2xl bg-pine text-3xl font-black text-white hover:bg-pine-light active:scale-95 transition flex items-center justify-center">
+            +
+          </button>
+        </div>
+        <div class="text-xs text-emerald-400 font-bold mt-2">Capacity: 23 / 45 Seats Filled</div>
+      </div>
+
+      <!-- Bottom Strip: Trips & Earnings & Route Compliance -->
+      <div class="grid grid-cols-3 gap-2 bg-stone-800/90 p-3 rounded-card text-center text-xs">
+        <div>
+          <span class="text-[10px] text-stone-400">Trips Today</span>
+          <div class="font-bold text-base">4</div>
+        </div>
+        <div>
+          <span class="text-[10px] text-stone-400">Earnings</span>
+          <div class="font-bold text-base text-emerald-400">₹2,450</div>
+        </div>
+        <div>
+          <span class="text-[10px] text-stone-400">Compliance</span>
+          <div class="font-bold text-emerald-400 flex items-center justify-center gap-1">
+            <span class="w-2 h-2 rounded-full bg-emerald-500"></span> 100%
+          </div>
+        </div>
+      </div>
+
+      <div class="flex gap-2 mb-2">
+        <button onclick="goToDriverScreen('screen-driver-fare-confirm')" class="flex-1 bg-saffron text-slate-900 py-3 rounded-cta font-extrabold text-xs shadow">
+          Collect Fare ₹
+        </button>
+        <button onclick="triggerRouteDeviationWarning()" class="px-3 bg-stone-800 border border-stone-700 text-stone-300 py-3 rounded-cta font-bold text-xs">
+          Test Deviation Flash
+        </button>
+      </div>
+    </div>
+
+    <!-- SCREEN 18: FARE CONFIRMATION (DRIVER SIDE) -->
+    <div id="screen-driver-fare-confirm" class="screen-view p-4 min-h-[780px] flex flex-col justify-between">
+      <div>
+        <div class="flex items-center justify-between mb-4">
+          <button onclick="goToDriverScreen('screen-driver-hud')" class="p-1 rounded-full text-stone-400 hover:text-white">
+            <span class="material-symbols-outlined">arrow_back</span>
+          </button>
+          <h2 class="text-sm font-bold">Conductor Fare Confirmation</h2>
+          <span class="w-6"></span>
+        </div>
+
+        <div class="bg-stone-800 p-4 rounded-card border border-stone-700 text-center mb-3">
+          <div class="text-xs text-stone-400">Collect SRO-2026 Statutory Rate</div>
+          <div class="text-5xl font-extrabold text-saffron my-2">₹25.00</div>
+          <div class="text-xs font-bold text-stone-300">Khanyar ➔ Hazratbal</div>
+        </div>
+
+        <!-- Cash vs UPI Toggle -->
+        <div class="flex gap-2 mb-4">
+          <button class="flex-1 py-3 bg-pine text-white rounded-lg font-bold text-xs">Cash Received ✓</button>
+          <button class="flex-1 py-3 bg-stone-800 text-stone-400 rounded-lg font-bold text-xs">UPI Digital</button>
+        </div>
+
+        <!-- Recent Confirmations Log -->
+        <div class="text-xs font-bold text-stone-400 uppercase mb-1.5">Last 5 Passenger Confirmations</div>
+        <div class="space-y-1.5 text-xs text-stone-300">
+          <div class="bg-stone-800 p-2.5 rounded-lg flex justify-between"><span>#4821 • Lal Chowk ➔ Khanyar</span><span class="font-bold text-emerald-400">₹15 Cash</span></div>
+          <div class="bg-stone-800 p-2.5 rounded-lg flex justify-between"><span>#4820 • Lal Chowk ➔ Haz</span><span class="font-bold text-emerald-400">₹25 UPI</span></div>
+        </div>
+      </div>
+
+      <button onclick="goToDriverScreen('screen-driver-hud')" class="w-full bg-emerald-600 text-white py-3.5 rounded-cta font-bold text-xs shadow mb-4">
+        Log Fare & Return to HUD
+      </button>
     </div>
   </div>
 
-  <!-- Accessible Toast Notification Container -->
-  <div id="toastContainer" class="toast-container" aria-live="polite"></div>
 
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin="anonymous"></script>
-  <script src="https://cdn.jsdelivr.net/gh/davidshimjs/qrcodejs/qrcode.min.js"></script>
-  <script src="js/translations.js"></script>
-  <script src="js/routes.js"></script>
-  <script src="js/fare-rules.js"></script>
-  <script src="js/live-tracker.js"></script>
-  <script type="module" src="js/app.js"></script>
-  <script src="js/sw-register.js"></script>
+  <!-- ========================================================================= -->
+  <!-- SURFACE 3: GOVERNMENT / SRTA ADMIN DASHBOARD (1280px DESKTOP) -->
+  <!-- ========================================================================= -->
+  <div id="surface-admin-container" class="desktop-frame hidden flex min-h-[840px] border border-stone-300">
+
+    <!-- Admin Sidebar Nav -->
+    <div class="w-64 bg-stone-900 text-white p-5 flex flex-col justify-between shrink-0">
+      <div>
+        <div class="flex items-center gap-3 mb-8">
+          <div class="w-9 h-9 rounded-xl bg-pine flex items-center justify-center font-bold text-lg text-white">S</div>
+          <div>
+            <div class="font-bold text-sm">J&K SRTA Portal</div>
+            <div class="text-[10px] text-stone-400">Statutory Oversight Suite</div>
+          </div>
+        </div>
+
+        <nav class="space-y-1.5 text-xs font-semibold">
+          <button onclick="showAdminView('screen-admin-overview')" class="w-full text-left p-2.5 rounded-lg bg-pine text-white flex items-center gap-2.5">
+            <span class="material-symbols-outlined text-[18px]">dashboard</span> Compliance Overview
+          </button>
+          <button onclick="showAdminView('screen-admin-audit-log')" class="w-full text-left p-2.5 rounded-lg text-stone-400 hover:bg-stone-800 flex items-center gap-2.5">
+            <span class="material-symbols-outlined text-[18px]">receipt_long</span> Fare Audit Log
+          </button>
+          <button onclick="showAdminView('screen-admin-vehicles')" class="w-full text-left p-2.5 rounded-lg text-stone-400 hover:bg-stone-800 flex items-center gap-2.5">
+            <span class="material-symbols-outlined text-[18px]">directions_bus</span> Vehicle Registry
+          </button>
+          <button onclick="showAdminView('screen-admin-coverage')" class="w-full text-left p-2.5 rounded-lg text-stone-400 hover:bg-stone-800 flex items-center gap-2.5">
+            <span class="material-symbols-outlined text-[18px]">map</span> Route Coverage Map
+          </button>
+          <button onclick="showAdminView('screen-admin-crowding')" class="w-full text-left p-2.5 rounded-lg text-stone-400 hover:bg-stone-800 flex items-center gap-2.5">
+            <span class="material-symbols-outlined text-[18px]">groups</span> Overcrowding Analytics
+          </button>
+        </nav>
+      </div>
+
+      <div class="bg-stone-800 p-3 rounded-xl text-xs">
+        <div class="font-bold">Inspector M. Dar</div>
+        <div class="text-[10px] text-stone-400">District Inspector (Srinagar HQ)</div>
+      </div>
+    </div>
+
+    <!-- Admin Main Content Area -->
+    <div class="flex-1 bg-stone-50 p-6 overflow-y-auto max-h-[840px]">
+
+      <!-- SCREEN 21: COMPLIANCE OVERVIEW DASHBOARD -->
+      <div id="screen-admin-overview" class="admin-view active space-y-6">
+        <div>
+          <h2 class="text-xl font-bold text-slate-main">J&K Statutory Compliance Dashboard</h2>
+          <p class="text-xs text-stone-500">Real-time SRO-2026 fare enforcement and live telemetry stream.</p>
+        </div>
+
+        <!-- 4 KPI Cards Row -->
+        <div class="grid grid-cols-4 gap-4">
+          <div class="bg-white p-4 rounded-card border border-stone-200 shadow-safar">
+            <div class="text-xs font-bold text-stone-500 uppercase">Active Buses Today</div>
+            <div class="text-2xl font-extrabold text-pine my-1">428</div>
+            <div class="text-[11px] text-emerald-600 font-semibold">● 94% on tracked routes</div>
+          </div>
+          <div class="bg-white p-4 rounded-card border border-stone-200 shadow-safar">
+            <div class="text-xs font-bold text-stone-500 uppercase">Disputes Filed (24h)</div>
+            <div class="text-2xl font-extrabold text-safar-error my-1">7</div>
+            <div class="text-[11px] text-rose-600 font-semibold">↓ -42% vs last week</div>
+          </div>
+          <div class="bg-white p-4 rounded-card border border-stone-200 shadow-safar">
+            <div class="text-xs font-bold text-stone-500 uppercase">Avg Fare Compliance</div>
+            <div class="text-2xl font-extrabold text-emerald-600 my-1">98.4%</div>
+            <div class="text-[11px] text-stone-500 font-semibold">Statutory SRO threshold</div>
+          </div>
+          <div class="bg-white p-4 rounded-card border border-stone-200 shadow-safar">
+            <div class="text-xs font-bold text-stone-500 uppercase">Live Routes Monitored</div>
+            <div class="text-2xl font-extrabold text-slate-main my-1">73 / 73</div>
+            <div class="text-[11px] text-pine font-semibold">Kashmir & Jammu divisions</div>
+          </div>
+        </div>
+
+        <!-- Heatmap & Recent Disputes Grid -->
+        <div class="grid grid-cols-2 gap-6">
+          <div class="bg-white p-5 rounded-card border border-stone-200 shadow-safar">
+            <h3 class="text-sm font-bold text-slate-main mb-3">District × Route Fare Violation Heatmap</h3>
+            <div class="grid grid-cols-4 gap-2 text-center text-xs font-bold">
+              <div class="p-3 bg-emerald-100 text-emerald-800 rounded-lg">Srinagar ↔ Budgam<div class="text-[10px] font-normal">0.2% Dispute</div></div>
+              <div class="p-3 bg-emerald-100 text-emerald-800 rounded-lg">Lal Chowk ↔ Haz<div class="text-[10px] font-normal">0.1% Dispute</div></div>
+              <div class="p-3 bg-amber-100 text-amber-800 rounded-lg">Srn ➔ Anantnag<div class="text-[10px] font-normal">1.8% Dispute</div></div>
+              <div class="p-3 bg-emerald-100 text-emerald-800 rounded-lg">Baramulla Corridor<div class="text-[10px] font-normal">0.4% Dispute</div></div>
+            </div>
+          </div>
+
+          <div class="bg-white p-5 rounded-card border border-stone-200 shadow-safar">
+            <h3 class="text-sm font-bold text-slate-main mb-3">Recent Overcharge Complaints</h3>
+            <div class="text-xs divide-y divide-stone-100">
+              <div class="py-2 flex justify-between items-center">
+                <div><b>JK-01-AB-9821</b> • Route 22<div class="text-[10px] text-stone-400">Charged ₹70 vs SRO ₹50</div></div>
+                <span class="text-xs bg-rose-100 text-rose-800 font-bold px-2 py-0.5 rounded">Flagged</span>
+              </div>
+              <div class="py-2 flex justify-between items-center">
+                <div><b>JK-04-A-1102</b> • Route 07<div class="text-[10px] text-stone-400">Charged ₹25 vs SRO ₹15</div></div>
+                <span class="text-xs bg-amber-100 text-amber-800 font-bold px-2 py-0.5 rounded">Under Review</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SCREEN 22: FARE AUDIT LOG -->
+      <div id="screen-admin-audit-log" class="admin-view hidden space-y-4">
+        <div class="flex justify-between items-center">
+          <div>
+            <h2 class="text-xl font-bold text-slate-main">SRO Fare Audit Trail</h2>
+            <p class="text-xs text-stone-500">Full tamper-evident database log of all collected fares.</p>
+          </div>
+          <button onclick="triggerSimulatedPush('Export Generated', 'CSV export ready for download')" class="bg-pine text-white text-xs font-bold px-4 py-2 rounded-lg shadow">
+            Export CSV / PDF Report
+          </button>
+        </div>
+
+        <div class="bg-white rounded-card border border-stone-200 overflow-hidden text-xs shadow-safar">
+          <table class="w-full text-left divide-y divide-stone-200">
+            <thead class="bg-stone-100 text-[10px] uppercase font-bold text-stone-500">
+              <tr>
+                <th class="p-3">Trip ID</th>
+                <th class="p-3">Route</th>
+                <th class="p-3">Bus Reg</th>
+                <th class="p-3">Charged</th>
+                <th class="p-3">Statutory SRO</th>
+                <th class="p-3">Variance Δ</th>
+                <th class="p-3">Status</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-stone-100 font-semibold text-slate-main">
+              <tr>
+                <td class="p-3 font-mono">#SFR-8942</td>
+                <td class="p-3">Route 14</td>
+                <td class="p-3">JK-01-EB-4402</td>
+                <td class="p-3">₹25.00</td>
+                <td class="p-3">₹25.00</td>
+                <td class="p-3 text-emerald-600 font-bold">₹0.00</td>
+                <td class="p-3"><span class="bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded text-[10px] font-bold">Compliant ✓</span></td>
+              </tr>
+              <tr>
+                <td class="p-3 font-mono">#SFR-8941</td>
+                <td class="p-3">Route 22</td>
+                <td class="p-3">JK-01-AB-9821</td>
+                <td class="p-3 text-rose-600 font-bold">₹70.00</td>
+                <td class="p-3">₹50.00</td>
+                <td class="p-3 text-rose-600 font-bold">+₹20.00</td>
+                <td class="p-3"><span class="bg-rose-100 text-rose-800 px-2 py-0.5 rounded text-[10px] font-bold">Violation Audit</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- SCREEN 23: VEHICLE REGISTRY -->
+      <div id="screen-admin-vehicles" class="admin-view hidden space-y-4">
+        <h2 class="text-xl font-bold text-slate-main">Registered Vehicle Registry</h2>
+        <div class="grid grid-cols-2 gap-4">
+          <div class="bg-white p-4 rounded-card border border-stone-200 shadow-safar">
+            <div class="flex justify-between items-start">
+              <div>
+                <span class="text-sm font-bold">JK-01-EB-4402</span>
+                <div class="text-xs text-stone-500">SRTC e-Bus • Route 14</div>
+              </div>
+              <span class="text-xs bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded">Score: 99/100</span>
+            </div>
+            <div class="mt-3 pt-3 border-t border-stone-100 grid grid-cols-3 text-center text-xs">
+              <div><span class="text-[10px] text-stone-400">Fitness</span><div class="text-emerald-600 font-bold">Valid 2027</div></div>
+              <div><span class="text-[10px] text-stone-400">Insurance</span><div class="text-emerald-600 font-bold">Valid 2027</div></div>
+              <div><span class="text-[10px] text-stone-400">Permit</span><div class="text-emerald-600 font-bold">SRTC Fixed</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SCREEN 24: ROUTE COVERAGE MAP -->
+      <div id="screen-admin-coverage" class="admin-view hidden space-y-4">
+        <h2 class="text-xl font-bold text-slate-main">J&K Route Coverage Overview</h2>
+        <div class="h-96 w-full rounded-card border border-stone-200 overflow-hidden bg-stone-200">
+          <div id="leaflet-admin-map" class="w-full h-full"></div>
+        </div>
+      </div>
+
+      <!-- SCREEN 25: OVERCROWDING REPORT -->
+      <div id="screen-admin-crowding" class="admin-view hidden space-y-4">
+        <h2 class="text-xl font-bold text-slate-main">SRTA Overcrowding Incident Analytics</h2>
+        <div class="bg-white p-5 rounded-card border border-stone-200 shadow-safar">
+          <h3 class="text-xs font-bold text-stone-500 uppercase mb-3">Incidents Exceeding 80% Capacity</h3>
+          <div class="text-xs divide-y divide-stone-100">
+            <div class="py-2 flex justify-between"><span>Route 22 (Pantha Chowk ➔ Anantnag)</span><span class="font-bold text-rose-600">Peak 52/45 Passengers (115%)</span></div>
+            <div class="py-2 flex justify-between"><span>Route 14 (Lal Chowk ➔ Hazratbal)</span><span class="font-bold text-amber-600">Peak 42/45 Passengers (93%)</span></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- APPLICATION JAVASCRIPT LOGIC -->
+  <script>
+    let liveMap = null;
+    let adminMap = null;
+    let liveBusMarker = null;
+    let passengerCount = 23;
+    let notificationCount = 1;
+
+    document.addEventListener('DOMContentLoaded', () => {
+      initQrCodes();
+      initLiveStreamSimulation();
+    });
+
+    // Surface Switcher
+    function switchSurface(surfaceKey) {
+      document.getElementById('surface-commuter-container').classList.add('hidden');
+      document.getElementById('surface-driver-container').classList.add('hidden');
+      document.getElementById('surface-admin-container').classList.add('hidden');
+
+      document.querySelectorAll('#btn-surface-commuter, #btn-surface-driver, #btn-surface-admin').forEach(btn => {
+        btn.classList.remove('bg-white', 'text-pine', 'shadow-sm');
+        btn.classList.add('text-stone-600');
+      });
+
+      if (surfaceKey === 'commuter') {
+        document.getElementById('surface-commuter-container').classList.remove('hidden');
+        document.getElementById('btn-surface-commuter').classList.add('bg-white', 'text-pine', 'shadow-sm');
+        document.getElementById('btn-surface-commuter').classList.remove('text-stone-600');
+      } else if (surfaceKey === 'driver') {
+        document.getElementById('surface-driver-container').classList.remove('hidden');
+        document.getElementById('btn-surface-driver').classList.add('bg-white', 'text-pine', 'shadow-sm');
+        document.getElementById('btn-surface-driver').classList.remove('text-stone-600');
+      } else if (surfaceKey === 'admin') {
+        document.getElementById('surface-admin-container').classList.remove('hidden');
+        document.getElementById('btn-surface-admin').classList.add('bg-white', 'text-pine', 'shadow-sm');
+        document.getElementById('btn-surface-admin').classList.remove('text-stone-600');
+        setTimeout(initAdminMap, 100);
+      }
+    }
+
+    // Screen Navigators
+    function goToScreen(screenId) {
+      document.querySelectorAll('#surface-commuter-container .screen-view').forEach(s => s.classList.remove('active'));
+      const target = document.getElementById(screenId);
+      if (target) {
+        target.classList.add('active');
+        document.getElementById('quick-screen-select').value = screenId;
+        if (screenId === 'screen-live-track') {
+          setTimeout(initLiveMap, 100);
+        }
+      }
+    }
+
+    function goToDriverScreen(screenId) {
+      document.querySelectorAll('#surface-driver-container .screen-view').forEach(s => s.classList.remove('active'));
+      const target = document.getElementById(screenId);
+      if (target) {
+        target.classList.add('active');
+        document.getElementById('quick-screen-select').value = screenId;
+      }
+    }
+
+    function showAdminView(viewId) {
+      document.querySelectorAll('.admin-view').forEach(v => v.classList.add('hidden'));
+      const target = document.getElementById(viewId);
+      if (target) {
+        target.classList.remove('hidden');
+        document.getElementById('quick-screen-select').value = viewId;
+        if (viewId === 'screen-admin-coverage') {
+          setTimeout(initAdminMap, 100);
+        }
+      }
+    }
+
+    function jumpToScreen(screenId) {
+      if (screenId.startsWith('screen-driver')) {
+        switchSurface('driver');
+        goToDriverScreen(screenId);
+      } else if (screenId.startsWith('screen-admin')) {
+        switchSurface('admin');
+        showAdminView(screenId);
+      } else {
+        switchSurface('commuter');
+        goToScreen(screenId);
+      }
+    }
+
+    function selectLanguage(langCode, el) {
+      document.querySelectorAll('.lang-tile').forEach(tile => {
+        tile.classList.remove('border-pine');
+        tile.classList.add('border-stone-200');
+        tile.querySelector('.check-icon').classList.add('hidden');
+      });
+      el.classList.add('border-pine');
+      el.classList.remove('border-stone-200');
+      el.querySelector('.check-icon').classList.remove('hidden');
+    }
+
+    function swapCommuterStops() {
+      const fromEl = document.getElementById('commuter-from-input');
+      const toEl = document.getElementById('commuter-to-input');
+      const tmp = fromEl.value;
+      fromEl.value = toEl.value;
+      toEl.value = tmp;
+    }
+
+    function switchPayTab(tab) {
+      document.getElementById('pay-content-upi').classList.add('hidden');
+      document.getElementById('pay-content-card').classList.add('hidden');
+      document.getElementById('pay-content-cash').classList.add('hidden');
+
+      document.querySelectorAll('#tab-btn-upi, #tab-btn-card, #tab-btn-cash').forEach(btn => {
+        btn.classList.remove('bg-white', 'text-pine', 'shadow-xs');
+        btn.classList.add('text-stone-600');
+      });
+
+      document.getElementById(`pay-content-${tab}`).classList.remove('hidden');
+      const activeBtn = document.getElementById(`tab-btn-${tab}`);
+      activeBtn.classList.add('bg-white', 'text-pine', 'shadow-xs');
+      activeBtn.classList.remove('text-stone-600');
+    }
+
+    function initQrCodes() {
+      const canvas1 = document.getElementById('receipt-qr-canvas');
+      if (canvas1 && window.QRCode) {
+        QRCode.toCanvas(canvas1, 'https://safarapp.in/audit/SFR-2026-8942', { width: 110, margin: 1 });
+      }
+      const canvas2 = document.getElementById('cash-qr-large');
+      if (canvas2 && window.QRCode) {
+        QRCode.toCanvas(canvas2, 'https://safarapp.in/cash/JK-01-EB-4402/25INR', { width: 190, margin: 2, color: { dark: '#2D6A4F' } });
+      }
+    }
+
+    function initLiveMap() {
+      if (liveMap) return;
+      const el = document.getElementById('leaflet-live-map');
+      if (!el) return;
+
+      liveMap = L.map('leaflet-live-map', { zoomControl: false }).setView([34.0837, 74.7973], 13);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap'
+      }).addTo(liveMap);
+
+      liveBusMarker = L.marker([34.0837, 74.7973]).addTo(liveMap)
+        .bindPopup('<b>Bus JK-01-EB-4402</b><br>Speed: 28 km/h • 23/45 Capacity').openPopup();
+
+      // Draw Route Polyline
+      const latlngs = [
+        [34.0722, 74.8080],
+        [34.0837, 74.7973],
+        [34.0950, 74.8200],
+        [34.1250, 74.8400]
+      ];
+      L.polyline(latlngs, { color: '#2D6A4F', weight: 4, opacity: 0.8 }).addTo(liveMap);
+    }
+
+    function initAdminMap() {
+      if (adminMap) return;
+      const el = document.getElementById('leaflet-admin-map');
+      if (!el) return;
+
+      adminMap = L.map('leaflet-admin-map').setView([34.0837, 74.7973], 10);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: 'J&K SRTA Telemetry'
+      }).addTo(adminMap);
+
+      L.marker([34.0837, 74.7973]).addTo(adminMap).bindPopup('Route 14 Active');
+      L.marker([33.7311, 75.1488]).addTo(adminMap).bindPopup('Route 22 Active');
+    }
+
+    function calculateStatutoryFare() {
+      triggerSimulatedPush('Statutory SRO Rate Calculated', 'Lal Chowk ➔ Hazratbal = ₹25.00 (Standard SRO-2026 rate)');
+    }
+
+    function processSimulatedPayment(method) {
+      triggerSimulatedPush('Payment Successful', `₹25.00 received via ${method}. Statutory receipt generated.`);
+      setTimeout(() => goToScreen('screen-receipt'), 800);
+    }
+
+    function submitDisputeForm() {
+      document.getElementById('dispute-stepper-box').classList.remove('hidden');
+      triggerSimulatedPush('Dispute Logged', 'Ref #DSP-2026-991 filed with SRTA Compliance Division.');
+    }
+
+    function recordCrowdFeedback(status) {
+      triggerSimulatedPush('Thank you!', 'Crowd report recorded to help fellow Kashmir commuters.');
+    }
+
+    function adjustPassengerCount(delta) {
+      passengerCount = Math.max(0, Math.min(60, passengerCount + delta));
+      const el = document.getElementById('driver-hud-count');
+      if (el) el.innerText = passengerCount;
+    }
+
+    function triggerRouteDeviationWarning() {
+      const hud = document.getElementById('surface-driver-container');
+      hud.classList.add('deviation-warning');
+      triggerSimulatedPush('SRTA Alert', 'Route Deviation Detected! Return to designated SRO corridor.');
+      setTimeout(() => hud.classList.remove('deviation-warning'), 3000);
+    }
+
+    // AI Assistant Messaging
+    function sendAiPrompt(txt) {
+      const input = document.getElementById('ai-input-field');
+      input.value = txt;
+      sendCustomAiMessage();
+    }
+
+    function sendCustomAiMessage() {
+      const input = document.getElementById('ai-input-field');
+      const q = input.value.trim();
+      if (!q) return;
+
+      const feed = document.getElementById('ai-chat-feed');
+      // User Message (Saffron)
+      feed.innerHTML += `
+        <div class="flex justify-end">
+          <div class="bg-saffron text-slate-900 font-bold p-3 rounded-2xl rounded-tr-none text-xs max-w-[85%] shadow-xs">
+            ${q}
+          </div>
+        </div>
+      `;
+      input.value = '';
+
+      // Assistant Response
+      setTimeout(() => {
+        let answer = "Under J&K SRO-2026, standard non-AC bus fare is ₹15 for initial 3km and ₹1.40/km thereafter. Student concession is 50% on valid ID.";
+        if (q.toLowerCase().includes('batamaloo')) {
+          answer = "The statutory fare from Batamaloo to Lal Chowk is ₹15.00. Minibuses run every 4 minutes from Batamaloo stand.";
+        } else if (q.toLowerCase().includes('bus 14')) {
+          answer = "Yes, 4 electric buses are actively running on Route 14 (Lal Chowk ↔ Hazratbal) with an average 6-minute frequency.";
+        }
+
+        feed.innerHTML += `
+          <div class="flex items-start gap-2">
+            <div class="w-7 h-7 rounded-full bg-pine text-white flex items-center justify-center text-xs font-bold shrink-0">S</div>
+            <div class="bg-white p-3 rounded-2xl rounded-tl-none border-l-4 border-pine shadow-safar text-xs text-slate-main max-w-[85%]">
+              ${answer}
+            </div>
+          </div>
+        `;
+        feed.scrollTop = feed.scrollHeight;
+      }, 400);
+    }
+
+    // Automatic Live Push Notification Engine
+    function triggerSimulatedPush(title, msg) {
+      const banner = document.getElementById('live-notification-banner');
+      document.getElementById('toast-title').innerText = title;
+      document.getElementById('toast-message').innerText = msg;
+      banner.classList.add('show');
+
+      notificationCount++;
+      const badge = document.getElementById('notif-badge-dot');
+      if (badge) badge.classList.remove('hidden');
+
+      // Inject into alerts list automatically
+      const list = document.getElementById('alerts-list-container');
+      if (list) {
+        const item = document.createElement('div');
+        item.className = 'bg-white p-3 rounded-card border-l-4 border-saffron shadow-safar';
+        item.innerHTML = `
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-slate-main">${title}</span>
+            <span class="text-[10px] text-stone-400">Just now</span>
+          </div>
+          <p class="text-[11px] text-stone-600 mt-0.5">${msg}</p>
+        `;
+        list.prepend(item);
+      }
+
+      setTimeout(() => {
+        banner.classList.remove('show');
+      }, 4500);
+    }
+
+    function dismissNotificationToast() {
+      document.getElementById('live-notification-banner').classList.remove('show');
+    }
+
+    function clearAllNotifications() {
+      const list = document.getElementById('alerts-list-container');
+      if (list) list.innerHTML = '<p class="text-xs text-stone-400 p-2">No active alerts.</p>';
+      const badge = document.getElementById('notif-badge-dot');
+      if (badge) badge.classList.add('hidden');
+    }
+
+    function initLiveStreamSimulation() {
+      // Auto-update every 25 seconds without page reload
+      setInterval(() => {
+        const alerts = [
+          { title: "Live GPS Stream Update", msg: "Bus 14 has passed Khanyar Chowk. Next stop: Rainawari." },
+          { title: "Overcrowding Alert", msg: "Route 22 is nearing 90% seat capacity near Pantha Chowk." },
+          { title: "SRTA Fare Compliance", msg: "Statutory SRO-2026 fare checks active at Batamaloo junction." }
+        ];
+        const chosen = alerts[Math.floor(Math.random() * alerts.length)];
+        triggerSimulatedPush(chosen.title, chosen.msg);
+      }, 25000);
+    }
+  </script>
 </body>
 </html>

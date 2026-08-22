@@ -10,8 +10,12 @@ const DATA_CACHE = 'safar-data-v5';
 const APP_SHELL = [
   '/',
   '/index.html',
+  '/app.html',
+  '/styles.css',
   '/css/style.css',
   '/manifest.webmanifest',
+  '/routes/index.json',
+  '/app.js',
   '/js/app.js',
   '/js/i18n.js',
   '/js/offline-manager.js',
@@ -27,8 +31,6 @@ const APP_SHELL = [
   '/js/features/map/commuter-map.js',
   '/js/features/fare/fare-ui.js',
   '/js/features/driver/driver-console.js',
-  '/icons/icon-192.png',
-  '/icons/icon-512.png',
   'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css',
   'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js'
 ];
