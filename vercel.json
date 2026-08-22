@@ -1,7 +1,8 @@
 {
   "version": 2,
-  "outputDirectory": "frontend",
-  "rewrites": [
-    { "source": "/(.*)", "destination": "/frontend/$1" }
-  ]
+  "public": true,
+  "cleanUrls": true,
+  "buildCommand": "",
+  "installCommand": "echo 'Static deployment - skipping backend npm install'",
+  "outputDirectory": "frontend"
 }
