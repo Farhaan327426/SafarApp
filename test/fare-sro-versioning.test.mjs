@@ -30,7 +30,7 @@ before(async () => {
 after(async () => {
   if (testServer) {
     if (typeof testServer.closeAllConnections === 'function') testServer.closeAllConnections();
-    await new Promise(resolve => testServer.close(resolve));
+    testServer.close();
   }
   setTimeout(() => process.exit(0), 100);
 });
@@ -161,7 +161,9 @@ test('▶ Phase 2 Step 6 — Sprint 9: Fare SRO Versioning & Transport Dept Audi
     assert.equal(pub2Res.status, 200);
 
     // Verify Version 2 is now ACTIVE, and Version 1 is SUPERSEDED
-    const listRes = await fetch(`http://127.0.0.1:${testPort}/api/v1/admin/fares/sro/versions`);
+    const listRes = await fetch(`http://127.0.0.1:${testPort}/api/v1/admin/fares/sro/versions`, {
+      headers: { 'x-admin-id': 'admin_farhaan' }
+    });
     const allVersions = (await listRes.json()).data;
     const v1 = allVersions.find(v => v.version_id === versionId1);
     const v2 = allVersions.find(v => v.version_id === versionId2);
@@ -174,7 +176,7 @@ test('▶ Phase 2 Step 6 — Sprint 9: Fare SRO Versioning & Transport Dept Audi
     const sroNumber3 = `SRO-STA-${Date.now()}-V3`;
     const draft3Res = await fetch(`http://127.0.0.1:${testPort}/api/v1/admin/fares/sro/draft`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'x-admin-id': 'admin_farhaan' },
       body: JSON.stringify({
         sroNumber: sroNumber3,
         rulesJson: sampleRulesV1
@@ -199,7 +201,7 @@ test('▶ Phase 2 Step 6 — Sprint 9: Fare SRO Versioning & Transport Dept Audi
     // Publish v3
     await fetch(`http://127.0.0.1:${testPort}/api/v1/admin/fares/sro/${v3Id}/publish`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' }
+      headers: { 'Content-Type': 'application/json', 'x-admin-id': 'admin_farhaan' }
     });
 
     // Wait for SSE broadcast
@@ -225,7 +227,9 @@ test('▶ Phase 2 Step 6 — Sprint 9: Fare SRO Versioning & Transport Dept Audi
     assert.equal(active.data.versionId, versionId1);
 
     // All versions list should reflect ROLLED_BACK on prior active
-    const listRes = await fetch(`http://127.0.0.1:${testPort}/api/v1/admin/fares/sro/versions`);
+    const listRes = await fetch(`http://127.0.0.1:${testPort}/api/v1/admin/fares/sro/versions`, {
+      headers: { 'x-admin-id': 'admin_super' }
+    });
     const all = (await listRes.json()).data;
     const rolledBack = all.find(v => v.status === 'ROLLED_BACK');
     assert.ok(rolledBack, 'A rolled back version must exist with status ROLLED_BACK');
@@ -286,8 +290,11 @@ test('▶ Phase 2 Step 6 — Sprint 9: Fare SRO Versioning & Transport Dept Audi
   });
 
   await tSuite.test('7. Transport Department CSV & JSON Regulatory Audit Export', async () => {
+    const authHeaders = { 'x-admin-id': 'admin_transport_dept' };
     // Test JSON export
-    const jsonRes = await fetch(`http://127.0.0.1:${testPort}/api/v1/admin/compliance/audit-export?format=json`);
+    const jsonRes = await fetch(`http://127.0.0.1:${testPort}/api/v1/admin/compliance/audit-export?format=json`, {
+      headers: authHeaders
+    });
     assert.equal(jsonRes.status, 200);
     const checksumHeader = jsonRes.headers.get('x-audit-checksum');
     assert.ok(checksumHeader && checksumHeader.length === 64, 'Must set 64-char hex SHA-256 checksum header');
@@ -297,7 +304,9 @@ test('▶ Phase 2 Step 6 — Sprint 9: Fare SRO Versioning & Transport Dept Audi
     assert.equal(exportJson.checksum, checksumHeader);
 
     // Test CSV export
-    const csvRes = await fetch(`http://127.0.0.1:${testPort}/api/v1/admin/compliance/audit-export?format=csv`);
+    const csvRes = await fetch(`http://127.0.0.1:${testPort}/api/v1/admin/compliance/audit-export?format=csv`, {
+      headers: authHeaders
+    });
     assert.equal(csvRes.status, 200);
     assert.ok(csvRes.headers.get('content-type').includes('text/csv'));
     assert.ok(csvRes.headers.get('x-audit-checksum'), 'CSV export must include SHA-256 header');
@@ -309,7 +318,9 @@ test('▶ Phase 2 Step 6 — Sprint 9: Fare SRO Versioning & Transport Dept Audi
   });
 
   await tSuite.test('8. Operator Compliance Ratings & Discrepancy Statistics', async () => {
-    const statsRes = await fetch(`http://127.0.0.1:${testPort}/api/v1/admin/compliance/operator-ratings`);
+    const statsRes = await fetch(`http://127.0.0.1:${testPort}/api/v1/admin/compliance/operator-ratings`, {
+      headers: { 'x-admin-id': 'admin_transport_dept' }
+    });
     assert.equal(statsRes.status, 200);
     const json = await statsRes.json();
     assert.equal(json.success, true);

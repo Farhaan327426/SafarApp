@@ -1,6 +1,0 @@
-{
-  "cleanUrls": true,
-  "buildCommand": "",
-  "installCommand": "echo 'Static deployment'",
-  "outputDirectory": "frontend"
-}

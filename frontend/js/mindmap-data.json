@@ -44,7 +44,7 @@
       "id": "safety-trust",
       "title": "Safety & Trust",
       "category": "Passenger Security",
-      "description": "Protocols, emergency response pipelines, and verification mechanisms safeguarding commuters, drivers, and conductors.",
+      "description": "Protocols, emergency response pipelines, and verification mechanisms safeguarding commuters and drivers.",
       "actionText": "Test Emergency SOS",
       "actionTab": "sos",
       "children": [
@@ -61,7 +61,7 @@
           "title": "Cryptographic Ticket & QR Verification",
           "category": "Trust",
           "description": "Offline-verifiable digital transit receipts with SHA-256 integrity tokens to eliminate fraudulent fares.",
-          "actionText": "Open Conductor Verifier",
+          "actionText": "Open Driver Verifier",
           "actionTab": "driver"
         },
         {
@@ -99,10 +99,10 @@
           "actionTab": "commuter"
         },
         {
-          "id": "conductor-earnings",
-          "title": "Automated Conductor Shift Reconciliation",
+          "id": "driver-earnings",
+          "title": "Automated Driver Shift Reconciliation",
           "category": "Finance",
-          "description": "Live shift earnings computation and passenger boarding ledger for conductors and stage-carriage fleet operators.",
+          "description": "Live shift earnings computation and passenger boarding ledger for drivers and local transit fleet operators.",
           "actionText": "Check Driver Stats",
           "actionTab": "driver"
         }
@@ -126,9 +126,9 @@
         },
         {
           "id": "driver-gamification",
-          "title": "Conductor Shift Pings & Punctuality Bonuses",
+          "title": "Driver Shift Pings & Punctuality Bonuses",
           "category": "Incentives",
-          "description": "Performance metrics rewarding drivers and conductors who maintain consistent GPS broadcasts and on-schedule departures.",
+          "description": "Performance metrics rewarding drivers who maintain consistent GPS broadcasts and on-schedule departures.",
           "actionText": "Open Driver Terminal",
           "actionTab": "driver"
         },

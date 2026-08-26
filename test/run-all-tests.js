@@ -27,7 +27,8 @@ const testSuites = [
   'test/production-pilot.test.mjs',
   'test/places-route-graph.test.mjs',
   'test/core-utilities.test.mjs',
-  'test/branding-audit.test.mjs'
+  'test/branding-audit.test.mjs',
+  'test/security-audit-report.test.mjs'
 ];
 
 function runTestFile(file) {

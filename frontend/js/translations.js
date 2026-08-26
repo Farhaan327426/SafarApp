@@ -5,8 +5,7 @@ const TRANSLATIONS = {
     offlineStatus: "Offline Ready",
     onlineStatus: "Live Online",
     navCommuter: "Commuter",
-    navConductor: "Conductor",
-    navAdmin: "Admin",
+    navConductor: "Driver",
     navSettings: "Settings",
 
     // Commuter View
@@ -39,7 +38,7 @@ const TRANSLATIONS = {
     terrainSurcharge: "Terrain / Vehicle Surcharge",
     discountApplied: "Concession Discount",
     totalFare: "Total Verified Fare",
-    disputeNotice: "This fare is calculated from official J&K Transport Department SRO notifications. Show this screen to resolve conductor disputes.",
+    disputeNotice: "This fare is calculated from official J&K Transport Department SRO notifications. Show this screen to resolve fare disputes.",
 
     // Pass Purchase & Wallet
     passTitle: "Digital Transit Pass & Wallet",
@@ -63,8 +62,8 @@ const TRANSLATIONS = {
     trackOnMap: "Track Bus",
     followBusBtn: "Follow Bus Camera",
 
-    // Conductor View
-    conductorTitle: "Conductor & Driver Terminal",
+    // Driver View
+    conductorTitle: "Driver Terminal",
     conductorSubtitle: "Broadcast live route location & resolve fare queries instantly.",
     startTripTitle: "Start New Trip",
     assignedRoute: "Select Assigned Route",
@@ -79,19 +78,6 @@ const TRANSLATIONS = {
     todayEarnings: "Today's Earnings",
     weekEarnings: "Weekly Earnings",
     monthEarnings: "Monthly Earnings",
-
-    // Admin View
-    adminTitle: "Transit Regulatory Council Admin & Fare Management",
-    adminSubtitle: "Edit fare slabs, manage routes & push updates to client apps.",
-    fareSlabEditor: "Fare Slab Configuration",
-    kmRatePlain: "Plain Rate (₹ / km)",
-    kmRateHilly: "Hilly Rate (₹ / km)",
-    minSlab3km: "0 - 3 km Slab (₹)",
-    publishVersion: "Publish Fare Table Update",
-    currentVersion: "Active Version:",
-    publishedSuccess: "New fare slabs cached successfully across all offline clients!",
-    routeCompletenessTitle: "Route Data Completeness Dashboard",
-    gtfsImportTitle: "GTFS Feed Ingestion",
 
     // Settings & i18n
     settingsTitle: "App Settings & Preferences",
@@ -108,8 +94,7 @@ const TRANSLATIONS = {
     offlineStatus: "ऑफ़लाइन तैयार",
     onlineStatus: "लाइव ऑनलाइन",
     navCommuter: "यात्री",
-    navConductor: "कंडक्टर/ड्राइवर",
-    navAdmin: "एडमिन",
+    navConductor: "ड्राइवर",
     navSettings: "सेटिंग्स",
 
     // Commuter View
@@ -166,9 +151,9 @@ const TRANSLATIONS = {
     trackOnMap: "मैप पर देखें",
     followBusBtn: "बस कैमरा फॉलो करें",
 
-    // Conductor View
-    conductorTitle: "कंडक्टर व ड्राइवर टर्मिनल",
-    conductorSubtitle: "लाइव बस लोकेशन प्रसारित करें और किराया विवाद तुरंत सुलझाएं।",
+    // Driver View
+    conductorTitle: "ड्राइवर टर्मिनल",
+    conductorSubtitle: "लाइव लोकेशन प्रसारित करें और किराया विवाद तुरंत सुलझाएं।",
     startTripTitle: "नई यात्रा शुरू करें",
     assignedRoute: "निर्धारित रूट चुनें",
     vehicleRegNo: "गाड़ी नंबर दर्ज करें",
@@ -181,16 +166,6 @@ const TRANSLATIONS = {
     todayEarnings: "आज की कमाई",
     weekEarnings: "इस सप्ताह की कमाई",
     monthEarnings: "इस महीने की कमाई",
-
-    // Admin View
-    adminTitle: "ट्रांजिट काउंसिल एडमिन एवं किराया प्रबंधन",
-    adminSubtitle: "किराया स्लैब संपादित करें और अपडेट प्रकाशित करें।",
-    fareSlabEditor: "किराया स्लैब कॉन्फ़िगरेशन",
-    publishVersion: "नया किराया अपडेट प्रकाशित करें",
-    currentVersion: "सक्रिय संस्करण:",
-    publishedSuccess: "नया किराया स्लैब सहेज दिया गया!",
-    routeCompletenessTitle: "रूट डेटा पूर्णता डैशबोर्ड",
-    gtfsImportTitle: "GTFS फ़ीड आयात",
 
     // Settings
     settingsTitle: "ऐप सेटिंग्स एवं प्राथमिकताएं",
@@ -207,8 +182,7 @@ const TRANSLATIONS = {
     offlineStatus: "آف لائن تیار",
     onlineStatus: "لائیو آن لائن",
     navCommuter: "مسافر",
-    navConductor: "کنڈکٹر",
-    navAdmin: "ایڈمن",
+    navConductor: "ڈرائیور",
     navSettings: "سیٹنگز",
 
     commuterTitle: "مقامی بس کرایہ اور لائیو ٹریکنگ",
@@ -233,7 +207,7 @@ const TRANSLATIONS = {
 
     liveMapTitle: "قریب ترین بسیں",
     followBusBtn: "بس ٹریک کریں",
-    conductorTitle: "کنڈکٹر و ڈرائیور پورٹل",
+    conductorTitle: "ڈرائیور پورٹل",
     todayEarnings: "آج کی کل آمدنی",
     routeCompletenessTitle: "روٹ کا مکمل جائزہ",
 

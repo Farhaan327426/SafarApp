@@ -36,7 +36,6 @@ after(async () => {
     if (typeof testServer.closeAllConnections === 'function') testServer.closeAllConnections();
     await new Promise(resolve => testServer.close(resolve));
   }
-  setTimeout(() => process.exit(0), 100);
 });
 
 test('▶ Phase 2 Step 5 — Sprint 11/12 Security Audit & Zero-Fee Charter Suite', async (tSuite) => {

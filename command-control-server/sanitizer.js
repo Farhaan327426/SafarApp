@@ -1,6 +1,7 @@
 const SENSITIVE_KEYS = new Set([
   'upi_id', 'upiid', 'bank_account', 'accountnumber', 'ifsc',
-  'password', 'otpcode', 'otp', 'secret', 'authorization', 'cookie', 'token'
+  'password', 'otpcode', 'otp', 'secret', 'authorization', 'cookie', 'token',
+  'pin', 'adminpin', 'admin_pin', 'apikey', 'api_key', 'jwt', 'credential', 'card', 'cvv'
 ]);
 
 function deepRedact(obj, seen = new WeakSet()) {

@@ -64,6 +64,6 @@ Read it aloud once. Stop. Ask:
 1. Does a person in Jammu bus stand understand it? **✅ YES**
 2. Does a J&K government transport officer understand it? **✅ YES**
 3. Does a driver in Srinagar understand what's in it for him? **✅ YES**
-4. Does it require Safar's logo, color, or any visual to make sense? **❌ NO — It stands alone.**
+4. Does it require Safar's logo, color, or any visual to make sense? **❌ NO**
 
 > **Goal achieved:** A core message that only works with design attached to it is not a core message — it is a caption. This sentence stands alone.

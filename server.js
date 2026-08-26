@@ -12,6 +12,8 @@ const razorpay = new Razorpay({
     key_secret: process.env.RAZORPAY_KEY_SECRET || 'rzp_secret_placeholder'
 });
 
+const path = require('path');
+
 const app = express();
 applySecurity(app);
 initObservability(app);
@@ -20,6 +22,7 @@ const server = http.createServer(app);
 const io = new Server(server, { cors: { origin: '*' } });
 
 app.use(express.json());
+app.use(express.static(path.join(__dirname, 'frontend')));
 
 // Authentication Middleware
 const authenticate = (req, res, next) => {

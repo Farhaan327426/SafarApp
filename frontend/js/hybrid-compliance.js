@@ -139,8 +139,8 @@ class HybridComplianceService {
 
     // Dynamic SMS simulation for seniors
     const smsText = isDigital
-      ? `SAFAR ALERT: Trip #${trip_id} confirmed. Fare ₹${calculated_fare_rupees} deducted. Show this SMS to conductor. Driver cannot charge extra.`
-      : `SAFAR RECEIPT: Trip #${trip_id}. Regulated fare ₹${calculated_fare_rupees} for ${boarding_stop} → ${deboarding_stop}. Show Code: ${receipt_code} to conductor.`;
+      ? `SAFAR ALERT: Trip #${trip_id} confirmed. Fare ₹${calculated_fare_rupees} deducted. Show this SMS to driver. Driver cannot charge extra.`
+      : `SAFAR RECEIPT: Trip #${trip_id}. Regulated fare ₹${calculated_fare_rupees} for ${boarding_stop} → ${deboarding_stop}. Show Code: ${receipt_code} to driver.`;
 
     return {
       success: true,
@@ -247,7 +247,7 @@ class HybridComplianceService {
   }
 
   /**
-   * 4. CONDUCTOR SCANNER & VERIFICATION
+   * 4. DRIVER SCANNER & VERIFICATION
    */
   verifyConductorCode(receiptCodeOrTripId) {
     const code = (receiptCodeOrTripId || '').trim().toUpperCase();
@@ -278,6 +278,9 @@ class HybridComplianceService {
       deboarding_stop: payment.deboarding_stop,
       route_name: payment.route_name,
       status_label: isDigital ? "PRE-PAID (Digital)" : "CASH EXPECTED",
+      driver_instruction: isDigital
+        ? `Accept passenger. No cash collection needed.`
+        : `Collect ₹${fareRupees} exactly. Issue digital receipt.`,
       conductor_instruction: isDigital
         ? `Accept passenger. No cash collection needed.`
         : `Collect ₹${fareRupees} exactly. Issue digital receipt.`

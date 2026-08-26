@@ -11,9 +11,12 @@ import crypto from 'node:crypto';
 import { createRequire } from 'node:module';
 
 const require = createRequire(import.meta.url);
-const http = require('http');
-const { app } = require('../command-control-server/server.js');
-const { stmts, db, getAggregatedTelemetryRecords } = require('../command-control-server/db.js');
+const serverPkg = require('../command-control-server/server.js');
+const dbPkg = require('../command-control-server/db.js');
+const aggPkg = require('../command-control-server/telemetryAggregator.js');
+
+const { app, server } = serverPkg;
+const { stmts, db, getAggregatedTelemetryRecords } = dbPkg;
 const {
   fuzzCoordinate,
   timeBin,
@@ -21,15 +24,17 @@ const {
   runAggregator,
   cleanupRawGpsPings,
   BIN_MS
-} = require('../command-control-server/telemetryAggregator.js');
+} = aggPkg;
+
+const countOldPingsStmt = db.prepare('SELECT COUNT(*) as count FROM gps_pings WHERE timestamp < ?');
+const countRecentPingsStmt = db.prepare('SELECT COUNT(*) as count FROM gps_pings WHERE timestamp >= ?');
 
 let testPort = 0;
 let testServer = null;
 
 before(async () => {
-  testServer = http.createServer(app);
   await new Promise(resolve => {
-    testServer.listen(0, '127.0.0.1', () => {
+    testServer = server.listen(0, '127.0.0.1', () => {
       testPort = testServer.address().port;
       resolve();
     });
@@ -129,7 +134,7 @@ test('▶ Phase 2 Step 7 — Sprint 10: Anonymised Telemetry Sharing (200m Fuzzi
     stmts.insertGpsPing.run('drv_old', 'JK01-OLD-9999', 'SRN-OLD', baseLat, baseLng, 20, 0, oldTimestamp);
 
     // Verify it exists
-    const beforeCount = db.prepare('SELECT COUNT(*) as count FROM gps_pings WHERE timestamp < ?').get(Date.now() - 7 * 24 * 60 * 60 * 1000).count;
+    const beforeCount = countOldPingsStmt.get(Date.now() - 7 * 24 * 60 * 60 * 1000).count;
     assert.ok(beforeCount >= 1);
 
     // Run cleanup
@@ -137,11 +142,11 @@ test('▶ Phase 2 Step 7 — Sprint 10: Anonymised Telemetry Sharing (200m Fuzzi
     assert.ok(deletedCount >= 1);
 
     // Verify old pings deleted
-    const afterCount = db.prepare('SELECT COUNT(*) as count FROM gps_pings WHERE timestamp < ?').get(Date.now() - 7 * 24 * 60 * 60 * 1000).count;
+    const afterCount = countOldPingsStmt.get(Date.now() - 7 * 24 * 60 * 60 * 1000).count;
     assert.equal(afterCount, 0);
 
     // Recent pings are preserved
-    const recentCount = db.prepare('SELECT COUNT(*) as count FROM gps_pings WHERE timestamp >= ?').get(testBinStart).count;
+    const recentCount = countRecentPingsStmt.get(testBinStart).count;
     assert.ok(recentCount >= 4);
   });
 

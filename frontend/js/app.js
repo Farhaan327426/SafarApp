@@ -1,7 +1,7 @@
 /**
  * SAFAR — Master Transit Application Engine (ES6 Entry Point)
  * Commuter fare computation, offline Background Sync ledger, live route caching,
- * Driver/Conductor Console with live GPS broadcasting & receipt verification,
+ * Driver Console with live GPS broadcasting & receipt verification,
  * Multilingual AI Transit Assistant with context awareness,
  * Full-screen Fare Dispute Resolution Badge, Network Status Monitor,
  * Haptic Touch Engine, and Accessible Shared Mobility Blueprint (Mind Map).

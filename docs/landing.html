@@ -5,10 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>SAFAR — Smart Kashmir Transit</title>
 
-    <!-- Google Fonts: Inter, Manrope, Bricolage Grotesque, Noto Nastaliq Urdu -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;700;800&family=Inter:wght@300;400;500;600;700;800&family=Manrope:wght@500;700;800;900&family=Noto+Nastaliq+Urdu:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 
     <style>
@@ -34,9 +30,9 @@
             --shadow-sm:       0 2px 8px rgba(12, 59, 46, 0.05);
             --shadow-card:     0 6px 20px rgba(12, 59, 46, 0.08);
             --shadow-press:    0 2px 0 rgba(0,0,0,0.1);
-            --font-main:       'Inter', sans-serif;
-            --font-display:    'Manrope', sans-serif;
-            --font-hero:       'Bricolage Grotesque', sans-serif;
+            --font-main:       system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            --font-display:    system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            --font-hero:       system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
         }
 
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -850,7 +846,7 @@
                 <button class="btn-primary" style="width:100%;" onclick="requestOtpCode()">Generate Verification Code</button>
 
                 <div id="otp-wrapper-box" style="display:none;margin-top:12px;text-align:center;">
-                    <div style="font-size:0.72rem;color:var(--text-sub);font-weight:700;">SHOW TO CONDUCTOR</div>
+                    <div style="font-size:0.72rem;color:var(--text-sub);font-weight:700;">SHOW TO DRIVER</div>
                     <div style="font-family:var(--font-hero);font-size:2.4rem;font-weight:800;color:var(--accent);letter-spacing:4px;" id="otp-num-txt">582914</div>
                 </div>
             </div>

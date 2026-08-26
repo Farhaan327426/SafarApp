@@ -48,6 +48,7 @@ function setupLiveTracking(server) {
 
       broadcastWebSocketPayload(payload);
     }, 1000);
+    if (interval && typeof interval.unref === 'function') interval.unref();
   };
 
   wss.on('connection', (ws) => {

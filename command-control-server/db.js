@@ -332,6 +332,88 @@ try {
   db.exec("ALTER TABLE telemetry_aggregated ADD COLUMN updated_at TEXT");
 } catch (e) {}
 
+// ─── VERSIONED SCHEMA MIGRATIONS ──────────────────────────────────────────────
+function runSchemaMigrations() {
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS schema_migrations (
+      id TEXT PRIMARY KEY,
+      applied_at TEXT DEFAULT (datetime('now'))
+    );
+
+    CREATE TABLE IF NOT EXISTS ledger_adjustments (
+      adjustment_id TEXT PRIMARY KEY,
+      vehicle_no TEXT NOT NULL,
+      amount_paise INTEGER NOT NULL,
+      reason TEXT NOT NULL,
+      dispute_id TEXT,
+      created_by TEXT NOT NULL,
+      created_at TEXT DEFAULT (datetime('now')),
+      FOREIGN KEY (vehicle_no) REFERENCES driver_profiles(vehicle_no)
+    );
+    CREATE INDEX IF NOT EXISTS idx_adj_vehicle ON ledger_adjustments(vehicle_no);
+    CREATE INDEX IF NOT EXISTS idx_adj_dispute ON ledger_adjustments(dispute_id);
+  `);
+
+  const applied = new Set(
+    db.prepare('SELECT id FROM schema_migrations').all().map(r => r.id)
+  );
+
+  const migrations = [
+    {
+      id: '007_add_dispute_fields_to_compliance',
+      up: () => {
+        const columns = db.prepare("PRAGMA table_info(fare_compliance_discrepancies)").all().map(c => c.name);
+        if (!columns.includes('dispute_id')) {
+          db.exec("ALTER TABLE fare_compliance_discrepancies ADD COLUMN dispute_id TEXT");
+        }
+        if (!columns.includes('vehicle_no')) {
+          db.exec("ALTER TABLE fare_compliance_discrepancies ADD COLUMN vehicle_no TEXT");
+        }
+        if (!columns.includes('passenger_phone_hash')) {
+          db.exec("ALTER TABLE fare_compliance_discrepancies ADD COLUMN passenger_phone_hash TEXT");
+        }
+        if (!columns.includes('passenger_phone_last2')) {
+          db.exec("ALTER TABLE fare_compliance_discrepancies ADD COLUMN passenger_phone_last2 TEXT");
+        }
+        if (!columns.includes('client_sro_version')) {
+          db.exec("ALTER TABLE fare_compliance_discrepancies ADD COLUMN client_sro_version INTEGER");
+        }
+        if (!columns.includes('resolved_by')) {
+          db.exec("ALTER TABLE fare_compliance_discrepancies ADD COLUMN resolved_by TEXT");
+        }
+        if (!columns.includes('status')) {
+          db.exec("ALTER TABLE fare_compliance_discrepancies ADD COLUMN status TEXT DEFAULT 'OPEN'");
+        }
+        if (!columns.includes('sro_version_id')) {
+          db.exec("ALTER TABLE fare_compliance_discrepancies ADD COLUMN sro_version_id INTEGER");
+        }
+        if (!columns.includes('sro_checksum_at_report')) {
+          db.exec("ALTER TABLE fare_compliance_discrepancies ADD COLUMN sro_checksum_at_report TEXT");
+        }
+        db.exec("CREATE UNIQUE INDEX IF NOT EXISTS idx_compliance_dispute_id ON fare_compliance_discrepancies(dispute_id)");
+      }
+    }
+  ];
+
+  for (const m of migrations) {
+    if (!applied.has(m.id)) {
+      try {
+        m.up();
+        db.prepare('INSERT INTO schema_migrations (id) VALUES (?)').run(m.id);
+        console.log(`[DB Migration] Applied migration: ${m.id}`);
+      } catch (err) {
+        console.error(`[DB Migration] Error applying migration ${m.id}:`, err);
+      }
+    }
+  }
+}
+
+try {
+  runSchemaMigrations();
+} catch (e) {
+  console.error('[DB] runSchemaMigrations error:', e);
+}
+
 // ─── PREPARED STATEMENTS ──────────────────────────────────────────────────────
 // Prepared statements are compiled once and reused for performance.
 
@@ -526,9 +608,19 @@ function getAvailableBalancePaise(vehicleNo) {
     WHERE p.vehicle_no = ? AND p.status IN ('pending', 'approved', 'paid')
   `).get(vehicleNo);
 
+  let adjustedRow = { total_adjusted_paise: 0 };
+  try {
+    adjustedRow = db.prepare(`
+      SELECT COALESCE(SUM(la.amount_paise), 0) AS total_adjusted_paise
+      FROM ledger_adjustments la
+      WHERE la.vehicle_no = ?
+    `).get(vehicleNo);
+  } catch (e) {}
+
   const earned = Number(earnedRow?.total_earned_paise || 0);
   const allocated = Number(allocatedRow?.total_allocated_paise || 0);
-  return Math.max(0, earned - allocated);
+  const adjusted = Number(adjustedRow?.total_adjusted_paise || 0);
+  return Math.max(0, earned - allocated - adjusted);
 }
 
 /**
@@ -737,45 +829,156 @@ function getAllSroVersions() {
 }
 
 function classifySeverity(overchargePaise, overchargePercent) {
-  if (overchargePercent <= 5) return 'MINOR';
-  if (overchargePercent <= 15) return 'MODERATE';
-  return 'SEVERE';
+  if (overchargePaise < 100) return 'MINOR';
+
+  let pTier = 'MINOR';
+  if (overchargePercent > 15) pTier = 'SEVERE';
+  else if (overchargePercent > 5) pTier = 'MODERATE';
+
+  let aTier = 'MINOR';
+  if (overchargePaise > 3000) aTier = 'SEVERE';
+  else if (overchargePaise > 1000) aTier = 'MODERATE';
+
+  const tierRank = { 'MINOR': 1, 'MODERATE': 2, 'SEVERE': 3 };
+  return tierRank[pTier] >= tierRank[aTier] ? pTier : aTier;
 }
 
 const recordComplianceDiscrepancyTx = db.transaction(({
-  tripId, routeId, driverId, expectedFarePaise, chargedFarePaise, operatorId, reportedBy
+  disputeId,
+  tripId,
+  routeId,
+  driverId,
+  vehicleNo,
+  expectedFarePaise,
+  chargedFarePaise,
+  operatorId,
+  reportedBy,
+  passengerPhoneHash,
+  passengerPhoneLast2,
+  clientSroVersion,
+  sroVersionId,
+  sroChecksumAtReport
 }) => {
+  if (disputeId) {
+    const existing = db.prepare('SELECT * FROM fare_compliance_discrepancies WHERE dispute_id = ?').get(disputeId);
+    if (existing) {
+      return { duplicate: true, ...existing };
+    }
+  }
+
   const overchargePaise = chargedFarePaise - expectedFarePaise;
-  const overchargePercent = expectedFarePaise > 0 ? (overchargePaise / expectedFarePaise) * 100 : 0;
+  const overchargePercent = expectedFarePaise > 0 ? (overchargePaise / expectedFarePaise) * 100 : (chargedFarePaise > 0 ? 100 : 0);
   const severity = classifySeverity(overchargePaise, overchargePercent);
+
+  let status = 'OPEN';
+  let resolutionNotes = null;
+  if (overchargePaise < 100) {
+    status = 'RESOLVED_DISMISSED';
+    resolutionNotes = 'ROUNDING_VARIANCE_DISMISSED';
+  }
+
   const info = db.prepare(`
     INSERT INTO fare_compliance_discrepancies (
-      trip_id, route_id, driver_id, expected_fare_paise, charged_fare_paise,
-      overcharge_paise, overcharge_percent, severity, operator_id, reported_by
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      dispute_id, trip_id, route_id, driver_id, vehicle_no, expected_fare_paise, charged_fare_paise,
+      overcharge_paise, overcharge_percent, severity, operator_id, reported_by,
+      passenger_phone_hash, passenger_phone_last2, client_sro_version, status,
+      sro_version_id, sro_checksum_at_report, resolution_notes
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `).run(
-    String(tripId),
-    String(routeId),
-    String(driverId),
+    disputeId || null,
+    String(tripId || ''),
+    String(routeId || ''),
+    String(driverId || ''),
+    String(vehicleNo || ''),
     expectedFarePaise,
     chargedFarePaise,
     overchargePaise,
     overchargePercent,
     severity,
-    String(operatorId),
-    String(reportedBy || 'system')
+    String(operatorId || ''),
+    String(reportedBy || 'system'),
+    passengerPhoneHash || null,
+    passengerPhoneLast2 || null,
+    clientSroVersion || null,
+    status,
+    sroVersionId || null,
+    sroChecksumAtReport || null,
+    resolutionNotes
   );
+
   return {
     id: Number(info.lastInsertRowid),
-    tripId: String(tripId),
-    routeId: String(routeId),
-    driverId: String(driverId),
+    disputeId: disputeId || null,
+    tripId: String(tripId || ''),
+    routeId: String(routeId || ''),
+    driverId: String(driverId || ''),
+    vehicleNo: String(vehicleNo || ''),
     expectedFarePaise,
     chargedFarePaise,
     overchargePaise,
     overchargePercent,
     severity,
-    operatorId: String(operatorId)
+    status,
+    operatorId: String(operatorId || '')
+  };
+});
+
+const resolveDisputeTx = db.transaction(({
+  disputeId,
+  action,
+  adminId,
+  notes
+}) => {
+  const dispute = db.prepare('SELECT * FROM fare_compliance_discrepancies WHERE dispute_id = ?').get(disputeId);
+  if (!dispute) {
+    return { error: 'DISPUTE_NOT_FOUND' };
+  }
+
+  if (dispute.status === 'RESOLVED_UPHELD' || dispute.status === 'RESOLVED_DISMISSED' || dispute.status === 'UPHELD_PENDING_RECOVERY') {
+    return { duplicate: true, dispute };
+  }
+
+  if (action === 'DISMISS') {
+    db.prepare(`
+      UPDATE fare_compliance_discrepancies 
+      SET status = 'RESOLVED_DISMISSED', resolution_notes = ?, resolved_by = ?, resolved_at = datetime('now')
+      WHERE dispute_id = ?
+    `).run(notes || 'Dismissed by admin', adminId, disputeId);
+
+    return { success: true, status: 'RESOLVED_DISMISSED', disputeId };
+  }
+
+  // Action is UPHOLD
+  const vehicleNo = dispute.vehicle_no;
+  const overchargePaise = Number(dispute.overcharge_paise || 0);
+  const availablePaise = vehicleNo ? getAvailableBalancePaise(vehicleNo) : 0;
+
+  const adjId = `adj-dispute-${disputeId}`;
+  if (vehicleNo && overchargePaise > 0) {
+    try {
+      db.prepare(`
+        INSERT OR IGNORE INTO ledger_adjustments (adjustment_id, vehicle_no, amount_paise, reason, dispute_id, created_by)
+        VALUES (?, ?, ?, 'DISPUTE_CLAWBACK', ?, ?)
+      `).run(adjId, vehicleNo, overchargePaise, disputeId, adminId);
+    } catch (e) {
+      console.error('[DB] Error inserting ledger adjustment:', e);
+    }
+  }
+
+  const finalStatus = (availablePaise >= overchargePaise) ? 'RESOLVED_UPHELD' : 'UPHELD_PENDING_RECOVERY';
+
+  db.prepare(`
+    UPDATE fare_compliance_discrepancies 
+    SET status = ?, resolution_notes = ?, resolved_by = ?, resolved_at = datetime('now')
+    WHERE dispute_id = ?
+  `).run(finalStatus, notes || 'Upheld by compliance review', adminId, disputeId);
+
+  return {
+    success: true,
+    status: finalStatus,
+    disputeId,
+    clawbackPaise: overchargePaise,
+    vehicleNo
   };
 });
 
@@ -1523,6 +1726,7 @@ module.exports = {
   getAllSroVersions,
   classifySeverity,
   recordComplianceDiscrepancyTx,
+  resolveDisputeTx,
   getComplianceDiscrepancies,
   getOperatorComplianceStats,
   getAggregatedTelemetryRecords,

@@ -125,7 +125,7 @@ Chalo serves official state regulatory E-buses operating on fixed urban corridor
 | **Senior Citizen Support** | **Print Receipts + SMS + IVR Hotline** | Standard mobile app |
 | **Regulatory Export** | **JSON & CSV Audit Export for Transit Regulatory Council / Emergency Helpline (112)** | Internal analytics only |
 | **Vehicle Multipliers** | **5 Transit Regulatory Council vehicle class multipliers (1.0x to 1.25x)** | Single vehicle class |
-| **Conductor Verification** | **Dual Mode** (Pre-paid verification & Cash collector) | QR Pass scanner only |
+| **Driver Verification** | **Dual Mode** (Pre-paid verification & Cash collector) | QR Pass scanner only |
 | **GPS Auto-Detection** | **Both Boarding & Deboarding points** | Boarding point only |
 | **Terrain Multipliers** | **Kashmir & Jammu Plain vs. Hilly Slabs** | Uniform city rates |
 | **AI Transit Copilot** | **Multilingual (English, Kashmiri, Hindi)** | None |
@@ -138,19 +138,19 @@ Chalo serves official state regulatory E-buses operating on fixed urban corridor
 
 ### Role Taxonomy
 1. **Commuter (Anonymous / Semi-Identified):** Access to fare calculator, live tracking, booking, dispute logger, and AI assistant.
-2. **Conductor / Driver:** Access to driver console, live GPS broadcasting, passenger occupancy counter, and receipt validation scanner.
+2. **Driver (Universal — E-Rickshaw, Auto, Tata Magic, Mini-Bus, Shared Van):** Access to driver console, live GPS broadcasting, passenger occupancy counter, and receipt validation scanner.
 3. **Regulatory Auditor (Transit Regulatory Council):** Read-only access to compliance dashboards, discrepancy logs, and JSON/CSV audit exports.
 4. **Administrator:** Access to fare slab updates, route management, operator registration, and account lockouts.
 5. **Super Admin:** Master system configuration, tenant isolation, and cryptographic key management.
 
 ### Access Control Matrix
 
-| Resource / Endpoint | Commuter | Conductor | Auditor | Admin | Super Admin |
+| Resource / Endpoint | Commuter | Driver | Auditor | Admin | Super Admin |
 | :--- | :---: | :---: | :---: | :---: | :---: |
 | `GET /api/v1/fare/calculate` | Read | Read | Read | Read | Read |
 | `POST /api/v1/booking/create` | Write | — | — | — | — |
 | `POST /api/v1/payment/confirm` | Write | — | — | — | — |
-| `GET /api/v1/conductor/verify/:code` | — | Read | Read | Read | Read |
+| `GET /api/v1/driver/verify/:code` | — | Read | Read | Read | Read |
 | `PUT /api/v1/admin/fare-slabs` | — | — | — | Write | Write |
 | `GET /api/v1/compliance/audit-report` | — | — | Read | Read | Read |
 | `GET /api/v1/compliance/violations/csv` | — | — | Read | Read | Read |

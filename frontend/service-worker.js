@@ -1,11 +1,11 @@
 /**
- * SAFAR — Progressive Web App Service Worker (v4.0.0)
+ * SAFAR — Progressive Web App Service Worker (v1.0.0)
  * Implements Cache-First strategy for App Shell, Network-First for Data APIs,
  * and direct Network bypass for Sensitive Payments, OTPs, and SSE real-time streams.
  */
 
-const SHELL_CACHE = 'safar-shell-v5';
-const DATA_CACHE = 'safar-data-v5';
+const SHELL_CACHE = 'safar-shell-v1';
+const DATA_CACHE = 'safar-data-v1';
 
 const APP_SHELL = [
   '/',
@@ -17,6 +17,7 @@ const APP_SHELL = [
   '/routes/index.json',
   '/app.js',
   '/js/app.js',
+  '/js/main.js',
   '/js/i18n.js',
   '/js/offline-manager.js',
   '/js/offline-store.js',

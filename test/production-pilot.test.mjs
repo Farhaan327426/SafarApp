@@ -8,10 +8,14 @@ import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'fs';
 import path from 'path';
-import serverPkg from '../command-control-server/server.js';
-import { db, stmts } from '../command-control-server/db.js';
+import { createRequire } from 'node:module';
+
+const require = createRequire(import.meta.url);
+const serverPkg = require('../command-control-server/server.js');
+const dbPkg = require('../command-control-server/db.js');
 
 const { app, server, activeAdminTokens } = serverPkg;
+const { db, stmts } = dbPkg;
 let testPort = 0;
 let testServer = null;
 let adminToken = null;
@@ -40,7 +44,6 @@ after(async () => {
     if (typeof testServer.closeAllConnections === 'function') testServer.closeAllConnections();
     await new Promise(resolve => testServer.close(resolve));
   }
-  setTimeout(() => process.exit(0), 100);
 });
 
 test('▶ Phase 2 Step 8 — Sprint 12: 500-User Production Pilot Readiness Suite', async (tSuite) => {

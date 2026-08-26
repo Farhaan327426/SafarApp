@@ -41,7 +41,7 @@ before(async () => {
 after(async () => {
   if (testServer) {
     if (typeof testServer.closeAllConnections === 'function') testServer.closeAllConnections();
-    await new Promise(resolve => testServer.close(resolve));
+    testServer.close();
   }
   setTimeout(() => process.exit(0), 100);
 });

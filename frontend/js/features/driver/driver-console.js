@@ -1,5 +1,5 @@
 /**
- * SAFAR — Driver & Conductor Console Module
+ * SAFAR — Driver Console Module (Universal: E-Rickshaw, Auto, Tata Magic, Mini-Bus, Shared Maxicab)
  */
 
 import { store } from '../../core/state.js';

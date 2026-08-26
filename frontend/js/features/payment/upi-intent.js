@@ -58,7 +58,7 @@ function renderUpiModal(data) {
       </div>
 
       <div class="upi-notice-box">
-        <p><strong>Notice:</strong> Safar does not collect or store funds. Payment goes directly to the driver's UPI ID. Confirm with conductor after paying.</p>
+        <p><strong>Notice:</strong> Safar does not collect or store funds. Payment goes directly to the driver's UPI ID. Confirm with driver after paying.</p>
       </div>
     </div>
   `;

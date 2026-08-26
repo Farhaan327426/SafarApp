@@ -2,6 +2,10 @@
 
 Hardened, production-ready transit fare calculation, route navigation, and regulatory compliance platform for Jammu & Kashmir.
 
+> [!WARNING]
+> **SECURITY & SECRET ROTATION NOTICE:**
+> If any secrets (API keys, JWT secrets, database credentials, admin PINs) were previously committed to version control in earlier commits or git history, they MUST be rotated immediately in your production dashboards (Stripe, Razorpay, Redis, etc.). All production credentials must strictly be loaded from environment variables via `.env` (refer to `.env.example`). Never commit plaintext `.env` files to git.
+
 ## 🚀 Deployment
 
 ### Static Hosting (Frontend)
