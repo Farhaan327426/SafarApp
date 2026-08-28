@@ -35,7 +35,7 @@
   padding: 0;
 }
 
-/* CRITICAL: Ensure hidden attribute always hides elements completely */
+/* Ensure hidden attribute always hides elements completely */
 [hidden] {
   display: none !important;
 }
@@ -565,7 +565,7 @@ body {
   background-repeat: no-repeat;
   background-position: right bottom;
   background-size: cover;
-  pointer-events-none;
+  pointer-events: none;
 }
 
 /* QUICK CORRIDORS BAR */
