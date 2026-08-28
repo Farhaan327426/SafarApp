@@ -503,10 +503,10 @@ export default function App() {
               <div className="relative z-10 max-w-2xl">
                 <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#f2bd70]/20 text-[#f2bd70] border border-[#f2bd70]/30 text-xs font-bold uppercase tracking-wider mb-3">
                   <Sparkles size={13} />
-                  <span>Fair & Simple Road Travel</span>
+                  <span>Official Transit Fare Guide</span>
                 </div>
                 <h1 className="text-2xl sm:text-4xl font-extrabold tracking-tight leading-tight">
-                  Know the exact fair fare <br className="hidden sm:block" />
+                  Know the exact fare <br className="hidden sm:block" />
                   before you board across J&K.
                 </h1>
                 <p className="mt-2 text-xs sm:text-sm text-[#c7dad0] leading-relaxed">
@@ -779,7 +779,7 @@ export default function App() {
                     <div>
                       <div className="inline-flex items-center gap-1.5 text-[10px] font-extrabold uppercase tracking-widest text-[#f2bd70] bg-[#f2bd70]/15 px-2.5 py-1 rounded-full border border-[#f2bd70]/25">
                         <CircleGauge size={13} />
-                        <span>Fair Price Guidance</span>
+                        <span>Official Fare Estimate</span>
                       </div>
                       <p className="text-xs text-[#c4d6cb] mt-2 font-medium">
                         {from} <ArrowRight size={12} className="inline mx-1" /> {to}
@@ -819,7 +819,7 @@ export default function App() {
 
                   {/* Big Live Price Display */}
                   <div className="relative z-10 mt-4">
-                    <p className="text-[11px] text-[#aac2b3] font-medium">Recommended Fair Range</p>
+                    <p className="text-[11px] text-[#aac2b3] font-medium">Govt Approved Fare Range</p>
                     <div className="flex items-baseline gap-2 mt-1">
                       <span className="text-4xl sm:text-5xl font-black tracking-tight text-[#ffffff]">
                         ₹{displayFare.toLocaleString("en-IN")}
@@ -908,7 +908,7 @@ export default function App() {
                     </div>
 
                     <div className="pt-3 border-t border-[#e2eae0] flex items-center justify-between text-sm">
-                      <span className="font-extrabold text-[#234b4c]">Total Fair Estimate</span>
+                      <span className="font-extrabold text-[#234b4c]">Total Fare Estimate</span>
                       <span className="font-extrabold text-[#d36b3d] text-base">
                         ₹{displayFare.toLocaleString("en-IN")}
                       </span>
@@ -1101,7 +1101,7 @@ export default function App() {
               </div>
               <div>
                 <h3 className="font-bold text-lg text-[#234b4c]">How Safar Works</h3>
-                <p className="text-xs text-[#78908a]">3 Simple Steps to Fair Travel</p>
+                <p className="text-xs text-[#78908a]">3 Simple Steps to Check Your Fare</p>
               </div>
             </div>
 
