@@ -3,51 +3,133 @@
  * Interactive Engine & UI Handlers
  */
 
-// 1. Vehicle Option Definitions
+// 1. Vehicle Option Definitions (9 Non-SRTC / Non-E-Bus J&K Categories)
 const vehicleOptions = [
   {
     key: "shared-cab",
-    label: "Shared Cab",
-    sublabel: "Sumo / Tavera / Bolero",
-    detail: "Standard passenger seat on fixed corridor",
+    category: "shared",
+    label: "Shared Maxi-Cab",
+    sublabel: "Tata Sumo / Bolero / Tavera",
+    detail: "Standard passenger seat on inter-district corridors",
     base: 35,
     perKm: 5.2,
     capacity: "4 to 7 Seats",
     badge: "Most Popular",
+    isPerSeat: true,
+    seatsMultiplier: 5,
     icon: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.5 2.8C2.1 10.7 2 11.3 2 12v4c0 .6.4 1 1 1h2"></path><circle cx="7" cy="17" r="2"></circle><path d="M9 17h6"></path><circle cx="17" cy="17" r="2"></circle></svg>`
   },
   {
+    key: "tata-magic",
+    category: "shared",
+    label: "Tata Magic / Van",
+    sublabel: "Maruti Eeco / Magic / Winger",
+    detail: "Feeder routes & rural-to-town transit",
+    base: 25,
+    perKm: 4.2,
+    capacity: "6 to 8 Seats",
+    badge: "Rural & Feeder",
+    isPerSeat: true,
+    seatsMultiplier: 7,
+    icon: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.5 2.8C2.1 10.7 2 11.3 2 12v4c0 .6.4 1 1 1h2"></path><circle cx="7" cy="17" r="2"></circle><path d="M9 17h6"></path><circle cx="17" cy="17" r="2"></circle></svg>`
+  },
+  {
+    key: "mini-bus",
+    category: "bus",
+    label: "Mini Bus / 407",
+    sublabel: "Tata 407 / Swaraj Mazda / Matador",
+    detail: "Budget local stage carriage across towns & hubs",
+    base: 18,
+    perKm: 2.9,
+    capacity: "Per Passenger (18-24 Seats)",
+    badge: "High Frequency",
+    isPerSeat: true,
+    seatsMultiplier: 18,
+    icon: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="15" rx="2"></rect><circle cx="7" cy="19" r="2"></circle><circle cx="17" cy="19" r="2"></circle><path d="M3 10h18"></path><path d="M12 4v6"></path></svg>`
+  },
+  {
+    key: "private-bus",
+    category: "bus",
+    label: "Private 2+2 Bus",
+    sublabel: "Standard 32-52 Seater (Non-SRTC)",
+    detail: "Inter-district long route passenger bus",
+    base: 15,
+    perKm: 2.4,
+    capacity: "Per Passenger (32+ Seats)",
+    badge: "Lowest Fare",
+    isPerSeat: true,
+    seatsMultiplier: 32,
+    icon: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"></rect><path d="M6 21v-4"></path><path d="M18 21v-4"></path><path d="M2 10h20"></path></svg>`
+  },
+  {
     key: "auto",
-    label: "Auto-Rickshaw",
-    sublabel: "3-Wheeler Metered",
-    detail: "Short & medium town trips (up to 3 persons)",
+    category: "auto",
+    label: "Auto-Rickshaw (Petrol/CNG)",
+    sublabel: "3-Wheeler Metered Auto",
+    detail: "City & town short-to-medium trips (up to 3 persons)",
     base: 45,
     perKm: 7.4,
     capacity: "Up to 3 Persons",
     badge: "City Travel",
+    isPerSeat: false,
+    seatsMultiplier: 1,
     icon: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="9" rx="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>`
   },
   {
-    key: "mini-bus",
-    label: "Mini Bus / 407",
-    sublabel: "Matador / Local Transit",
-    detail: "Budget stage carriage across town hubs",
-    base: 18,
-    perKm: 2.9,
-    capacity: "Per Passenger",
-    badge: "Lowest Fare",
-    icon: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="15" rx="2"></rect><circle cx="7" cy="19" r="2"></circle><circle cx="17" cy="19" r="2"></circle><path d="M3 10h18"></path><path d="M12 4v6"></path></svg>`
+    key: "e-auto",
+    category: "auto",
+    label: "E-Auto (Electric Auto)",
+    sublabel: "Battery Electric 3-Wheeler (L5M)",
+    detail: "Eco-friendly town transit with regulated rates",
+    base: 30,
+    perKm: 6.0,
+    capacity: "Up to 3 Persons",
+    badge: "Zero Emission",
+    isPerSeat: false,
+    seatsMultiplier: 1,
+    icon: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>`
+  },
+  {
+    key: "e-rickshaw",
+    category: "auto",
+    label: "E-Rickshaw (Toto / Cart)",
+    sublabel: "Local Colony & Market Cart",
+    detail: "Ultra-short local trips & market connections",
+    base: 15,
+    perKm: 4.0,
+    capacity: "Up to 4 Persons / Per Seat",
+    badge: "Local Shuttles",
+    isPerSeat: true,
+    seatsMultiplier: 4,
+    icon: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="6" cy="19" r="3"></circle><circle cx="18" cy="19" r="3"></circle><path d="M9 19h6"></path><path d="M12 19V6l4 4"></path></svg>`
   },
   {
     key: "taxi",
-    label: "Private Taxi",
-    sublabel: "Sedan / Tourist Cab",
-    detail: "Point-to-point dedicated vehicle hire",
-    base: 160,
-    perKm: 16.5,
+    category: "taxi",
+    label: "Private Sedan Taxi",
+    sublabel: "Maruti Dzire / Toyota Etios",
+    detail: "Direct point-to-point dedicated sedan hire",
+    base: 140,
+    perKm: 14.5,
     capacity: "Entire Vehicle (4+1)",
-    badge: "Dedicated Cab",
+    badge: "Dedicated Sedan",
+    isPerSeat: false,
+    seatsMultiplier: 1,
     icon: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 16H9m10 0h3v-3.15a1 1 0 0 0-.84-.99L16 11l-2.7-3.6a1 1 0 0 0-.8-.4H5.24a2 2 0 0 0-1.8 1.1l-.8 1.63A6 6 0 0 0 2 12.42V16h2"></path><circle cx="6.5" cy="16.5" r="2.5"></circle><circle cx="16.5" cy="16.5" r="2.5"></circle></svg>`
+  },
+  {
+    key: "suv-taxi",
+    category: "taxi",
+    label: "Private SUV Taxi",
+    sublabel: "Innova Crysta / Scorpio / Xylo",
+    detail: "Dedicated mountain pass & tourist point-to-point hire",
+    base: 200,
+    perKm: 19.5,
+    capacity: "Entire Vehicle (6+1 / 7+1)",
+    badge: "Mountain & Tour",
+    isPerSeat: false,
+    seatsMultiplier: 1,
+    icon: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"></rect><circle cx="6" cy="18" r="2"></circle><circle cx="18" cy="18" r="2"></circle></svg>`
   }
 ];
 
@@ -118,7 +200,7 @@ const recentEstimates = [
     distance: 51,
     vehicleKey: "shared-cab",
     amount: "₹ 300",
-    meta: "Shared Cab · Tangmarg corridor",
+    meta: "Shared Maxi-Cab · Tangmarg corridor",
     time: "Today, 10:40 AM"
   },
   {
@@ -127,8 +209,8 @@ const recentEstimates = [
     to: "Katra",
     distance: 49,
     vehicleKey: "taxi",
-    amount: "₹ 1,020",
-    meta: "Private Taxi · Vaishno Devi route",
+    amount: "₹ 850",
+    meta: "Private Sedan Taxi · Vaishno Devi route",
     time: "Yesterday, 06:15 PM"
   },
   {
@@ -149,6 +231,7 @@ let currentTo = "Gulmarg";
 let currentDistance = 51;
 let currentVehicleKey = "shared-cab";
 let currentPriceMode = "per-seat";
+let currentCategoryFilter = "all";
 
 // DOM Elements
 const inputFrom = document.getElementById("input-from");
@@ -225,7 +308,12 @@ function renderQuickPresets() {
 function renderVehicleCards() {
   if (!vehicleCardsContainer) return;
   vehicleCardsContainer.innerHTML = "";
-  vehicleOptions.forEach((v) => {
+  
+  const list = currentCategoryFilter === "all"
+    ? vehicleOptions
+    : vehicleOptions.filter((v) => v.category === currentCategoryFilter);
+
+  list.forEach((v) => {
     const isSelected = v.key === currentVehicleKey;
     const card = document.createElement("button");
     card.className = `vehicle-card ${isSelected ? "selected" : ""}`;
@@ -261,13 +349,30 @@ function calculateAndRender() {
   const km = Math.max(1, Number(currentDistance) || 1);
   const base = v.base;
   const distCost = Math.round(km * v.perKm);
-  const adj = v.key === "shared-cab" ? 0 : v.key === "mini-bus" ? -4 : v.key === "auto" ? 5 : 15;
-  const totalSingle = Math.max(15, base + distCost + adj);
+  
+  const adj =
+    v.key === "shared-cab"
+      ? 0
+      : v.key === "tata-magic"
+      ? -2
+      : v.key === "mini-bus"
+      ? -4
+      : v.key === "private-bus"
+      ? -5
+      : v.key === "auto"
+      ? 5
+      : v.key === "e-auto"
+      ? 0
+      : v.key === "e-rickshaw"
+      ? -2
+      : v.key === "suv-taxi"
+      ? 20
+      : 10;
 
-  const seatsMultiplier = v.key === "shared-cab" ? 5 : v.key === "mini-bus" ? 18 : 1;
-  const fullCabCost = v.key === "taxi" ? totalSingle : totalSingle * seatsMultiplier;
+  const totalSingle = Math.max(10, base + distCost + adj);
+  const fullCabCost = v.isPerSeat ? totalSingle * v.seatsMultiplier : totalSingle;
 
-  const finalFare = (v.key === "taxi" || v.key === "auto")
+  const finalFare = !v.isPerSeat
     ? totalSingle
     : currentPriceMode === "full-cab"
     ? fullCabCost
@@ -280,10 +385,13 @@ function calculateAndRender() {
   if (specDistanceVal) specDistanceVal.textContent = `${km} KM`;
 
   if (displayPriceBasis) {
-    if (v.key === "taxi") displayPriceBasis.textContent = "(Entire Taxi)";
-    else if (v.key === "auto") displayPriceBasis.textContent = "(Entire Auto)";
-    else if (currentPriceMode === "full-cab") displayPriceBasis.textContent = `(All ${v.capacity})`;
-    else displayPriceBasis.textContent = "(Per Passenger)";
+    if (!v.isPerSeat) {
+      displayPriceBasis.textContent = `(Entire ${v.label})`;
+    } else if (currentPriceMode === "full-cab") {
+      displayPriceBasis.textContent = `(Entire Vehicle - ${v.seatsMultiplier} Seats)`;
+    } else {
+      displayPriceBasis.textContent = "(Per Passenger Seat)";
+    }
   }
 
   if (mathBaseFare) mathBaseFare.textContent = formatRupees(base);
@@ -296,7 +404,7 @@ function calculateAndRender() {
 
   // Toggle Seat Mode Visibility
   if (seatModeContainer) {
-    if (v.key === "taxi" || v.key === "auto") {
+    if (!v.isPerSeat) {
       seatModeContainer.style.display = "none";
     } else {
       seatModeContainer.style.display = "flex";
@@ -471,6 +579,16 @@ function attachListeners() {
       showToast("Route reset to Srinagar ➔ Gulmarg");
     });
   }
+
+  // Category filter pills
+  document.querySelectorAll(".cat-filter-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      document.querySelectorAll(".cat-filter-btn").forEach((b) => b.classList.remove("active"));
+      btn.classList.add("active");
+      currentCategoryFilter = btn.getAttribute("data-cat");
+      renderVehicleCards();
+    });
+  });
 
   // Seat mode switch pills
   document.querySelectorAll(".mode-pill").forEach((pill) => {

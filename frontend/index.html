@@ -227,8 +227,18 @@
                 <div class="step-badge">2</div>
                 <div class="header-titles">
                   <h2>Select Vehicle Type</h2>
-                  <p>Choose your preferred way to travel</p>
+                  <p>All 9 commercial transit categories across Jammu & Kashmir (Non-SRTC & Non-E-Bus)</p>
                 </div>
+                <span class="chip-sm">Non-SRTC</span>
+              </div>
+
+              <!-- Vehicle Category Filter Pills -->
+              <div class="category-filter-bar" id="category-filter-container">
+                <button class="cat-filter-btn active" data-cat="all">All Vehicles (9)</button>
+                <button class="cat-filter-btn" data-cat="shared">Shared Cabs & Vans</button>
+                <button class="cat-filter-btn" data-cat="bus">Private Buses</button>
+                <button class="cat-filter-btn" data-cat="auto">Autos & E-Rickshaws</button>
+                <button class="cat-filter-btn" data-cat="taxi">Private Taxis</button>
               </div>
 
               <div class="vehicle-cards-grid" id="vehicle-cards-container">
@@ -253,7 +263,7 @@
 
               <!-- Per Seat vs Entire Cab Switch -->
               <div class="seat-mode-switch" id="seat-mode-container">
-                <button class="mode-pill active" data-mode="per-seat">Per Seat</button>
+                <button class="mode-pill active" data-mode="per-seat">Per Seat Fare</button>
                 <button class="mode-pill" data-mode="full-cab">Entire Vehicle</button>
               </div>
 
@@ -328,18 +338,19 @@
             <div class="card-box" id="corridor-context-card">
               <div class="card-header">
                 <div class="header-titles">
-                  <h3>Route Road Details</h3>
+                  <h3>Route Details</h3>
                 </div>
                 <span class="chip-time" id="context-duration">1h 35m</span>
               </div>
+
               <div class="context-details">
                 <div class="context-row">
-                  <span>Highway / Road:</span>
+                  <span>Highway / Corridor:</span>
                   <strong id="context-highway">NH-1A / Tangmarg Rd</strong>
                 </div>
                 <div class="context-row">
                   <span>Terrain:</span>
-                  <span class="badge-terrain" id="context-terrain">Mountain Pass</span>
+                  <strong class="badge-terrain" id="context-terrain">Mountain Pass</strong>
                 </div>
                 <div class="context-stops">
                   <small>Key En-Route Stops:</small>
@@ -355,15 +366,13 @@
         </div>
       </section>
 
-      <!-- ============================================================= -->
-      <!-- TAB 2: ROUTE GUIDE                                            -->
-      <!-- ============================================================= -->
+      <!-- TAB 2: ROUTE GUIDE -->
       <section id="tab-guide" class="tab-view" hidden>
         <div class="card-box large-card">
           <div class="card-header">
             <div class="header-titles">
               <h2>J&K Transit Corridors Directory</h2>
-              <p>Standard road distances, typical travel times, and recommended vehicle modes.</p>
+              <p>Key transit corridors, expected travel time, and highway details across Jammu & Kashmir</p>
             </div>
           </div>
           <div class="guide-cards-grid" id="guide-cards-container">
@@ -372,15 +381,13 @@
         </div>
       </section>
 
-      <!-- ============================================================= -->
-      <!-- TAB 3: RECENT ESTIMATES                                       -->
-      <!-- ============================================================= -->
+      <!-- TAB 3: RECENT ESTIMATES -->
       <section id="tab-history" class="tab-view" hidden>
         <div class="card-box large-card">
           <div class="card-header">
             <div class="header-titles">
-              <h2>Recent Route Calculations</h2>
-              <p>Quickly access and re-estimate previously loaded trips.</p>
+              <h2>Recent Calculations</h2>
+              <p>Quick access to your previously computed transit fares</p>
             </div>
           </div>
           <div class="history-list" id="history-items-container">
@@ -389,26 +396,25 @@
         </div>
       </section>
 
-      <!-- ============================================================= -->
-      <!-- TAB 4: OFFICIAL RATES                                         -->
-      <!-- ============================================================= -->
+      <!-- TAB 4: OFFICIAL RATES (SRO-97) -->
       <section id="tab-rates" class="tab-view" hidden>
         <div class="card-box large-card">
           <div class="card-header">
             <div class="header-titles">
               <h2>Official J&K Transport Fare Schedules (SRO-97)</h2>
-              <p>Legal maximum fare ceilings notified by the Transport Commissioner, J&K.</p>
+              <p>Mandatory maximum fare ceiling rates for all 9 non-SRTC commercial passenger vehicles in Jammu & Kashmir.</p>
             </div>
           </div>
+
           <div class="table-responsive">
             <table class="rates-table">
               <thead>
                 <tr>
                   <th>Vehicle Category</th>
-                  <th>Base Fare</th>
-                  <th>Rate Per KM</th>
-                  <th>Seating Norm</th>
-                  <th>Applicability</th>
+                  <th>Base Minimum Fare</th>
+                  <th>Rate per KM</th>
+                  <th>Standard Seating</th>
+                  <th>Transit Applicability</th>
                 </tr>
               </thead>
               <tbody>
@@ -420,25 +426,60 @@
                   <td>Inter-district corridors</td>
                 </tr>
                 <tr>
-                  <td><strong>Auto-Rickshaw (3-Wheeler)</strong></td>
-                  <td>₹ 45 (first 2 km)</td>
-                  <td>₹ 7.40 / km</td>
-                  <td>Up to 3 passengers</td>
-                  <td>Town / City trips</td>
+                  <td><strong>Tata Magic / Passenger Van</strong></td>
+                  <td>₹ 25</td>
+                  <td>₹ 4.20 / pass-km</td>
+                  <td>6 to 8 seats</td>
+                  <td>Feeder & rural routes</td>
                 </tr>
                 <tr>
                   <td><strong>Mini Bus (Stage Carriage 407)</strong></td>
                   <td>₹ 18</td>
                   <td>₹ 2.90 / km</td>
-                  <td>Per seat</td>
-                  <td>Regular transit corridors</td>
+                  <td>Per seat (18-24)</td>
+                  <td>Town & district routes</td>
                 </tr>
                 <tr>
-                  <td><strong>Private Tourist Taxi</strong></td>
-                  <td>₹ 160</td>
-                  <td>₹ 16.50 / km</td>
+                  <td><strong>Private 2+2 Bus (Non-SRTC)</strong></td>
+                  <td>₹ 15</td>
+                  <td>₹ 2.40 / km</td>
+                  <td>Per seat (32+)</td>
+                  <td>Long distance routes</td>
+                </tr>
+                <tr>
+                  <td><strong>Auto-Rickshaw (Petrol/CNG)</strong></td>
+                  <td>₹ 45 (first 2 km)</td>
+                  <td>₹ 7.40 / km</td>
+                  <td>Up to 3 passengers</td>
+                  <td>City & town limits</td>
+                </tr>
+                <tr>
+                  <td><strong>E-Auto (Electric Auto)</strong></td>
+                  <td>₹ 30</td>
+                  <td>₹ 6.00 / km</td>
+                  <td>Up to 3 passengers</td>
+                  <td>Urban zero-emission</td>
+                </tr>
+                <tr>
+                  <td><strong>E-Rickshaw (Toto / Cart)</strong></td>
+                  <td>₹ 15</td>
+                  <td>₹ 4.00 / km</td>
+                  <td>Up to 4 passengers</td>
+                  <td>Local colony & market</td>
+                </tr>
+                <tr>
+                  <td><strong>Private Sedan Taxi (Dzire/Etios)</strong></td>
+                  <td>₹ 140</td>
+                  <td>₹ 14.50 / km</td>
                   <td>Entire vehicle (4+1)</td>
-                  <td>Sightseeing / Direct drop</td>
+                  <td>Dedicated sedan hire</td>
+                </tr>
+                <tr>
+                  <td><strong>Private SUV Taxi (Innova/Crysta)</strong></td>
+                  <td>₹ 200</td>
+                  <td>₹ 19.50 / km</td>
+                  <td>Entire vehicle (6+1/7+1)</td>
+                  <td>Mountain pass & tours</td>
                 </tr>
               </tbody>
             </table>

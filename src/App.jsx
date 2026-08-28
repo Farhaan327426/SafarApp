@@ -27,57 +27,153 @@ import {
   ShieldAlert,
   ShieldCheck,
   Sparkles,
+  Zap,
   X,
 } from "lucide-react";
+
+const vehicleCategories = [
+  { key: "all", label: "All Vehicles (9)" },
+  { key: "shared", label: "Shared Cabs & Vans" },
+  { key: "bus", label: "Private Buses" },
+  { key: "auto", label: "Autos & E-Rickshaws" },
+  { key: "taxi", label: "Private Taxis" },
+];
 
 const vehicleOptions = [
   {
     key: "shared-cab",
-    label: "Shared Cab",
-    sublabel: "Sumo / Tavera / Bolero",
-    detail: "Standard passenger seat on fixed route",
+    category: "shared",
+    label: "Shared Maxi-Cab",
+    sublabel: "Tata Sumo / Bolero / Tavera",
+    detail: "Standard passenger seat on inter-district corridors",
     icon: CarFront,
     base: 35,
     perKm: 5.2,
     capacity: "4 to 7 Seats",
     badge: "Most Popular",
+    isPerSeat: true,
+    seatsMultiplier: 5,
     color: "#d36b3d",
   },
   {
+    key: "tata-magic",
+    category: "shared",
+    label: "Tata Magic / Van",
+    sublabel: "Maruti Eeco / Magic / Winger",
+    detail: "Feeder routes & rural-to-town transit",
+    icon: CarFront,
+    base: 25,
+    perKm: 4.2,
+    capacity: "6 to 8 Seats",
+    badge: "Rural & Feeder",
+    isPerSeat: true,
+    seatsMultiplier: 7,
+    color: "#c27438",
+  },
+  {
+    key: "mini-bus",
+    category: "bus",
+    label: "Mini Bus / 407",
+    sublabel: "Tata 407 / Swaraj Mazda / Matador",
+    detail: "Budget local stage carriage across towns & hubs",
+    icon: BusFront,
+    base: 18,
+    perKm: 2.9,
+    capacity: "Per Passenger (18-24 Seats)",
+    badge: "High Frequency",
+    isPerSeat: true,
+    seatsMultiplier: 18,
+    color: "#557b72",
+  },
+  {
+    key: "private-bus",
+    category: "bus",
+    label: "Private 2+2 Bus",
+    sublabel: "Standard 32-52 Seater (Non-SRTC)",
+    detail: "Inter-district long route passenger bus",
+    icon: BusFront,
+    base: 15,
+    perKm: 2.4,
+    capacity: "Per Passenger (32+ Seats)",
+    badge: "Lowest Fare",
+    isPerSeat: true,
+    seatsMultiplier: 32,
+    color: "#3f6e5b",
+  },
+  {
     key: "auto",
-    label: "Auto-Rickshaw",
-    sublabel: "3-Wheeler Metered",
-    detail: "Short & medium city trips up to 3 people",
+    category: "auto",
+    label: "Auto-Rickshaw (Petrol/CNG)",
+    sublabel: "3-Wheeler Metered Auto",
+    detail: "City & town short-to-medium trips (up to 3 persons)",
     icon: CarFront,
     base: 45,
     perKm: 7.4,
     capacity: "Up to 3 Persons",
     badge: "City Travel",
+    isPerSeat: false,
+    seatsMultiplier: 1,
     color: "#bc8a20",
   },
   {
-    key: "mini-bus",
-    label: "Mini Bus / 407",
-    sublabel: "Matador / Local Transit",
-    detail: "Budget stage carriage across town hubs",
-    icon: BusFront,
-    base: 18,
-    perKm: 2.9,
-    capacity: "Per Passenger",
-    badge: "Lowest Fare",
-    color: "#557b72",
+    key: "e-auto",
+    category: "auto",
+    label: "E-Auto (Electric Auto)",
+    sublabel: "Battery Electric 3-Wheeler (L5M)",
+    detail: "Eco-friendly town transit with regulated rates",
+    icon: Zap,
+    base: 30,
+    perKm: 6.0,
+    capacity: "Up to 3 Persons",
+    badge: "Zero Emission",
+    isPerSeat: false,
+    seatsMultiplier: 1,
+    color: "#2e8b57",
+  },
+  {
+    key: "e-rickshaw",
+    category: "auto",
+    label: "E-Rickshaw (Toto / Cart)",
+    sublabel: "Local Colony & Market Cart",
+    detail: "Ultra-short local trips & market connections",
+    icon: Zap,
+    base: 15,
+    perKm: 4.0,
+    capacity: "Up to 4 Persons / Per Seat",
+    badge: "Local Shuttles",
+    isPerSeat: true,
+    seatsMultiplier: 4,
+    color: "#4a7c59",
   },
   {
     key: "taxi",
-    label: "Private Taxi",
-    sublabel: "Sedan / Tourist Cab",
-    detail: "Point-to-point dedicated vehicle hire",
+    category: "taxi",
+    label: "Private Sedan Taxi",
+    sublabel: "Maruti Dzire / Toyota Etios",
+    detail: "Direct point-to-point dedicated sedan hire",
     icon: CarFront,
-    base: 160,
-    perKm: 16.5,
+    base: 140,
+    perKm: 14.5,
     capacity: "Entire Vehicle (4+1)",
-    badge: "Dedicated Cab",
+    badge: "Dedicated Sedan",
+    isPerSeat: false,
+    seatsMultiplier: 1,
     color: "#3e6b8a",
+  },
+  {
+    key: "suv-taxi",
+    category: "taxi",
+    label: "Private SUV Taxi",
+    sublabel: "Innova Crysta / Scorpio / Xylo",
+    detail: "Dedicated mountain pass & tourist point-to-point hire",
+    icon: CarFront,
+    base: 200,
+    perKm: 19.5,
+    capacity: "Entire Vehicle (6+1 / 7+1)",
+    badge: "Mountain & Tour",
+    isPerSeat: false,
+    seatsMultiplier: 1,
+    color: "#28536b",
   },
 ];
 
@@ -158,7 +254,7 @@ const routePresets = [
 const recentEstimatesList = [
   {
     route: "Srinagar → Gulmarg",
-    meta: "Shared Cab · Tangmarg corridor",
+    meta: "Shared Maxi-Cab · Tangmarg corridor",
     amount: "₹ 300",
     time: "Today, 10:40 AM",
     vehicleKey: "shared-cab",
@@ -168,8 +264,8 @@ const recentEstimatesList = [
   },
   {
     route: "Jammu → Katra",
-    meta: "Private Taxi · Vaishno Devi route",
-    amount: "₹ 1,020",
+    meta: "Private Sedan Taxi · Vaishno Devi route",
+    amount: "₹ 850",
     time: "Yesterday, 06:15 PM",
     vehicleKey: "taxi",
     from: "Jammu",
@@ -194,6 +290,7 @@ export default function App() {
   const [to, setTo] = useState("Gulmarg");
   const [distance, setDistance] = useState("51");
   const [vehicle, setVehicle] = useState("shared-cab");
+  const [vehicleCategoryFilter, setVehicleCategoryFilter] = useState("all");
   const [notice, setNotice] = useState("");
   const [showNotifications, setShowNotifications] = useState(false);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
@@ -206,6 +303,11 @@ export default function App() {
     () => vehicleOptions.find((option) => option.key === vehicle) ?? vehicleOptions[0],
     [vehicle]
   );
+
+  const filteredVehicles = useMemo(() => {
+    if (vehicleCategoryFilter === "all") return vehicleOptions;
+    return vehicleOptions.filter((v) => v.category === vehicleCategoryFilter);
+  }, [vehicleCategoryFilter]);
 
   const routeMatch = useMemo(
     () =>
@@ -223,18 +325,31 @@ export default function App() {
     const km = Math.max(1, Number(distance) || 1);
     const base = chosenVehicle.base;
     const distanceCost = Math.round(km * chosenVehicle.perKm);
+    
+    // Regional local adjustment according to vehicle class
     const localAdjustment =
       chosenVehicle.key === "shared-cab"
         ? 0
+        : chosenVehicle.key === "tata-magic"
+        ? -2
         : chosenVehicle.key === "mini-bus"
         ? -4
+        : chosenVehicle.key === "private-bus"
+        ? -5
         : chosenVehicle.key === "auto"
         ? 5
-        : 15;
-    const totalSingle = Math.max(15, base + distanceCost + localAdjustment);
-    
-    const seatsMultiplier = chosenVehicle.key === "shared-cab" ? 5 : chosenVehicle.key === "mini-bus" ? 18 : 1;
-    const fullCabCost = chosenVehicle.key === "taxi" ? totalSingle : totalSingle * seatsMultiplier;
+        : chosenVehicle.key === "e-auto"
+        ? 0
+        : chosenVehicle.key === "e-rickshaw"
+        ? -2
+        : chosenVehicle.key === "suv-taxi"
+        ? 20
+        : 10;
+
+    const totalSingle = Math.max(10, base + distanceCost + localAdjustment);
+    const fullCabCost = chosenVehicle.isPerSeat
+      ? totalSingle * chosenVehicle.seatsMultiplier
+      : totalSingle;
 
     return {
       base,
@@ -247,7 +362,7 @@ export default function App() {
   }, [chosenVehicle, distance]);
 
   const displayFare = useMemo(() => {
-    if (chosenVehicle.key === "taxi" || chosenVehicle.key === "auto") {
+    if (!chosenVehicle.isPerSeat) {
       return fareParts.totalSingle;
     }
     return priceMode === "full-cab" ? fareParts.fullCabCost : fareParts.totalSingle;
@@ -294,7 +409,7 @@ export default function App() {
   };
 
   const handleShare = () => {
-    const text = `🚗 Safar Fare Estimate: ${from} to ${to} (${distance} km) via ${chosenVehicle.label} is ₹${displayFare}. Check official J&K transit rates on Safar.`;
+    const text = `🚗 Safar Fare Estimate: ${from} to ${to} (${distance} km) via ${chosenVehicle.label} is ₹${displayFare}. Official J&K transit rates on Safar.`;
     if (navigator.clipboard) {
       navigator.clipboard.writeText(text);
       showToast("Estimate copied to clipboard!");
@@ -510,8 +625,12 @@ export default function App() {
                   before you board across J&K.
                 </h1>
                 <p className="mt-2 text-xs sm:text-sm text-[#c7dad0] leading-relaxed">
-                  Simple, transparent estimates for Shared Cabs, Autos, Mini Buses, and Private Taxis based on Jammu & Kashmir official transport guidelines.
+                  Accurate government statutory rates for all 9 commercial passenger vehicles in Jammu & Kashmir.
                 </p>
+                <div className="mt-3 inline-flex items-center gap-2 px-3 py-1 rounded-xl bg-[#183637]/60 border border-[#4d7f7c]/50 text-[11px] text-[#f2bd70]">
+                  <Info size={13} />
+                  <span>Includes all private & shared modes · Excludes Govt SRTC buses & E-buses</span>
+                </div>
               </div>
             </section>
 
@@ -701,20 +820,45 @@ export default function App() {
 
                 {/* Step 2: Vehicle Selection Cards */}
                 <div className="bg-[#fbfcf8] border border-[#dce5dc] rounded-3xl p-5 sm:p-7 shadow-sm">
-                  <div className="flex items-center gap-2.5 pb-4 mb-4 border-b border-[#e5ece3]">
-                    <div className="w-8 h-8 rounded-xl bg-[#e5eee4] text-[#345657] flex items-center justify-center font-bold text-xs">
-                      2
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 mb-4 border-b border-[#e5ece3]">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-8 h-8 rounded-xl bg-[#e5eee4] text-[#345657] flex items-center justify-center font-bold text-xs">
+                        2
+                      </div>
+                      <div>
+                        <h2 className="text-base font-bold text-[#234b4c]">Select Vehicle Type</h2>
+                        <p className="text-[11px] text-[#78908a]">
+                          All 9 commercial transit categories across Jammu & Kashmir
+                        </p>
+                      </div>
                     </div>
-                    <div>
-                      <h2 className="text-base font-bold text-[#234b4c]">Select Vehicle Type</h2>
-                      <p className="text-[11px] text-[#78908a]">
-                        Choose how you plan to travel along this corridor
-                      </p>
-                    </div>
+
+                    {/* Exclusions Notice */}
+                    <span className="text-[10px] font-bold text-[#78908a] bg-[#eef4ed] px-2.5 py-1 rounded-lg border border-[#dce5dc] self-start sm:self-auto">
+                      Non-SRTC & Non-E-Bus
+                    </span>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                    {vehicleOptions.map((v) => {
+                  {/* Category Filter Tabs */}
+                  <div className="flex items-center gap-1.5 overflow-x-auto pb-2 mb-3.5 scrollbar-none">
+                    {vehicleCategories.map((cat) => (
+                      <button
+                        key={cat.key}
+                        onClick={() => setVehicleCategoryFilter(cat.key)}
+                        className={`px-3 py-1 rounded-xl text-xs font-bold shrink-0 transition ${
+                          vehicleCategoryFilter === cat.key
+                            ? "bg-[#234b4c] text-[#f4f6ed] shadow-xs"
+                            : "bg-[#f0f4ee] text-[#557b72] hover:bg-[#e4ece2]"
+                        }`}
+                      >
+                        {cat.label}
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Vehicle Grid */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {filteredVehicles.map((v) => {
                       const Icon = v.icon;
                       const selected = vehicle === v.key;
                       return (
@@ -724,7 +868,7 @@ export default function App() {
                             setVehicle(v.key);
                             showToast(`Selected ${v.label}`);
                           }}
-                          className={`relative p-4 rounded-2xl text-left border-2 transition-all flex flex-col justify-between ${
+                          className={`relative p-3.5 rounded-2xl text-left border-2 transition-all flex flex-col justify-between ${
                             selected
                               ? "bg-[#f4f7f2] border-[#234b4c] shadow-md ring-2 ring-[#234b4c]/10"
                               : "bg-[#fbfcf8] border-[#e2eae0] hover:border-[#adc9b2] hover:bg-[#f8faf6]"
@@ -732,13 +876,13 @@ export default function App() {
                         >
                           <div className="flex items-start justify-between w-full">
                             <div
-                              className="w-10 h-10 rounded-xl flex items-center justify-center shadow-xs"
+                              className="w-9 h-9 rounded-xl flex items-center justify-center shadow-xs"
                               style={{
                                 backgroundColor: selected ? "#234b4c" : "#edf3eb",
                                 color: selected ? "#f2bd70" : v.color,
                               }}
                             >
-                              <Icon size={20} />
+                              <Icon size={18} />
                             </div>
                             <span
                               className={`text-[10px] font-bold px-2 py-0.5 rounded-md ${
@@ -751,16 +895,16 @@ export default function App() {
                             </span>
                           </div>
 
-                          <div className="mt-3">
+                          <div className="mt-2.5">
                             <div className="flex items-center gap-1.5">
-                              <h3 className="font-bold text-sm text-[#234b4c]">{v.label}</h3>
-                              {selected && <CheckCircle2 size={15} className="text-[#557b72]" />}
+                              <h3 className="font-bold text-[13px] text-[#234b4c]">{v.label}</h3>
+                              {selected && <CheckCircle2 size={14} className="text-[#557b72]" />}
                             </div>
                             <p className="text-[11px] font-medium text-[#78908a]">{v.sublabel}</p>
-                            <p className="text-[10px] text-[#8a9c95] mt-1 leading-snug">{v.detail}</p>
+                            <p className="text-[10px] text-[#8a9c95] mt-0.5 leading-snug">{v.detail}</p>
                           </div>
 
-                          <div className="mt-3 pt-2.5 border-t border-[#e2eae0] flex items-center justify-between text-[11px]">
+                          <div className="mt-2.5 pt-2 border-t border-[#e2eae0] flex items-center justify-between text-[11px]">
                             <span className="text-[#78908a]">Base: ₹{v.base}</span>
                             <span className="font-bold text-[#345657]">₹{v.perKm}/km</span>
                           </div>
@@ -792,7 +936,7 @@ export default function App() {
                   </div>
 
                   {/* Price Mode Switcher (Per Seat vs Full Cab) */}
-                  {chosenVehicle.key === "shared-cab" || chosenVehicle.key === "mini-bus" ? (
+                  {chosenVehicle.isPerSeat ? (
                     <div className="relative z-10 mt-4 flex items-center bg-[#183637]/70 p-1 rounded-xl border border-[#386260]">
                       <button
                         onClick={() => setPriceMode("per-seat")}
@@ -802,7 +946,7 @@ export default function App() {
                             : "text-[#c4d6cb] hover:text-[#ffffff]"
                         }`}
                       >
-                        Per Seat
+                        Per Seat Fare
                       </button>
                       <button
                         onClick={() => setPriceMode("full-cab")}
@@ -812,7 +956,7 @@ export default function App() {
                             : "text-[#c4d6cb] hover:text-[#ffffff]"
                         }`}
                       >
-                        Entire Vehicle
+                        Entire Vehicle ({chosenVehicle.seatsMultiplier} Seats)
                       </button>
                     </div>
                   ) : null}
@@ -825,13 +969,11 @@ export default function App() {
                         ₹{displayFare.toLocaleString("en-IN")}
                       </span>
                       <span className="text-xs text-[#f2bd70] font-semibold">
-                        {chosenVehicle.key === "taxi"
-                          ? "(Entire Taxi)"
-                          : chosenVehicle.key === "auto"
-                          ? "(Entire Auto)"
+                        {!chosenVehicle.isPerSeat
+                          ? `(Entire ${chosenVehicle.label})`
                           : priceMode === "full-cab"
-                          ? `(All ${chosenVehicle.capacity})`
-                          : "(Per Passenger)"}
+                          ? `(Entire Vehicle - ${chosenVehicle.seatsMultiplier} Seats)`
+                          : "(Per Passenger Seat)"}
                       </span>
                     </div>
                   </div>
@@ -855,7 +997,7 @@ export default function App() {
                       className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl bg-[#f4f6ed] text-[#234b4c] font-bold text-xs hover:bg-[#e4eae0] transition shadow-sm"
                     >
                       <Share2 size={14} />
-                      <span>Share / Copy Fare</span>
+                      <span>Copy / Share Fare</span>
                     </button>
                     <button
                       onClick={() => showToast("Helpline 1033 is available 24/7 across J&K")}
@@ -1020,9 +1162,14 @@ export default function App() {
 
         {activeNav === "Official rate card" && (
           <div className="bg-[#fbfcf8] border border-[#dce5dc] rounded-3xl p-6 sm:p-8 shadow-sm">
-            <h2 className="text-xl font-extrabold text-[#234b4c] pb-4 border-b border-[#e5ece3]">
-              Official J&K Transport Fare Schedules (SRO-97)
-            </h2>
+            <div className="pb-4 border-b border-[#e5ece3]">
+              <h2 className="text-xl font-extrabold text-[#234b4c]">
+                Official J&K Transport Fare Schedules (SRO-97)
+              </h2>
+              <p className="text-xs text-[#78908a] mt-1">
+                Mandatory maximum fare ceiling rates for all 9 non-SRTC commercial passenger vehicles in Jammu & Kashmir.
+              </p>
+            </div>
             <div className="mt-6 overflow-x-auto">
               <table className="w-full text-left text-xs border-collapse">
                 <thead>
@@ -1031,32 +1178,72 @@ export default function App() {
                     <th className="py-3 px-4">Base Minimum Fare</th>
                     <th className="py-3 px-4">Rate per KM</th>
                     <th className="py-3 px-4">Standard Seating</th>
+                    <th className="py-3 px-4">Transit Applicability</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#eaf0e9] font-medium text-[#345657]">
                   <tr>
                     <td className="py-3.5 px-4 font-bold text-[#234b4c]">Shared Maxi-Cab (Sumo/Tavera)</td>
                     <td className="py-3.5 px-4">₹ 35</td>
-                    <td className="py-3.5 px-4">₹ 5.20 / passenger-km</td>
+                    <td className="py-3.5 px-4">₹ 5.20 / pass-km</td>
                     <td className="py-3.5 px-4">4+1 to 7+1</td>
+                    <td className="py-3.5 px-4">Inter-district corridors</td>
                   </tr>
                   <tr>
-                    <td className="py-3.5 px-4 font-bold text-[#234b4c]">Auto-Rickshaw (3-Wheeler)</td>
-                    <td className="py-3.5 px-4">₹ 45 (first 2 km)</td>
-                    <td className="py-3.5 px-4">₹ 7.40 / km</td>
-                    <td className="py-3.5 px-4">Up to 3 passengers</td>
+                    <td className="py-3.5 px-4 font-bold text-[#234b4c]">Tata Magic / Passenger Van</td>
+                    <td className="py-3.5 px-4">₹ 25</td>
+                    <td className="py-3.5 px-4">₹ 4.20 / pass-km</td>
+                    <td className="py-3.5 px-4">6 to 8 seats</td>
+                    <td className="py-3.5 px-4">Feeder & rural routes</td>
                   </tr>
                   <tr>
                     <td className="py-3.5 px-4 font-bold text-[#234b4c]">Mini Bus (Stage Carriage 407)</td>
                     <td className="py-3.5 px-4">₹ 18</td>
                     <td className="py-3.5 px-4">₹ 2.90 / km</td>
-                    <td className="py-3.5 px-4">Per seat (18+ seats)</td>
+                    <td className="py-3.5 px-4">Per seat (18-24)</td>
+                    <td className="py-3.5 px-4">Town & district routes</td>
                   </tr>
                   <tr>
-                    <td className="py-3.5 px-4 font-bold text-[#234b4c]">Private Tourist Taxi</td>
-                    <td className="py-3.5 px-4">₹ 160</td>
-                    <td className="py-3.5 px-4">₹ 16.50 / km</td>
-                    <td className="py-3.5 px-4">Entire Vehicle (4+1)</td>
+                    <td className="py-3.5 px-4 font-bold text-[#234b4c]">Private 2+2 Bus (Non-SRTC)</td>
+                    <td className="py-3.5 px-4">₹ 15</td>
+                    <td className="py-3.5 px-4">₹ 2.40 / km</td>
+                    <td className="py-3.5 px-4">Per seat (32+)</td>
+                    <td className="py-3.5 px-4">Long distance routes</td>
+                  </tr>
+                  <tr>
+                    <td className="py-3.5 px-4 font-bold text-[#234b4c]">Auto-Rickshaw (Petrol/CNG)</td>
+                    <td className="py-3.5 px-4">₹ 45 (first 2 km)</td>
+                    <td className="py-3.5 px-4">₹ 7.40 / km</td>
+                    <td className="py-3.5 px-4">Up to 3 passengers</td>
+                    <td className="py-3.5 px-4">City & town limits</td>
+                  </tr>
+                  <tr>
+                    <td className="py-3.5 px-4 font-bold text-[#234b4c]">E-Auto (Electric Auto)</td>
+                    <td className="py-3.5 px-4">₹ 30</td>
+                    <td className="py-3.5 px-4">₹ 6.00 / km</td>
+                    <td className="py-3.5 px-4">Up to 3 passengers</td>
+                    <td className="py-3.5 px-4">Urban zero-emission</td>
+                  </tr>
+                  <tr>
+                    <td className="py-3.5 px-4 font-bold text-[#234b4c]">E-Rickshaw (Toto / Cart)</td>
+                    <td className="py-3.5 px-4">₹ 15</td>
+                    <td className="py-3.5 px-4">₹ 4.00 / km</td>
+                    <td className="py-3.5 px-4">Up to 4 passengers</td>
+                    <td className="py-3.5 px-4">Local colony & market</td>
+                  </tr>
+                  <tr>
+                    <td className="py-3.5 px-4 font-bold text-[#234b4c]">Private Sedan Taxi (Dzire/Etios)</td>
+                    <td className="py-3.5 px-4">₹ 140</td>
+                    <td className="py-3.5 px-4">₹ 14.50 / km</td>
+                    <td className="py-3.5 px-4">Entire vehicle (4+1)</td>
+                    <td className="py-3.5 px-4">Dedicated sedan hire</td>
+                  </tr>
+                  <tr>
+                    <td className="py-3.5 px-4 font-bold text-[#234b4c]">Private SUV Taxi (Innova/Crysta)</td>
+                    <td className="py-3.5 px-4">₹ 200</td>
+                    <td className="py-3.5 px-4">₹ 19.50 / km</td>
+                    <td className="py-3.5 px-4">Entire vehicle (6+1/7+1)</td>
+                    <td className="py-3.5 px-4">Mountain pass & tours</td>
                   </tr>
                 </tbody>
               </table>
@@ -1123,9 +1310,9 @@ export default function App() {
                   2
                 </span>
                 <div>
-                  <h4 className="font-bold text-[#234b4c]">Select Vehicle</h4>
+                  <h4 className="font-bold text-[#234b4c]">Select Vehicle (9 J&K Categories)</h4>
                   <p className="text-[#78908a] mt-0.5">
-                    Choose from Shared Cabs (Sumo), Auto-Rickshaws, Mini Buses, or Private Taxis.
+                    Choose from Shared Cabs, Tata Magic, Mini Buses, Private Buses, Autos, E-Autos, E-Rickshaws, Sedan Taxis, and SUV Taxis.
                   </p>
                 </div>
               </div>
