@@ -1,523 +1,515 @@
 <!DOCTYPE html>
-<html lang="en" dir="ltr" data-theme="light">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <meta name="theme-color" content="#0C3B2E">
-  <meta name="description" content="SAFAR — Kashmir Bus Transit & SRO Verified Legal Fare System. Track live buses, calculate statutory fares, scan QR, and report overcharging offline.">
-  <title>SAFAR — Kashmir Bus Transit</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>SAFAR — J&K Smart Transit & Legal Fare Guide</title>
+  <meta name="description" content="Know the fair fare before you go. Official statutory rates for Shared Cabs, Autos, Buses, and Taxis across Jammu & Kashmir.">
+  <meta name="theme-color" content="#234b4c">
   
-  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css">
-  
-  <!-- Leaflet Map CSS & JS -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 </head>
 <body>
+  <!-- App Container -->
   <div id="app">
-    <!-- Header -->
+    <!-- Top Sticky Navigation Bar -->
     <header class="app-header">
-      <div class="header-top">
-        <div class="brand">
-          <div class="brand-icon-wrap" aria-hidden="true">
-            <!-- Chinar Leaf Motif -->
-            <svg class="brand-icon" viewBox="0 0 24 24">
-              <path d="M12 2C12.5 4 14 5.5 15.5 6C17 6.5 19 6.5 20.5 7.5C21 8 20.5 9 19.5 9.5C18.5 10 17 10 16.5 11C16 12 17 13.5 16.5 15C16 16.5 14.5 17 13.5 18C13 18.5 12.8 20 12.5 22H11.5C11.2 20 11 18.5 10.5 18C9.5 17 8 16.5 7.5 15C7 13.5 8 12 7.5 11C7 10 5.5 10 4.5 9.5C3.5 9 3 8 3.5 7.5C5 6.5 7 6.5 8.5 6C10 5.5 11.5 4 12 2Z"/>
-            </svg>
-          </div>
-          <div class="brand-meta">
-            <span class="brand-title">SAFAR</span>
-            <span class="brand-kashmiri" data-i18n="brandTagline">سفر — باوقار کِرایہٕ</span>
+      <div class="header-container">
+        <!-- Logo -->
+        <div class="brand-wrap">
+          <button id="mobile-menu-btn" class="icon-btn mobile-only" aria-label="Open Menu">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+          </button>
+          
+          <div class="brand-logo">
+            <div class="brand-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 11 22 2 13 21 11 13 3 11"></polygon></svg>
+              <span class="live-dot"></span>
+            </div>
+            <div class="brand-text">
+              <div class="brand-row">
+                <span class="brand-title">SAFAR</span>
+                <span class="brand-badge">J&K</span>
+              </div>
+              <span class="brand-tagline">Smart Fare Guide</span>
+            </div>
           </div>
         </div>
 
-        <div class="header-actions">
-          <select id="lang-switcher" class="lang-select" aria-label="Language Selector">
-            <option value="en" selected>EN (English)</option>
-            <option value="ur">اردو (Urdu)</option>
-            <option value="ks">کٲشُر (Kashmiri)</option>
-            <option value="hi">हिन्दी (Hindi)</option>
-          </select>
-          
-          <button id="theme-toggle-btn" class="theme-toggle-btn" aria-label="Toggle Dark Mode" title="Toggle Theme">
-            🌙
+        <!-- Desktop Navigation Tabs -->
+        <nav class="desktop-nav">
+          <button class="nav-tab active" data-tab="calculator">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="2" width="16" height="20" rx="2"></rect><line x1="8" y1="6" x2="16" y2="6"></line><line x1="16" y1="14" x2="16" y2="18"></line><path d="M16 10h.01"></path><path d="M12 10h.01"></path><path d="M8 10h.01"></path><path d="M12 14h.01"></path><path d="M8 14h.01"></path><path d="M12 18h.01"></path><path d="M8 18h.01"></path></svg>
+            <span>Fare Calculator</span>
+          </button>
+          <button class="nav-tab" data-tab="guide">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="6" cy="19" r="3"></circle><path d="M9 19h8.5a3.5 3.5 0 0 0 0-7h-11a3.5 3.5 0 0 1 0-7H15"></path><circle cx="18" cy="5" r="3"></circle></svg>
+            <span>Route Guide</span>
+          </button>
+          <button class="nav-tab" data-tab="history">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+            <span>Recent Estimates</span>
+          </button>
+          <button class="nav-tab" data-tab="rates">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+            <span>Official Rates</span>
+          </button>
+        </nav>
+
+        <!-- Right Tools -->
+        <div class="header-tools">
+          <div class="status-chip desktop-only">
+            <span class="pulse-dot"></span>
+            <span>SRO-97 Verified</span>
+          </div>
+
+          <button id="help-modal-trigger" class="help-btn" title="How Safar Works">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+            <span class="desktop-only">Help</span>
           </button>
 
-          <div id="network-status" class="status-chip" title="Network connectivity">
-            <span class="dot"></span>
-            <span id="network-text">Online</span>
-          </div>
-        </div>
-      </div>
+          <div class="notifications-wrapper">
+            <button id="notifications-btn" class="icon-btn" aria-label="Notifications">
+              <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+              <span class="badge-dot"></span>
+            </button>
 
-      <!-- Live Corridor Alert Ticker -->
-      <div class="header-ticker">
-        <span class="ticker-badge" data-i18n="live">LIVE</span>
-        <div class="ticker-content" role="marquee" aria-live="off">
-          <div class="ticker-marquee" id="ticker-text">
-            🟢 NH-44 Corridor: Traffic moving normally • Budgam ➔ Sonmarg: 14 buses active • SRO-45 Transport Dept legal fare rate active across J&K
+            <!-- Notifications Dropdown -->
+            <div id="notifications-dropdown" class="dropdown-panel" hidden>
+              <div class="dropdown-header">
+                <h4>J&K Transit Updates</h4>
+                <span class="chip-sm">Live</span>
+              </div>
+              <div class="dropdown-list">
+                <div class="notif-item">
+                  <p class="notif-title">Srinagar ➔ Gulmarg (Tangmarg Rd)</p>
+                  <p class="notif-desc">Road completely clear. Regular vehicle rates active.</p>
+                </div>
+                <div class="notif-item">
+                  <p class="notif-title">NH-44 Jammu ➔ Srinagar</p>
+                  <p class="notif-desc">Navyug Tunnel open for 2-way passenger traffic.</p>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
     </header>
 
-    <!-- Emergency / Weather Alert Banner -->
-    <div id="alert-banner" class="alert-banner" hidden>
-      <span class="alert-icon">⚠️</span>
-      <span id="alert-text">Corridor Advisory: Moderate snowfall near Jawahar Tunnel. Buses running on winter schedule.</span>
-    </div>
-
-    <!-- Main Content Container -->
-    <main id="main-view">
-
-      <!-- =================================================================== -->
-      <!-- 1. EXPLORE & PLAN SCREEN                                            -->
-      <!-- =================================================================== -->
-      <section id="home-screen" class="screen-view">
-        
-        <!-- Search Input -->
-        <div class="search-wrapper">
-          <div class="search-bar">
-            <svg class="search-icon" viewBox="0 0 24 24">
-              <path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
-            </svg>
-            <input type="search" id="search-input" class="search-input" placeholder="Search Amar Singh College, Lal Chowk, Hazratbal…" autocomplete="off" aria-label="Search bus stop or landmark">
-            <button id="search-clear-btn" class="search-clear-btn" aria-label="Clear Search">&times;</button>
+    <!-- Mobile Drawer Overlay -->
+    <div id="mobile-drawer" class="mobile-drawer" hidden>
+      <div class="drawer-backdrop"></div>
+      <div class="drawer-content">
+        <div class="drawer-header">
+          <div class="brand-row">
+            <span class="brand-title">SAFAR J&K</span>
           </div>
-          <div id="search-results" class="search-results-dropdown" style="display:none;"></div>
+          <button id="close-drawer-btn" class="icon-btn"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
         </div>
-
-        <!-- Quick Hub Chips -->
-        <div class="quick-chips" role="list" aria-label="Popular Kashmir Transit Hubs">
-          <button class="quick-chip" role="listitem" data-from="Lal Chowk" data-to="Hazratbal">📍 Lal Chowk ➔ Hazratbal</button>
-          <button class="quick-chip" role="listitem" data-from="Amar Singh College" data-to="Soura">🎓 Amar Singh College ➔ Soura</button>
-          <button class="quick-chip" role="listitem" data-from="Budgam Bus Stand" data-to="Sonmarg">🏔️ Budgam ➔ Sonmarg</button>
-          <button class="quick-chip" role="listitem" data-from="Batamaloo" data-to="Baramulla">🚌 Batamaloo ➔ Baramulla</button>
-          <button class="quick-chip" role="listitem" data-from="Pantha Chowk" data-to="Anantnag">🌲 Pantha Chowk ➔ Anantnag</button>
-        </div>
-
-        <!-- Primary Action: Scan Bus QR Code -->
-        <button id="scan-qr-btn" class="btn-primary" aria-label="Scan Bus QR Code">
-          <svg class="btn-icon" viewBox="0 0 24 24">
-            <path d="M4 4h6v6H4V4zm2 2v2h2V6H6zm8-2h6v6h-6V4zm2 2v2h2V6h-2zM4 14h6v6H4v-6zm2 2v2h2v-2H6zm10 0h2v2h-2v-2zm-2 2h2v2h-2v-2zm4 0h2v2h-2v-2zm-2-4h2v2h-2v-2zm4 0h2v2h-2v-2zm-4 4v2h-2v-2h2z"/>
-          </svg>
-          <span id="lbl-scan-qr" data-i18n="scanQrBtn">Scan Bus QR Code</span>
-        </button>
-
-        <!-- Journey Planner & SRO Fare Calculator -->
-        <div class="card trip-planner-card">
-          <div class="section-header" style="margin-top:0;">
-            <h3 class="section-title" id="lbl-plan-journey" data-i18n="planJourney">Plan Journey & SRO Legal Fare</h3>
-            <span class="sro-tag">SRO-45 Verified</span>
-          </div>
-
-          <div style="display:flex; flex-direction:column; gap:8px;">
-            <div>
-              <label class="form-label" data-i18n="boarding">Boarding Stop</label>
-              <div class="stop-input-group">
-                <span class="stop-indicator origin"></span>
-                <input type="text" id="trip-origin" class="stop-input" placeholder="e.g. Lal Chowk" value="Lal Chowk" autocomplete="off" aria-label="Boarding stop">
-              </div>
-            </div>
-
-            <button id="btn-swap-stops" class="swap-stops-btn" aria-label="Swap origin and destination" title="Swap stops">
-              <svg style="width:16px; height:16px; fill:currentColor;" viewBox="0 0 24 24">
-                <path d="M16 17.01V10h-2v7.01h-3L15 21l4-3.99h-3zM9 3L5 6.99h3V14h2V6.99h3L9 3z"/>
-              </svg>
-            </button>
-
-            <div>
-              <label class="form-label" data-i18n="destination">Destination Stop</label>
-              <div class="stop-input-group">
-                <span class="stop-indicator dest"></span>
-                <input type="text" id="trip-dest" class="stop-input" placeholder="e.g. Hazratbal" value="Hazratbal" autocomplete="off" aria-label="Destination stop">
-              </div>
-            </div>
-          </div>
-
-          <!-- Concession Category -->
-          <div class="concession-wrap">
-            <label class="form-label" id="lbl-concession-title" data-i18n="concessionTitle">Passenger Category / Concession</label>
-            <select id="journey-concession" class="concession-select" aria-label="Passenger Category">
-              <option value="none">General Passenger (Standard Legal Fare)</option>
-              <option value="student">Student (50% Concession with ID)</option>
-              <option value="senior">Senior Citizen (25% Concession)</option>
-              <option value="disabled">Specially Abled (50% Concession)</option>
-            </select>
-          </div>
-
-          <div style="display:flex; gap:8px; margin-top:4px;">
-            <button id="btn-calculate-fare" class="btn-primary" style="flex:1;">
-              <span data-i18n="calculate">Calculate Legal Fare</span>
-            </button>
-            <button id="btn-near-me" class="btn-primary btn-outline" style="width:auto; padding:10px 14px;" title="Find Nearby Stop">
-              📍 <span data-i18n="nearby">Near Me</span>
-            </button>
-          </div>
-
-          <!-- E-Ticket Pass (Generated upon calculation or selection) -->
-          <div id="fare-ticket" class="ticket" style="display:none;">
-            <div class="ticket-hole l"></div>
-            <div class="ticket-hole r"></div>
-            <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.75rem; font-weight:700; opacity:0.85;">
-              <span data-i18n="sroBadge">SAFAR SRO TICKET PASS</span>
-              <span class="stamp" id="ticket-status-stamp">SRO VERIFIED ✓</span>
-            </div>
-
-            <div class="ticket-fare" id="ticket-total-fare">₹14</div>
-            <div style="font-size:0.92rem; font-weight:700; text-align:center;" id="ticket-route-name">Lal Chowk ➔ Hazratbal</div>
-            
-            <div class="ticket-grid">
-              <div><span data-i18n="distance">Distance</span>: <b id="ticket-dist">9.4 km</b></div>
-              <div><span data-i18n="estArrival">Est. Time</span>: <b id="ticket-time">22 min</b></div>
-              <div><span>Bus #</span>: <b id="ticket-bus-no">JK01-A-4482</b></div>
-              <div><span>Discount</span>: <b id="ticket-discount-tag">None</b></div>
-            </div>
-
-            <div class="ticket-footer">
-              <div class="barcode" aria-hidden="true"></div>
-              <div style="text-align:right;">
-                <div style="font-size:0.7rem; color:var(--gold); font-weight:700;">SECURE PASS</div>
-                <div style="font-size:0.65rem; opacity:0.75;" id="ticket-timestamp">Today</div>
-              </div>
-            </div>
-
-            <div style="margin-top:14px; display:flex; flex-direction:column; gap:8px;">
-              <button id="btn-pay-upi" class="pay-upi-btn" style="background:var(--primary);">
-                <svg class="btn-icon" viewBox="0 0 24 24">
-                  <path d="M20 4H4c-1.11 0-1.99.89-1.99 2L2 18c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V6c0-1.11-.89-2-2-2zm0 14H4v-6h16v6zm0-10H4V6h16v2z"/>
-                </svg>
-                <span id="lbl-pay-upi-text">Book & Pay via UPI (GPay / PhonePe)</span>
-              </button>
-              <button id="btn-ticket-dispute" class="dispute-link" style="color:#FFA2A2;">
-                Charged more than statutory fare? Report Overcharging
-              </button>
-            </div>
-          </div>
-
-        </div>
-
-        <!-- Popular Routes Section -->
-        <div class="section-header">
-          <h2 id="lbl-routes-heading" class="section-title" data-i18n="popularRoutes">Popular Kashmir Corridors</h2>
-          <span class="sro-tag">Live Scheduled</span>
-        </div>
-        
-        <div id="route-list" class="route-list">
-          <!-- Populated dynamically by main.js -->
-        </div>
-
-        <!-- Live Map Radar Preview Card -->
-        <div class="section-header">
-          <h2 id="lbl-nearby-heading" class="section-title" data-i18n="nearbyHeading">Nearby Buses & Stops</h2>
-          <span class="sro-tag">GPS Live</span>
-        </div>
-        <div id="map-preview-btn" class="map-preview-card" role="button" tabindex="0" aria-label="Open full transit radar map">
-          <div class="map-preview-container">
-            <div id="mini-map" style="width:100%; height:100%;"></div>
-            <div class="map-preview-overlay" id="lbl-tap-map" data-i18n="tapMap">Tap to launch live corridor radar ➔</div>
-          </div>
-        </div>
-      </section>
-
-      <!-- =================================================================== -->
-      <!-- 2. LIVE FULL RADAR MAP SCREEN                                       -->
-      <!-- =================================================================== -->
-      <section id="map-screen" class="screen-view" hidden>
-        <div class="section-header" style="margin-top:0;">
-          <h2 class="section-title" data-i18n="navMap">Kashmir Transit Radar</h2>
-          <span class="sro-tag">Live GPS Telemetry</span>
-        </div>
-
-        <!-- Corridor Switcher Filter Pills -->
-        <div class="corridor-filter-pills" role="tablist">
-          <button class="corridor-pill-btn active" data-corridor="all">All Corridors</button>
-          <button class="corridor-pill-btn" data-corridor="SRN-BUD-01">Budgam (SRN-BUD-01)</button>
-          <button class="corridor-pill-btn" data-corridor="SRN-SNM-02">Sonmarg (SRN-SNM-02)</button>
-          <button class="corridor-pill-btn" data-corridor="SRN-HAZ-03">Hazratbal</button>
-          <button class="corridor-pill-btn" data-corridor="SRN-BAR-04">Baramulla</button>
-        </div>
-
-        <div id="map-container">
-          <div id="map" style="width:100%; height:100%;"></div>
-        </div>
-
-        <!-- Active Bus Telemetry Cards -->
-        <div class="section-header">
-          <h3 class="section-title">Active Buses on Radar</h3>
-          <span id="active-bus-count" class="sro-tag">4 Buses Online</span>
-        </div>
-
-        <div id="active-buses-feed" style="display:flex; flex-direction:column; gap:10px;">
-          <!-- Dynamically populated -->
-        </div>
-      </section>
-
-      <!-- =================================================================== -->
-      <!-- 3. TRIPS & PASSES WALLET SCREEN                                     -->
-      <!-- =================================================================== -->
-      <section id="trips-screen" class="screen-view" hidden>
-        <div class="section-header" style="margin-top:0;">
-          <h2 class="section-title" data-i18n="navTrips">Passes & Ticket Wallet</h2>
-          <span class="sro-tag">Offline Verified</span>
-        </div>
-
-        <div id="trips-list" style="display:flex; flex-direction:column; gap:12px;">
-          <!-- Populated from localStorage -->
-        </div>
-      </section>
-
-      <!-- =================================================================== -->
-      <!-- 4. DRIVER & CONDUCTOR PORTAL SCREEN                                 -->
-      <!-- =================================================================== -->
-      <section id="driver-screen" class="screen-view" hidden>
-        <div class="section-header" style="margin-top:0;">
-          <h2 class="section-title">Driver & Conductor Console</h2>
-          <span class="sro-tag">Zero Platform Fee</span>
-        </div>
-
-        <div class="driver-shift-badge">
-          <span id="driver-shift-status">🟢 Shift Active (₹0 Platform Deduction)</span>
-          <span style="font-size:0.8rem; font-weight:800;" id="driver-shift-timer">00:00:00</span>
-        </div>
-
-        <div class="card">
-          <h3 class="section-title" style="margin-bottom:10px;">Vehicle & Route Setup</h3>
-          <div class="form-group">
-            <label class="form-label">Vehicle Registration #</label>
-            <input type="text" id="driver-vehicle-input" class="form-input" value="JK01-A-4482" placeholder="e.g. JK01-A-4482">
-          </div>
-          <div class="form-group">
-            <label class="form-label">Assigned Route</label>
-            <select id="driver-route-select" class="form-input">
-              <option value="srn-hazratbal">Lal Chowk ➔ Hazratbal</option>
-              <option value="srn-asc-soura">Amar Singh College ➔ Soura</option>
-              <option value="SRN-BUD-01">Srinagar ➔ Budgam Corridor</option>
-              <option value="SRN-SNM-02">Budgam ➔ Sonmarg Highway</option>
-              <option value="srn-baramulla">Batamaloo ➔ Baramulla</option>
-            </select>
-          </div>
-          <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
-            <button id="btn-driver-start" class="btn-primary" style="background:var(--forest);">Start Shift</button>
-            <button id="btn-driver-stop" class="btn-primary btn-outline">End Shift</button>
-          </div>
-        </div>
-
-        <div class="card">
-          <div class="section-header" style="margin-top:0;">
-            <h3 class="section-title" style="color:var(--primary-hover);">Inspector Verification Code</h3>
-            <span class="sro-tag">Anti-Ghost Bus</span>
-          </div>
-          <p style="font-size:0.78rem; color:var(--text-muted); margin-bottom:10px;">
-            Generate dynamic 6-digit SRO token to present to Motor Vehicle Dept or SRTC Flying Squad inspectors.
-          </p>
-          <button id="btn-driver-otp" class="btn-primary">Generate Inspector OTP</button>
-          <div id="driver-otp-box" class="otp-display-box" style="display:none;">
-            ------
-          </div>
-        </div>
-      </section>
-
-      <!-- =================================================================== -->
-      <!-- 5. SETTINGS, GRIEVANCES & HELPLINES SCREEN                          -->
-      <!-- =================================================================== -->
-      <section id="settings-screen" class="screen-view" hidden>
-        <div class="section-header" style="margin-top:0;">
-          <h2 class="section-title" data-i18n="navSettings">Settings & Helplines</h2>
-          <span class="sro-tag">SRTA Grievance</span>
-        </div>
-        
-        <!-- Emergency Helplines -->
-        <div class="card">
-          <h3 class="section-title" style="margin-bottom:10px;">🚨 Emergency & Transit Helplines</h3>
-          <div style="display:flex; flex-direction:column; gap:8px;">
-            <a href="tel:112" style="display:flex; align-items:center; justify-content:space-between; padding:10px 14px; background:var(--crimson-soft); border:1px solid rgba(239,68,68,0.3); border-radius:var(--r-md); color:var(--crimson); text-decoration:none; font-weight:700; font-size:0.86rem;">
-              <span>🚨 Police & Medical SOS</span>
-              <b>112</b>
-            </a>
-            <a href="tel:01942450022" style="display:flex; align-items:center; justify-content:space-between; padding:10px 14px; background:var(--forest-soft); border:1px solid var(--border-light); border-radius:var(--r-md); color:var(--text-main); text-decoration:none; font-weight:700; font-size:0.86rem;">
-              <span>🚦 Traffic Control Room (Srinagar)</span>
-              <b>0194-2450022</b>
-            </a>
-            <a href="tel:18001807011" style="display:flex; align-items:center; justify-content:space-between; padding:10px 14px; background:var(--forest-soft); border:1px solid var(--border-light); border-radius:var(--r-md); color:var(--text-main); text-decoration:none; font-weight:700; font-size:0.86rem;">
-              <span>🚌 SRTC Passenger Assistance</span>
-              <b>1800-180-7011</b>
-            </a>
-          </div>
-        </div>
-
-        <!-- Community Crowdsourcing & Overcharge Actions -->
-        <div class="card">
-          <h3 class="section-title" style="margin-bottom:10px;">Citizen Grievance & Community</h3>
-          <div style="display:flex; flex-direction:column; gap:8px;">
-            <button id="btn-open-dispute-modal" class="btn-primary btn-danger">
-              ⚠️ Report Bus Overcharging (SRO Dispute)
-            </button>
-            <button id="btn-open-stop-report-modal" class="btn-primary btn-outline">
-              📍 Add Missing Bus Stop / Landmark
-            </button>
-          </div>
-        </div>
-
-        <!-- Offline Route Database Sync -->
-        <div class="card">
-          <h3 class="section-title" style="margin-bottom:8px;">Offline 2G Route Storage</h3>
-          <p style="font-size:0.78rem; color:var(--text-muted); margin-bottom:12px;">
-            SAFAR caches SRO fare tables and bus route chains in browser storage so you can verify fares during network cuts.
-          </p>
-          <button id="btn-sync-cache" class="btn-primary" style="background:var(--forest);">
-            Re-sync Offline Route Cache
+        <div class="drawer-links">
+          <button class="drawer-link active" data-tab="calculator">
+            <strong>Fare Calculator</strong>
+            <span>Instant trip price estimate</span>
+          </button>
+          <button class="drawer-link" data-tab="guide">
+            <strong>Route Guide</strong>
+            <span>Known highway corridors & times</span>
+          </button>
+          <button class="drawer-link" data-tab="history">
+            <strong>Recent Estimates</strong>
+            <span>Saved route calculations</span>
+          </button>
+          <button class="drawer-link" data-tab="rates">
+            <strong>Official Rate Card</strong>
+            <span>SRO-97 rules & legal rights</span>
           </button>
         </div>
+        <div class="drawer-footer">
+          <div class="helpline-box">
+            <p><strong>Passenger Helpline: 1033</strong></p>
+            <small>J&K Transport Department Support</small>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+      <!-- ============================================================= -->
+      <!-- TAB 1: FARE CALCULATOR                                        -->
+      <!-- ============================================================= -->
+      <section id="tab-calculator" class="tab-view active">
+        <!-- Hero Header -->
+        <div class="hero-card">
+          <div class="hero-content">
+            <div class="hero-tag">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+              <span>User-Friendly Road Guidance</span>
+            </div>
+            <h1>Know the fair fare before you board.</h1>
+            <p>Simple, statutory price estimates for Shared Cabs, Autos, Mini Buses, and Private Taxis across Jammu & Kashmir.</p>
+          </div>
+          <div class="hero-mountain-bg"></div>
+        </div>
+
+        <!-- Quick Corridor Pills -->
+        <div class="quick-corridors-bar">
+          <span class="corridors-label">Popular Trips:</span>
+          <div class="corridors-scroll" id="quick-preset-buttons">
+            <!-- Injected by JavaScript -->
+          </div>
+        </div>
+
+        <!-- Main Interactive Layout Grid -->
+        <div class="calculator-grid">
+          <!-- Left Column: Inputs & Vehicle (7 cols) -->
+          <div class="calc-inputs-col">
+            <!-- Step 1: Route Builder -->
+            <div class="card-box">
+              <div class="card-header">
+                <div class="step-badge">1</div>
+                <div class="header-titles">
+                  <h2>Where are you traveling?</h2>
+                  <p>Choose your start and destination in J&K</p>
+                </div>
+                <button id="reset-route-btn" class="text-btn">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"></polyline><polyline points="23 20 23 14 17 14"></polyline><path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"></path></svg>
+                  <span>Reset</span>
+                </button>
+              </div>
+
+              <!-- From / Swap / To Row -->
+              <div class="route-input-row">
+                <div class="input-field">
+                  <label class="field-label origin"><span class="dot-orange"></span> Starting Point</label>
+                  <div class="input-icon-wrap">
+                    <svg class="field-icon icon-orange" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                    <input type="text" id="input-from" value="Srinagar" placeholder="e.g. Srinagar, Lal Chowk">
+                  </div>
+                </div>
+
+                <div class="swap-wrap">
+                  <button id="swap-route-btn" class="swap-btn" title="Swap Route Direction">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="17 1 21 5 17 9"></polyline><path d="M3 11V9a4 4 0 0 1 4-4h14"></path><polyline points="7 23 3 19 7 15"></polyline><path d="M21 13v2a4 4 0 0 1-4 4H3"></path></svg>
+                  </button>
+                </div>
+
+                <div class="input-field">
+                  <label class="field-label dest"><span class="dot-green"></span> Destination</label>
+                  <div class="input-icon-wrap">
+                    <svg class="field-icon icon-green" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                    <input type="text" id="input-to" value="Gulmarg" placeholder="e.g. Gulmarg, Pahalgam">
+                  </div>
+                </div>
+              </div>
+
+              <!-- Distance Row -->
+              <div class="distance-row">
+                <div class="distance-info">
+                  <strong>Road Distance:</strong>
+                  <span id="route-type-badge">Verified Highway Corridor</span>
+                </div>
+                <div class="distance-control">
+                  <div class="unit-input-wrap">
+                    <input type="number" id="input-distance" value="51" min="1" max="800">
+                    <span class="unit-suffix">KM</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Step 2: Vehicle Selection -->
+            <div class="card-box">
+              <div class="card-header">
+                <div class="step-badge">2</div>
+                <div class="header-titles">
+                  <h2>Select Vehicle Type</h2>
+                  <p>Choose your preferred way to travel</p>
+                </div>
+              </div>
+
+              <div class="vehicle-cards-grid" id="vehicle-cards-container">
+                <!-- Populated by JavaScript -->
+              </div>
+            </div>
+          </div>
+
+          <!-- Right Column: Live Fare Result & Transparency (5 cols) -->
+          <div class="calc-results-col">
+            <!-- Evergreen Fare Result Card -->
+            <div class="fare-hero-card">
+              <div class="fare-hero-header">
+                <div class="guidance-tag">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 14 10"></polyline></svg>
+                  <span>Fair Price Guidance</span>
+                </div>
+                <span class="verified-pill">Official Rate</span>
+              </div>
+
+              <p class="route-summary-text" id="fare-route-summary">Srinagar ➔ Gulmarg</p>
+
+              <!-- Per Seat vs Entire Cab Switch -->
+              <div class="seat-mode-switch" id="seat-mode-container">
+                <button class="mode-pill active" data-mode="per-seat">Per Seat</button>
+                <button class="mode-pill" data-mode="full-cab">Entire Vehicle</button>
+              </div>
+
+              <!-- Big Price Display -->
+              <div class="big-price-wrap">
+                <small class="price-caption">Recommended Fair Range</small>
+                <div class="price-num-row">
+                  <span class="main-price-val" id="display-price-val">₹ 300</span>
+                  <span class="price-basis-label" id="display-price-basis">(Per Passenger)</span>
+                </div>
+              </div>
+
+              <!-- Quick Specs -->
+              <div class="specs-grid">
+                <div class="spec-box">
+                  <span class="spec-lbl">Vehicle</span>
+                  <strong class="spec-val" id="spec-vehicle-name">Shared Cab</strong>
+                </div>
+                <div class="spec-box">
+                  <span class="spec-lbl">Distance</span>
+                  <strong class="spec-val" id="spec-distance-val">51 KM</strong>
+                </div>
+              </div>
+
+              <!-- Share Action -->
+              <div class="fare-actions-row">
+                <button id="share-fare-btn" class="share-btn">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
+                  <span>Copy / Share Fare</span>
+                </button>
+                <button id="helpline-btn" class="helpline-btn" title="Helpline 1033">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
+                </button>
+              </div>
+            </div>
+
+            <!-- Transparent Math Breakdown Card -->
+            <div class="card-box">
+              <div class="card-header">
+                <div class="header-titles">
+                  <h3>Transparent Math</h3>
+                </div>
+                <span class="chip-sm">SRO-97 Rate</span>
+              </div>
+
+              <div class="breakdown-list">
+                <div class="breakdown-row">
+                  <span>Base Boarding Charge</span>
+                  <strong id="math-base-fare">₹ 35</strong>
+                </div>
+                <div class="breakdown-row">
+                  <span id="math-distance-label">Distance Cost (51 km × ₹5.2/km)</span>
+                  <strong id="math-distance-cost">₹ 265</strong>
+                </div>
+                <div class="breakdown-row">
+                  <span>Regional J&K Terrain Factor</span>
+                  <strong id="math-adjustment">± ₹ 0</strong>
+                </div>
+                <div class="breakdown-total">
+                  <span>Total Fair Estimate</span>
+                  <strong id="math-total-fare">₹ 300</strong>
+                </div>
+              </div>
+
+              <div class="info-alert-box">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                <p>Estimates are strictly based on J&K Transport Department rules so you never pay arbitrary quotes.</p>
+              </div>
+            </div>
+
+            <!-- Corridor Context Card -->
+            <div class="card-box" id="corridor-context-card">
+              <div class="card-header">
+                <div class="header-titles">
+                  <h3>Route Road Details</h3>
+                </div>
+                <span class="chip-time" id="context-duration">1h 35m</span>
+              </div>
+              <div class="context-details">
+                <div class="context-row">
+                  <span>Highway / Road:</span>
+                  <strong id="context-highway">NH-1A / Tangmarg Rd</strong>
+                </div>
+                <div class="context-row">
+                  <span>Terrain:</span>
+                  <span class="badge-terrain" id="context-terrain">Mountain Pass</span>
+                </div>
+                <div class="context-stops">
+                  <small>Key En-Route Stops:</small>
+                  <div class="stops-chips" id="context-stops-chips">
+                    <span>📍 Tangmarg</span>
+                    <span>📍 Magam</span>
+                    <span>📍 Narbal</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </section>
 
-      <!-- =================================================================== -->
-      <!-- MODALS                                                              -->
-      <!-- =================================================================== -->
-
-      <!-- 1. Bus QR Code Scanner Modal -->
-      <div id="qr-modal" class="modal" hidden>
-        <div class="modal-content">
-          <div class="modal-header">
-            <h3 class="modal-title">Scan Bus QR Code</h3>
-            <button id="qr-modal-close" class="modal-close-btn" aria-label="Close QR Modal">&times;</button>
+      <!-- ============================================================= -->
+      <!-- TAB 2: ROUTE GUIDE                                            -->
+      <!-- ============================================================= -->
+      <section id="tab-guide" class="tab-view" hidden>
+        <div class="card-box large-card">
+          <div class="card-header">
+            <div class="header-titles">
+              <h2>J&K Transit Corridors Directory</h2>
+              <p>Standard road distances, typical travel times, and recommended vehicle modes.</p>
+            </div>
           </div>
-          <div style="text-align:center; padding:8px 0;">
-            <div style="width:170px; height:170px; margin:0 auto 14px; background:var(--surface-raised); border:2.5px dashed var(--primary); border-radius:var(--r-lg); display:flex; align-items:center; justify-content:center; flex-direction:column; gap:8px; box-shadow:var(--shadow-sm);">
-              <svg style="width:52px; height:52px; fill:var(--primary);" viewBox="0 0 24 24">
-                <path d="M4 4h6v6H4V4zm2 2v2h2V6H6zm8-2h6v6h-6V4zm2 2v2h2V6h-2zM4 14h6v6H4v-6zm2 2v2h2v-2H6zm10 0h2v2h-2v-2zm-2 2h2v2h-2v-2zm4 0h2v2h-2v-2zm-2-4h2v2h-2v-2zm4 0h2v2h-2v-2zm-4 4v2h-2v-2h2z"/>
-              </svg>
-              <span style="font-size:0.75rem; font-weight:700; color:var(--text-muted);">Aim at Conductor QR</span>
-            </div>
-            <p style="font-size:0.8rem; color:var(--text-muted); margin-bottom:12px;">Or select a test vehicle code below:</p>
-            <div style="display:flex; flex-direction:column; gap:8px;">
-              <button class="btn-primary btn-outline test-qr-btn" data-route="srn-hazratbal">
-                Bus #JK01-1402 (Lal Chowk ➔ Hazratbal)
-              </button>
-              <button class="btn-primary btn-outline test-qr-btn" data-route="srn-asc-soura">
-                Bus #JK01-8841 (Amar Singh College ➔ Soura)
-              </button>
-              <button class="btn-primary btn-outline test-qr-btn" data-route="srn-baramulla">
-                Bus #JK05-3211 (Batamaloo ➔ Baramulla)
-              </button>
-            </div>
+          <div class="guide-cards-grid" id="guide-cards-container">
+            <!-- Populated by JavaScript -->
           </div>
         </div>
-      </div>
+      </section>
 
-      <!-- 2. Fare Dispute / Anti-Overcharging Modal -->
-      <div id="dispute-modal" class="modal" hidden>
-        <div class="modal-content">
-          <div class="modal-header">
-            <h3 class="modal-title">Report Fare Overcharging</h3>
-            <button id="dispute-modal-close" class="modal-close-btn" aria-label="Close Dispute Modal">&times;</button>
+      <!-- ============================================================= -->
+      <!-- TAB 3: RECENT ESTIMATES                                       -->
+      <!-- ============================================================= -->
+      <section id="tab-history" class="tab-view" hidden>
+        <div class="card-box large-card">
+          <div class="card-header">
+            <div class="header-titles">
+              <h2>Recent Route Calculations</h2>
+              <p>Quickly access and re-estimate previously loaded trips.</p>
+            </div>
           </div>
-          <form id="dispute-form">
-            <div class="form-group">
-              <label class="form-label">Bus Registration # / Route</label>
-              <input type="text" id="dispute-bus-no" class="form-input" placeholder="e.g. JK01-A-4482" required>
-            </div>
-            <div class="form-group">
-              <label class="form-label">Legal Statutory SRO Fare (₹)</label>
-              <input type="text" id="dispute-legal-fare" class="form-input" readonly value="₹10.00">
-            </div>
-            <div class="form-group">
-              <label class="form-label">Amount Demanded by Conductor (₹)</label>
-              <input type="number" id="dispute-charged-fare" class="form-input" placeholder="e.g. 25" required min="1">
-            </div>
-            <div class="form-group">
-              <label class="form-label">Location / Stop Name</label>
-              <input type="text" id="dispute-notes" class="form-input" placeholder="e.g. Near Amar Singh College Gate">
-            </div>
-            <button type="submit" class="btn-primary btn-danger" style="margin-top:8px;">
-              Submit Official Grievance
-            </button>
-          </form>
-        </div>
-      </div>
-
-      <!-- 3. Report Missing Stop Modal -->
-      <div id="missing-stop-modal" class="modal" hidden>
-        <div class="modal-content">
-          <div class="modal-header">
-            <h3 class="modal-title">Add Missing Bus Stop / Landmark</h3>
-            <button id="missing-stop-close" class="modal-close-btn" aria-label="Close Missing Stop Modal">&times;</button>
+          <div class="history-list" id="history-items-container">
+            <!-- Populated by JavaScript -->
           </div>
-          <form id="missing-stop-form">
-            <div class="form-group">
-              <label class="form-label">Stop Name (English)</label>
-              <input type="text" id="missing-stop-en" class="form-input" placeholder="e.g. Ompora Crossing" required maxlength="100">
-            </div>
-            <div class="form-group">
-              <label class="form-label">Stop Name (Urdu / Kashmiri)</label>
-              <input type="text" id="missing-stop-ur" class="form-input" placeholder="امپورہ کراسنگ" dir="rtl" maxlength="100">
-            </div>
-            <button type="button" id="btn-use-current-gps" class="btn-primary btn-outline" style="margin-bottom:10px;">
-              📍 Auto-fill Current GPS Location
-            </button>
-            <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
-              <div class="form-group">
-                <label class="form-label">Latitude</label>
-                <input type="number" step="any" id="missing-stop-lat" class="form-input" placeholder="34.083" required>
-              </div>
-              <div class="form-group">
-                <label class="form-label">Longitude</label>
-                <input type="number" step="any" id="missing-stop-lng" class="form-input" placeholder="74.797" required>
-              </div>
-            </div>
-            <button type="submit" class="btn-primary" style="margin-top:8px;">
-              Submit to Route Registry
-            </button>
-          </form>
         </div>
-      </div>
+      </section>
 
+      <!-- ============================================================= -->
+      <!-- TAB 4: OFFICIAL RATES                                         -->
+      <!-- ============================================================= -->
+      <section id="tab-rates" class="tab-view" hidden>
+        <div class="card-box large-card">
+          <div class="card-header">
+            <div class="header-titles">
+              <h2>Official J&K Transport Fare Schedules (SRO-97)</h2>
+              <p>Legal maximum fare ceilings notified by the Transport Commissioner, J&K.</p>
+            </div>
+          </div>
+          <div class="table-responsive">
+            <table class="rates-table">
+              <thead>
+                <tr>
+                  <th>Vehicle Category</th>
+                  <th>Base Fare</th>
+                  <th>Rate Per KM</th>
+                  <th>Seating Norm</th>
+                  <th>Applicability</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><strong>Shared Maxi-Cab (Sumo/Tavera)</strong></td>
+                  <td>₹ 35</td>
+                  <td>₹ 5.20 / pass-km</td>
+                  <td>4+1 to 7+1</td>
+                  <td>Inter-district corridors</td>
+                </tr>
+                <tr>
+                  <td><strong>Auto-Rickshaw (3-Wheeler)</strong></td>
+                  <td>₹ 45 (first 2 km)</td>
+                  <td>₹ 7.40 / km</td>
+                  <td>Up to 3 passengers</td>
+                  <td>Town / City trips</td>
+                </tr>
+                <tr>
+                  <td><strong>Mini Bus (Stage Carriage 407)</strong></td>
+                  <td>₹ 18</td>
+                  <td>₹ 2.90 / km</td>
+                  <td>Per seat</td>
+                  <td>Regular transit corridors</td>
+                </tr>
+                <tr>
+                  <td><strong>Private Tourist Taxi</strong></td>
+                  <td>₹ 160</td>
+                  <td>₹ 16.50 / km</td>
+                  <td>Entire vehicle (4+1)</td>
+                  <td>Sightseeing / Direct drop</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
     </main>
 
-    <!-- Toast Notification Container -->
-    <div id="toast-container" class="toast-container"></div>
+    <!-- Footer -->
+    <footer class="app-footer">
+      <div class="footer-container">
+        <div class="footer-brand">
+          <strong>SAFAR</strong>
+          <span>— Simple, Transparent J&K Transit Fare Guide</span>
+        </div>
+        <div class="footer-links">
+          <button id="footer-help-trigger">How Safar Works</button>
+          <span>•</span>
+          <span>Helpline: <strong>1033</strong></span>
+        </div>
+      </div>
+    </footer>
 
-    <!-- Bottom Navigation Bar (Fixed 480px Canvas) -->
-    <nav class="bottom-nav">
-      <button class="nav-item active" data-tab="home" id="nav-home">
-        <svg viewBox="0 0 24 24">
-          <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
-        </svg>
-        <span id="lbl-nav-home" data-i18n="navHome">Home</span>
-      </button>
+    <!-- "How Safar Works" Modal -->
+    <div id="help-modal" class="modal-backdrop" hidden>
+      <div class="modal-dialog">
+        <div class="modal-header">
+          <div class="modal-title">
+            <div class="brand-icon-sm">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="3 11 22 2 13 21 11 13 3 11"></polygon></svg>
+            </div>
+            <h3>How Safar Works</h3>
+          </div>
+          <button id="close-modal-btn" class="icon-btn"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
+        </div>
+        <div class="modal-body">
+          <div class="step-card">
+            <span class="num-badge">1</span>
+            <div>
+              <strong>Pick Your Route</strong>
+              <p>Type your starting location and destination or pick from popular J&K corridor presets.</p>
+            </div>
+          </div>
+          <div class="step-card">
+            <span class="num-badge">2</span>
+            <div>
+              <strong>Select Vehicle Mode</strong>
+              <p>Choose between Shared Cab (Sumo), Auto-Rickshaw, Mini Bus, or Private Taxi.</p>
+            </div>
+          </div>
+          <div class="step-card">
+            <span class="num-badge">3</span>
+            <div>
+              <strong>Board with Confidence</strong>
+              <p>View the statutory SRO-97 calculated fare. Show the breakdown to drivers to avoid unfair overcharges.</p>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button id="modal-close-action-btn" class="primary-btn full-width">Got it, let's calculate!</button>
+        </div>
+      </div>
+    </div>
 
-      <button class="nav-item" data-tab="map" id="nav-map">
-        <svg viewBox="0 0 24 24">
-          <path d="M20.5 3l-.16.03L15 5.1 9 3 3.36 4.9c-.21.07-.36.25-.36.48V20.5c0 .28.22.5.5.5l.16-.03L9 18.9l6 2.1 5.64-1.9c.21-.07.36-.25.36-.48V3.5c0-.28-.22-.5-.5-.5zM15 19l-6-2.11V5l6 2.11V19z"/>
-        </svg>
-        <span id="lbl-nav-map" data-i18n="navMap">Map</span>
-      </button>
-
-      <button class="nav-item" data-tab="trips" id="nav-trips">
-        <svg viewBox="0 0 24 24">
-          <path d="M13 3c-4.97 0-9 4.03-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42C8.27 19.99 10.51 21 13 21c4.97 0 9-4.03 9-9s-4.03-9-9-9zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z"/>
-        </svg>
-        <span id="lbl-nav-trips" data-i18n="navTrips">Passes</span>
-      </button>
-
-      <button class="nav-item" data-tab="driver" id="nav-driver">
-        <svg viewBox="0 0 24 24">
-          <path d="M12 2a5 5 0 1 0 5 5 5 5 0 0 0-5-5zm0 8a3 3 0 1 1 3-3 3 3 0 0 1-3 3zm9 11v-1a7 7 0 0 0-7-7h-4a7 7 0 0 0-7 7v1h2v-1a5 5 0 0 1 5-5h4a5 5 0 0 1 5 5v1z"/>
-        </svg>
-        <span id="lbl-nav-driver">Driver</span>
-      </button>
-
-      <button class="nav-item" data-tab="settings" id="nav-settings">
-        <svg viewBox="0 0 24 24">
-          <path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/>
-        </svg>
-        <span id="lbl-nav-settings" data-i18n="navSettings">Help</span>
-      </button>
-    </nav>
+    <!-- Floating Toast Notification -->
+    <div id="toast" class="toast-notification" hidden>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f2bd70" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+      <span id="toast-text">Route updated</span>
+    </div>
   </div>
 
-  <!-- Primary Application Controller (ES Module) -->
-  <script type="module" src="js/main.js"></script>
+  <script src="js/main.js"></script>
 </body>
 </html>
