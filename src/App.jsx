@@ -1467,6 +1467,43 @@ export default function App() {
                     {filteredVehicles.map((v) => {
                       const Icon = v.icon;
                       const selected = vehicle === v.key;
+                      const km = Math.max(1, Number(distance) || 1);
+                      let cardFare = 0;
+                      switch (v.calcType) {
+                        case "e-rickshaw":
+                          cardFare = Math.max(15, Math.round(km * 15));
+                          break;
+                        case "e-auto":
+                          cardFare = km <= 1 ? 25 : 25 + Math.round((km - 1) * 20);
+                          break;
+                        case "stage-slab":
+                          if (km <= 3) cardFare = 9;
+                          else if (km <= 5) cardFare = 14;
+                          else if (km <= 10) cardFare = 17;
+                          else if (km <= 15) cardFare = 20;
+                          else if (km <= 20) cardFare = 26;
+                          else cardFare = 26 + Math.round((km - 20) * 1.40);
+                          break;
+                        case "stage-carriage":
+                          {
+                            const rate = terrainRegion === "kashmir-plain" ? 1.64 : terrainRegion === "kashmir-hill" ? 1.88 : terrainRegion === "jammu-plain" ? 1.12 : 1.59;
+                            cardFare = Math.max(10, Math.round(km * rate));
+                          }
+                          break;
+                        case "stage-carriage-big":
+                          {
+                            const rate = terrainRegion === "kashmir-plain" ? 1.40 : terrainRegion === "kashmir-hill" ? 1.64 : terrainRegion === "jammu-plain" ? 1.12 : 1.59;
+                            cardFare = Math.max(10, Math.round(km * rate));
+                          }
+                          break;
+                        case "metered-auto":
+                          cardFare = km <= 2 ? 45 : 45 + Math.round((km - 2) * 7.4);
+                          break;
+                        default:
+                          cardFare = Math.max(15, v.base + Math.round(km * v.perKm) + (v.key === "suv-taxi" ? 20 : 0));
+                          break;
+                      }
+
                       return (
                         <button
                           key={v.key}
@@ -1490,15 +1527,20 @@ export default function App() {
                             >
                               <Icon size={18} />
                             </div>
-                            <span
-                              className={`text-[10px] font-bold px-2 py-0.5 rounded-md ${
-                                selected
-                                  ? "bg-[#234b4c] text-[#f4f6ed]"
-                                  : "bg-[#edf3eb] text-[#557b72]"
-                              }`}
-                            >
-                              {v.badge}
-                            </span>
+                            <div className="flex items-center gap-1.5">
+                              <span className="text-[11px] font-black text-[#234b4c] bg-[#eef4ed] px-2 py-0.5 rounded-lg border border-[#d2e4d4]">
+                                ₹{cardFare}
+                              </span>
+                              <span
+                                className={`text-[10px] font-bold px-2 py-0.5 rounded-md ${
+                                  selected
+                                    ? "bg-[#234b4c] text-[#f4f6ed]"
+                                    : "bg-[#edf3eb] text-[#557b72]"
+                                }`}
+                              >
+                                {v.badge}
+                              </span>
+                            </div>
                           </div>
 
                           <div className="mt-2.5">
@@ -1605,8 +1647,8 @@ export default function App() {
                       <p className="font-bold text-[#ffffff] truncate mt-0.5">{chosenVehicle.label}</p>
                     </div>
                     <div className="bg-[#183637]/50 p-2.5 rounded-xl border border-[#386260]/60">
-                      <p className="text-[10px] text-[#aac2b3]">Estimated Distance</p>
-                      <p className="font-bold text-[#ffffff] mt-0.5">{distance || 0} Kilometers</p>
+                      <p className="text-[10px] text-[#aac2b3]">Calculated Distance</p>
+                      <p className="font-bold text-[#ffffff] mt-0.5">{distance || 0} KM</p>
                     </div>
                   </div>
 
@@ -1654,6 +1696,11 @@ export default function App() {
                       </span>
                     </div>
 
+                    <div className="flex items-center justify-between">
+                      <span className="text-[#78908a]">Distance Cost ({distance} KM)</span>
+                      <span className="font-bold text-[#345657]">₹{fareParts.distanceCost}</span>
+                    </div>
+
                     {fareParts.localAdjustment !== 0 && (
                       <div className="flex items-center justify-between">
                         <span className="text-[#78908a] flex items-center gap-1">
@@ -1676,28 +1723,28 @@ export default function App() {
                 </div>
 
                 {/* Corridor Context Card */}
-                {routeMatch && (
-                  <div className="bg-[#fbfcf8] border border-[#dce5dc] rounded-3xl p-5 shadow-sm">
-                    <div className="flex items-center justify-between pb-3 border-b border-[#e5ece3]">
-                      <h3 className="font-bold text-sm text-[#234b4c]">Route Details</h3>
-                      <span className="text-xs font-bold text-[#d36b3d]">{routeMatch.duration}</span>
-                    </div>
+                <div className="bg-[#fbfcf8] border border-[#dce5dc] rounded-3xl p-5 shadow-sm">
+                  <div className="flex items-center justify-between pb-3 border-b border-[#e5ece3]">
+                    <h3 className="font-bold text-sm text-[#234b4c]">Route Details</h3>
+                    <span className="text-xs font-bold text-[#d36b3d]">{currentRouteMeta.duration}</span>
+                  </div>
 
-                    <div className="mt-3 space-y-2 text-xs">
-                      <div className="flex items-center justify-between">
-                        <span className="text-[#78908a]">Highway / Corridor:</span>
-                        <span className="font-semibold text-[#345657]">{routeMatch.highway}</span>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-[#78908a]">Terrain:</span>
-                        <span className="px-2 py-0.5 rounded-md bg-[#eef4ed] font-semibold text-[#426a54] text-[11px]">
-                          {routeMatch.terrain}
-                        </span>
-                      </div>
+                  <div className="mt-3 space-y-2 text-xs">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[#78908a]">Highway / Corridor:</span>
+                      <span className="font-semibold text-[#345657]">{currentRouteMeta.highway}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-[#78908a]">Terrain:</span>
+                      <span className="px-2 py-0.5 rounded-md bg-[#eef4ed] font-semibold text-[#426a54] text-[11px]">
+                        {currentRouteMeta.terrain} ({terrainRegion.replace("-", " ")})
+                      </span>
+                    </div>
+                    {currentRouteMeta.stops && currentRouteMeta.stops.length > 0 && (
                       <div className="pt-2">
                         <span className="text-[11px] text-[#78908a] block mb-1">Key En-Route Stops:</span>
                         <div className="flex flex-wrap gap-1.5">
-                          {routeMatch.stops.map((stop) => (
+                          {currentRouteMeta.stops.map((stop) => (
                             <span
                               key={stop}
                               className="px-2 py-0.5 rounded-lg bg-[#f0f4ee] border border-[#dce5dc] text-[10px] font-semibold text-[#345657]"
@@ -1707,9 +1754,9 @@ export default function App() {
                           ))}
                         </div>
                       </div>
-                    </div>
+                    )}
                   </div>
-                )}
+                </div>
               </div>
             </div>
           </div>
