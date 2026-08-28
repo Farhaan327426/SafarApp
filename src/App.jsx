@@ -627,9 +627,15 @@ export default function App() {
                 <p className="mt-2 text-xs sm:text-sm text-[#c7dad0] leading-relaxed">
                   Accurate government statutory rates for all 9 commercial passenger vehicles in Jammu & Kashmir.
                 </p>
-                <div className="mt-3 inline-flex items-center gap-2 px-3 py-1 rounded-xl bg-[#183637]/60 border border-[#4d7f7c]/50 text-[11px] text-[#f2bd70]">
-                  <Info size={13} />
-                  <span>Includes all private & shared modes · Excludes Govt SRTC buses & E-buses</span>
+                <div className="mt-3 flex flex-wrap items-center gap-2">
+                  <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[#183637]/80 border border-[#4d7f7c]/60 text-[11px] text-[#f2bd70]">
+                    <BusFront size={13} />
+                    <span><strong>5,900+ Private Fleet:</strong> Stage carriages, minibuses (Matadors) & private service buses power the vast bulk of J&K transit</span>
+                  </div>
+                  <div className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-[#183637]/60 border border-[#4d7f7c]/40 text-[10px] text-[#c4d6cb]">
+                    <ShieldCheck size={12} className="text-[#74a181]" />
+                    <span>Excludes Govt SRTC & E-buses</span>
+                  </div>
                 </div>
               </div>
             </section>
@@ -1247,6 +1253,21 @@ export default function App() {
                   </tr>
                 </tbody>
               </table>
+            </div>
+
+            {/* Private Fleet Context Information Card */}
+            <div className="mt-6 p-5 rounded-2xl bg-[#edf5ee] border border-[#d2e4d4] flex flex-col sm:flex-row items-start gap-4">
+              <div className="w-10 h-10 rounded-xl bg-[#234b4c] text-[#f2bd70] flex items-center justify-center shrink-0">
+                <BusFront size={20} />
+              </div>
+              <div className="space-y-1">
+                <h4 className="text-sm font-bold text-[#234b4c]">
+                  J&K Private Transit Fleet Dynamics (5,900+ Registered Fleet)
+                </h4>
+                <p className="text-xs text-[#426a54] leading-relaxed">
+                  <strong>Private Fleet Reality:</strong> Private stage carriages, minibuses (commonly known as <strong>Matadors</strong>), and private service vehicles make up the vast bulk of public transit across Jammu & Kashmir, with over <strong>5,900 private service buses</strong> actively registered. Safar provides transparent legal maximum fare ceilings for this critical private lifeline.
+                </p>
+              </div>
             </div>
           </div>
         )}

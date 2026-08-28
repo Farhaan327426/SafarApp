@@ -554,6 +554,32 @@ body {
   line-height: 1.5;
 }
 
+.hero-subchip-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.hero-subchip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: var(--radius-sm);
+  background: rgba(24, 54, 55, 0.6);
+  border: 1px solid rgba(77, 127, 124, 0.5);
+  font-size: 11px;
+  color: #c4d6cb;
+}
+
+.hero-subchip.gold {
+  background: rgba(24, 54, 55, 0.85);
+  border-color: rgba(242, 189, 112, 0.4);
+  color: var(--color-gold);
+}
+
 .hero-mountain-bg {
   position: absolute;
   right: 0;
