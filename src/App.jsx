@@ -33,20 +33,101 @@ import {
 
 const vehicleCategories = [
   { key: "all", label: "All Vehicles (9)" },
-  { key: "shared", label: "Shared Cabs & Vans" },
-  { key: "bus", label: "Private Buses" },
-  { key: "auto", label: "Autos & E-Rickshaws" },
+  { key: "ev", label: "⚡ EVs (E-Rickshaw / E-Auto)" },
+  { key: "shared", label: "Shared Cabs & Magic" },
+  { key: "bus", label: "Buses & Matadors" },
   { key: "taxi", label: "Private Taxis" },
 ];
 
 const vehicleOptions = [
   {
+    key: "e-rickshaw",
+    category: "ev",
+    label: "E-Rickshaw (Toto / Cart)",
+    sublabel: "Local Colony & Market Cart",
+    detail: "Official flat rate: ₹15/km per passenger or local hop",
+    icon: Zap,
+    calcType: "e-rickshaw",
+    base: 15,
+    perKm: 15.0,
+    capacity: "Up to 4 Persons / Per Seat",
+    badge: "Flat ₹15/km",
+    isPerSeat: true,
+    seatsMultiplier: 4,
+    color: "#2e8b57",
+  },
+  {
+    key: "e-auto",
+    category: "ev",
+    label: "E-Auto (Electric 3-Wheeler)",
+    sublabel: "Battery Electric Auto (L5M)",
+    detail: "Official rate: ₹25 for 1st km, then ₹20/km thereafter",
+    icon: Zap,
+    calcType: "e-auto",
+    base: 25,
+    perKm: 20.0,
+    capacity: "Up to 3 Persons",
+    badge: "₹25 + ₹20/km",
+    isPerSeat: false,
+    seatsMultiplier: 1,
+    color: "#237249",
+  },
+  {
+    key: "tata-magic",
+    category: "shared",
+    label: "Tata Magic / Feeder 4-Wheeler",
+    sublabel: "Maruti Eeco / Magic / Winger",
+    detail: "Official stage slabs: ₹9 (3km), ₹14 (5km), ₹17 (10km), ₹20 (15km), ₹26 (20km)",
+    icon: CarFront,
+    calcType: "stage-slab",
+    base: 9,
+    perKm: 1.4,
+    capacity: "6 to 8 Seats",
+    badge: "Stage Slabs (₹9-₹26)",
+    isPerSeat: true,
+    seatsMultiplier: 7,
+    color: "#c27438",
+  },
+  {
+    key: "mini-bus",
+    category: "bus",
+    label: "Mini Bus / Matador (407)",
+    sublabel: "Tata 407 / Swaraj Mazda / Matador",
+    detail: "5,900+ Fleet Backbone: ₹1.64/km (Kashmir) · ₹1.59-₹1.88/km (Hilly)",
+    icon: BusFront,
+    calcType: "stage-carriage",
+    base: 10,
+    perKm: 1.64,
+    capacity: "Per Passenger (18-24 Seats)",
+    badge: "₹1.64/km",
+    isPerSeat: true,
+    seatsMultiplier: 18,
+    color: "#557b72",
+  },
+  {
+    key: "private-bus",
+    category: "bus",
+    label: "Private 2+2 Bus (Stage Carriage)",
+    sublabel: "Standard 32-52 Seater (Non-SRTC)",
+    detail: "Official rate: ₹1.12/km (Jammu Plain) · ₹1.40-₹1.64/km (Kashmir)",
+    icon: BusFront,
+    calcType: "stage-carriage-big",
+    base: 10,
+    perKm: 1.4,
+    capacity: "Per Passenger (32+ Seats)",
+    badge: "₹1.12 - ₹1.40/km",
+    isPerSeat: true,
+    seatsMultiplier: 32,
+    color: "#3f6e5b",
+  },
+  {
     key: "shared-cab",
     category: "shared",
     label: "Shared Maxi-Cab",
     sublabel: "Tata Sumo / Bolero / Tavera",
-    detail: "Standard passenger seat on inter-district corridors",
+    detail: "Inter-district standard corridor: ₹35 base + ₹5.20/km per seat",
     icon: CarFront,
+    calcType: "standard",
     base: 35,
     perKm: 5.2,
     capacity: "4 to 7 Seats",
@@ -56,106 +137,33 @@ const vehicleOptions = [
     color: "#d36b3d",
   },
   {
-    key: "tata-magic",
-    category: "shared",
-    label: "Tata Magic / Van",
-    sublabel: "Maruti Eeco / Magic / Winger",
-    detail: "Feeder routes & rural-to-town transit",
-    icon: CarFront,
-    base: 25,
-    perKm: 4.2,
-    capacity: "6 to 8 Seats",
-    badge: "Rural & Feeder",
-    isPerSeat: true,
-    seatsMultiplier: 7,
-    color: "#c27438",
-  },
-  {
-    key: "mini-bus",
-    category: "bus",
-    label: "Mini Bus / 407",
-    sublabel: "Tata 407 / Swaraj Mazda / Matador",
-    detail: "Budget local stage carriage across towns & hubs",
-    icon: BusFront,
-    base: 18,
-    perKm: 2.9,
-    capacity: "Per Passenger (18-24 Seats)",
-    badge: "High Frequency",
-    isPerSeat: true,
-    seatsMultiplier: 18,
-    color: "#557b72",
-  },
-  {
-    key: "private-bus",
-    category: "bus",
-    label: "Private 2+2 Bus",
-    sublabel: "Standard 32-52 Seater (Non-SRTC)",
-    detail: "Inter-district long route passenger bus",
-    icon: BusFront,
-    base: 15,
-    perKm: 2.4,
-    capacity: "Per Passenger (32+ Seats)",
-    badge: "Lowest Fare",
-    isPerSeat: true,
-    seatsMultiplier: 32,
-    color: "#3f6e5b",
-  },
-  {
     key: "auto",
-    category: "auto",
+    category: "ev",
     label: "Auto-Rickshaw (Petrol/CNG)",
     sublabel: "3-Wheeler Metered Auto",
-    detail: "City & town short-to-medium trips (up to 3 persons)",
+    detail: "Official rate: ₹45 for first 2 km, then ₹7.40/km",
     icon: CarFront,
+    calcType: "metered-auto",
     base: 45,
     perKm: 7.4,
     capacity: "Up to 3 Persons",
-    badge: "City Travel",
+    badge: "Metered (₹45 first 2km)",
     isPerSeat: false,
     seatsMultiplier: 1,
     color: "#bc8a20",
   },
   {
-    key: "e-auto",
-    category: "auto",
-    label: "E-Auto (Electric Auto)",
-    sublabel: "Battery Electric 3-Wheeler (L5M)",
-    detail: "Eco-friendly town transit with regulated rates",
-    icon: Zap,
-    base: 30,
-    perKm: 6.0,
-    capacity: "Up to 3 Persons",
-    badge: "Zero Emission",
-    isPerSeat: false,
-    seatsMultiplier: 1,
-    color: "#2e8b57",
-  },
-  {
-    key: "e-rickshaw",
-    category: "auto",
-    label: "E-Rickshaw (Toto / Cart)",
-    sublabel: "Local Colony & Market Cart",
-    detail: "Ultra-short local trips & market connections",
-    icon: Zap,
-    base: 15,
-    perKm: 4.0,
-    capacity: "Up to 4 Persons / Per Seat",
-    badge: "Local Shuttles",
-    isPerSeat: true,
-    seatsMultiplier: 4,
-    color: "#4a7c59",
-  },
-  {
     key: "taxi",
     category: "taxi",
-    label: "Private Sedan Taxi",
-    sublabel: "Maruti Dzire / Toyota Etios",
-    detail: "Direct point-to-point dedicated sedan hire",
+    label: "Standard Sedan Taxi (Contract)",
+    sublabel: "Maruti Dzire / Toyota Etios / Indica",
+    detail: "Official 18% hiked contract hire: ₹140 base + ₹14.50/km",
     icon: CarFront,
+    calcType: "standard",
     base: 140,
     perKm: 14.5,
     capacity: "Entire Vehicle (4+1)",
-    badge: "Dedicated Sedan",
+    badge: "Contract Taxi",
     isPerSeat: false,
     seatsMultiplier: 1,
     color: "#3e6b8a",
@@ -163,14 +171,15 @@ const vehicleOptions = [
   {
     key: "suv-taxi",
     category: "taxi",
-    label: "Private SUV Taxi",
-    sublabel: "Innova Crysta / Scorpio / Xylo",
-    detail: "Dedicated mountain pass & tourist point-to-point hire",
+    label: "Premium Tourist SUV Taxi",
+    sublabel: "Innova Crysta / Scorpio / Fortuner",
+    detail: "Official 18% hiked tourist contract hire: ₹220 base + ₹21.00/km",
     icon: CarFront,
-    base: 200,
-    perKm: 19.5,
+    calcType: "standard",
+    base: 220,
+    perKm: 21.0,
     capacity: "Entire Vehicle (6+1 / 7+1)",
-    badge: "Mountain & Tour",
+    badge: "Tourist SUV",
     isPerSeat: false,
     seatsMultiplier: 1,
     color: "#28536b",
@@ -201,6 +210,7 @@ const routePresets = [
     distance: 51,
     duration: "1h 35m",
     terrain: "Mountain Pass",
+    region: "kashmir-hill",
     highway: "NH-1A / Tangmarg Rd",
     stops: ["Tangmarg", "Magam", "Narbal"],
   },
@@ -210,6 +220,7 @@ const routePresets = [
     distance: 92,
     duration: "2h 20m",
     terrain: "Scenic Valley Corridor",
+    region: "kashmir-plain",
     highway: "KP Road / NH-44",
     stops: ["Pampore", "Awantipora", "Anantnag"],
   },
@@ -219,6 +230,7 @@ const routePresets = [
     distance: 80,
     duration: "2h 10m",
     terrain: "High Mountain Highway",
+    region: "kashmir-hill",
     highway: "NH-1 (Srinagar-Leh)",
     stops: ["Ganderbal", "Kangan", "Gund"],
   },
@@ -228,6 +240,7 @@ const routePresets = [
     distance: 49,
     duration: "1h 14m",
     terrain: "Expressway Foothills",
+    region: "jammu-hill",
     highway: "NH-44 / Katra Bypass",
     stops: ["Nagrota", "Jhajjar Kotli"],
   },
@@ -237,6 +250,7 @@ const routePresets = [
     distance: 53,
     duration: "1h 20m",
     terrain: "Plains / 4-Lane Highway",
+    region: "kashmir-plain",
     highway: "NH-44 Valley Expressway",
     stops: ["Bijbehara", "Awantipora", "Pampore"],
   },
@@ -246,6 +260,7 @@ const routePresets = [
     distance: 49,
     duration: "1h 16m",
     terrain: "Plains Road",
+    region: "kashmir-plain",
     highway: "Sopore-Srinagar Highway",
     stops: ["Sangrama", "Pattan", "Shalteng"],
   },
@@ -264,7 +279,7 @@ const recentEstimatesList = [
   },
   {
     route: "Jammu → Katra",
-    meta: "Private Sedan Taxi · Vaishno Devi route",
+    meta: "Standard Sedan Taxi · Vaishno Devi route",
     amount: "₹ 850",
     time: "Yesterday, 06:15 PM",
     vehicleKey: "taxi",
@@ -274,8 +289,8 @@ const recentEstimatesList = [
   },
   {
     route: "Anantnag → Srinagar",
-    meta: "Mini Bus · NH-44 Expressway",
-    amount: "₹ 170",
+    meta: "Mini Bus (Matador) · NH-44 Expressway",
+    amount: "₹ 87",
     time: "12 Jun, 09:15 AM",
     vehicleKey: "mini-bus",
     from: "Anantnag",
@@ -291,6 +306,7 @@ export default function App() {
   const [distance, setDistance] = useState("51");
   const [vehicle, setVehicle] = useState("shared-cab");
   const [vehicleCategoryFilter, setVehicleCategoryFilter] = useState("all");
+  const [terrainRegion, setTerrainRegion] = useState("kashmir-plain");
   const [notice, setNotice] = useState("");
   const [showNotifications, setShowNotifications] = useState(false);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
@@ -321,32 +337,120 @@ export default function App() {
     [from, to]
   );
 
+  // Exact Statutory Fare Calculations
   const fareParts = useMemo(() => {
     const km = Math.max(1, Number(distance) || 1);
-    const base = chosenVehicle.base;
-    const distanceCost = Math.round(km * chosenVehicle.perKm);
-    
-    // Regional local adjustment according to vehicle class
-    const localAdjustment =
-      chosenVehicle.key === "shared-cab"
-        ? 0
-        : chosenVehicle.key === "tata-magic"
-        ? -2
-        : chosenVehicle.key === "mini-bus"
-        ? -4
-        : chosenVehicle.key === "private-bus"
-        ? -5
-        : chosenVehicle.key === "auto"
-        ? 5
-        : chosenVehicle.key === "e-auto"
-        ? 0
-        : chosenVehicle.key === "e-rickshaw"
-        ? -2
-        : chosenVehicle.key === "suv-taxi"
-        ? 20
-        : 10;
+    let base = chosenVehicle.base;
+    let distanceCost = 0;
+    let localAdjustment = 0;
+    let totalSingle = 0;
+    let formulaDesc = "";
 
-    const totalSingle = Math.max(10, base + distanceCost + localAdjustment);
+    switch (chosenVehicle.calcType) {
+      case "e-rickshaw":
+        // Flat ₹15 per kilometer
+        base = 15;
+        distanceCost = Math.round(km * 15);
+        totalSingle = Math.max(15, distanceCost);
+        formulaDesc = `Flat ₹15/km (${km} km × ₹15)`;
+        break;
+
+      case "e-auto":
+        // ₹25 for 1st km, ₹20 for every subsequent km
+        base = 25;
+        distanceCost = km <= 1 ? 0 : Math.round((km - 1) * 20);
+        totalSingle = km <= 1 ? 25 : 25 + distanceCost;
+        formulaDesc = km <= 1 ? "1st KM Base Fare (₹25)" : `₹25 (1st km) + ${(km - 1)} km × ₹20/km`;
+        break;
+
+      case "stage-slab":
+        // Tata Magic / Feeder 4-Wheelers:
+        // Up to 3 km: ₹9, Up to 5 km: ₹14, Up to 10 km: ₹17, Up to 15 km: ₹20, 15-20 km: ₹26, >20 km: 50% concession
+        if (km <= 3) {
+          totalSingle = 9;
+          base = 9;
+          formulaDesc = "Stage Slab: 0 to 3 KM (₹9)";
+        } else if (km <= 5) {
+          totalSingle = 14;
+          base = 14;
+          formulaDesc = "Stage Slab: 3 to 5 KM (₹14)";
+        } else if (km <= 10) {
+          totalSingle = 17;
+          base = 17;
+          formulaDesc = "Stage Slab: 5 to 10 KM (₹17)";
+        } else if (km <= 15) {
+          totalSingle = 20;
+          base = 20;
+          formulaDesc = "Stage Slab: 10 to 15 KM (₹20)";
+        } else if (km <= 20) {
+          totalSingle = 26;
+          base = 26;
+          formulaDesc = "Stage Slab: 15 to 20 KM (₹26)";
+        } else {
+          base = 26;
+          const extraKm = km - 20;
+          distanceCost = Math.round(extraKm * 1.40); // 50% concessional rate beyond 20km
+          totalSingle = 26 + distanceCost;
+          formulaDesc = `₹26 (20km slab) + ${extraKm} km @ 50% Concessional Rate (₹1.40/km)`;
+        }
+        break;
+
+      case "stage-carriage":
+        // Mini Bus / Matador:
+        // Kashmir Plain: ₹1.64/km, Jammu Plain: ₹1.12/km, Hill: ₹1.59-₹1.88/km
+        {
+          const ratePerKm =
+            terrainRegion === "kashmir-plain"
+              ? 1.64
+              : terrainRegion === "kashmir-hill"
+              ? 1.88
+              : terrainRegion === "jammu-plain"
+              ? 1.12
+              : 1.59;
+          base = 10; // statutory minimum boarding
+          distanceCost = Math.round(km * ratePerKm);
+          totalSingle = Math.max(10, distanceCost);
+          formulaDesc = `${km} km × ₹${ratePerKm}/km (${terrainRegion.replace("-", " ")})`;
+        }
+        break;
+
+      case "stage-carriage-big":
+        // Big Private 2+2 Bus:
+        // Kashmir Plain: ₹1.40/km, Jammu Plain: ₹1.12/km, Hill: ₹1.59/km
+        {
+          const ratePerKm =
+            terrainRegion === "kashmir-plain"
+              ? 1.40
+              : terrainRegion === "kashmir-hill"
+              ? 1.64
+              : terrainRegion === "jammu-plain"
+              ? 1.12
+              : 1.59;
+          base = 10;
+          distanceCost = Math.round(km * ratePerKm);
+          totalSingle = Math.max(10, distanceCost);
+          formulaDesc = `${km} km × ₹${ratePerKm}/km (${terrainRegion.replace("-", " ")})`;
+        }
+        break;
+
+      case "metered-auto":
+        // Auto-Rickshaw: ₹45 for first 2 km, then ₹7.40/km
+        base = 45;
+        distanceCost = km <= 2 ? 0 : Math.round((km - 2) * 7.4);
+        totalSingle = km <= 2 ? 45 : 45 + distanceCost;
+        formulaDesc = km <= 2 ? "First 2 KM Minimum Meter (₹45)" : `₹45 (First 2 km) + ${(km - 2)} km × ₹7.40/km`;
+        break;
+
+      default:
+        // Standard & Contract Taxi (+18% revised rates)
+        base = chosenVehicle.base;
+        distanceCost = Math.round(km * chosenVehicle.perKm);
+        localAdjustment = chosenVehicle.key === "suv-taxi" ? 20 : 0;
+        totalSingle = Math.max(15, base + distanceCost + localAdjustment);
+        formulaDesc = `Base ₹${base} + (${km} km × ₹${chosenVehicle.perKm}/km)`;
+        break;
+    }
+
     const fullCabCost = chosenVehicle.isPerSeat
       ? totalSingle * chosenVehicle.seatsMultiplier
       : totalSingle;
@@ -357,9 +461,10 @@ export default function App() {
       localAdjustment,
       totalSingle,
       fullCabCost,
+      formulaDesc,
       perKmRate: chosenVehicle.perKm,
     };
-  }, [chosenVehicle, distance]);
+  }, [chosenVehicle, distance, terrainRegion]);
 
   const displayFare = useMemo(() => {
     if (!chosenVehicle.isPerSeat) {
@@ -384,6 +489,7 @@ export default function App() {
     setFrom(preset.from);
     setTo(preset.to);
     setDistance(String(preset.distance));
+    if (preset.region) setTerrainRegion(preset.region);
     showToast(`Loaded ${preset.from} → ${preset.to} (${preset.distance} km)`);
   };
 
@@ -404,6 +510,7 @@ export default function App() {
     );
     if (matching) {
       setDistance(String(matching.distance));
+      if (matching.region) setTerrainRegion(matching.region);
     }
     showToast(`Set ${type === "from" ? "Starting Point" : "Destination"} to ${loc}`);
   };
@@ -492,7 +599,7 @@ export default function App() {
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#529b68] opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-[#529b68]"></span>
               </span>
-              <span>SRO-97 Verified Rates</span>
+              <span>2026 Revised Rates</span>
             </div>
 
             <button
@@ -615,7 +722,7 @@ export default function App() {
           <div className="space-y-6">
             {/* Hero Card */}
             <section className="bg-gradient-to-r from-[#234b4c] via-[#2c5b5c] to-[#345657] rounded-3xl p-6 sm:p-8 text-[#f4f6ed] shadow-lg relative overflow-hidden">
-              <div className="relative z-10 max-w-2xl">
+              <div className="relative z-10 max-w-3xl">
                 <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#f2bd70]/20 text-[#f2bd70] border border-[#f2bd70]/30 text-xs font-bold uppercase tracking-wider mb-3">
                   <Sparkles size={13} />
                   <span>Official Transit Fare Guide</span>
@@ -625,7 +732,7 @@ export default function App() {
                   before you board across J&K.
                 </h1>
                 <p className="mt-2 text-xs sm:text-sm text-[#c7dad0] leading-relaxed">
-                  Accurate government statutory rates for all 9 commercial passenger vehicles in Jammu & Kashmir.
+                  Verified government statutory rates for Electric Vehicles (EVs), Stage-wise Tata Magic, 5,900+ Matadors & Buses, and 18% revised Contract Taxis across Jammu & Kashmir.
                 </p>
                 <div className="mt-3 flex flex-wrap items-center gap-2">
                   <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[#183637]/80 border border-[#4d7f7c]/60 text-[11px] text-[#f2bd70]">
@@ -683,6 +790,7 @@ export default function App() {
                         setTo("Gulmarg");
                         setDistance("51");
                         setVehicle("shared-cab");
+                        setTerrainRegion("kashmir-plain");
                         showToast("Reset to Srinagar ➔ Gulmarg");
                       }}
                       className="flex items-center gap-1 text-xs font-semibold text-[#78908a] hover:text-[#d36b3d] transition"
@@ -797,29 +905,37 @@ export default function App() {
                     </div>
                   </div>
 
-                  {/* Distance in Kilometers */}
-                  <div className="mt-4 pt-4 border-t border-[#eaf0e9] flex flex-col sm:flex-row items-center justify-between gap-3">
-                    <div className="w-full sm:w-auto">
-                      <span className="text-xs font-bold text-[#345657]">Road Distance:</span>
-                      <span className="text-xs text-[#78908a] ml-1.5">
-                        {routeMatch ? "Verified highway corridor" : "Estimated distance"}
-                      </span>
-                    </div>
-
-                    <div className="flex items-center gap-2 w-full sm:w-auto">
-                      <div className="relative flex-1 sm:w-36">
+                  {/* Distance & Region Controls */}
+                  <div className="mt-4 pt-4 border-t border-[#eaf0e9] grid grid-cols-1 sm:grid-cols-2 items-center gap-3">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-bold text-[#345657]">Distance:</span>
+                      <div className="relative flex-1 max-w-[130px]">
                         <input
                           type="number"
                           min="1"
                           max="800"
                           value={distance}
                           onChange={(e) => setDistance(e.target.value)}
-                          className="w-full py-2 pl-3 pr-10 rounded-xl bg-[#f6f8f3] border border-[#dce5dc] text-sm font-bold text-[#234b4c] focus:outline-none focus:ring-2 focus:ring-[#74a181]"
+                          className="w-full py-1.5 pl-3 pr-9 rounded-xl bg-[#f6f8f3] border border-[#dce5dc] text-xs font-bold text-[#234b4c] focus:outline-none focus:ring-2 focus:ring-[#74a181]"
                         />
-                        <span className="absolute right-3 top-2.5 text-xs font-bold text-[#78908a]">
+                        <span className="absolute right-2.5 top-2 text-[10px] font-bold text-[#78908a]">
                           KM
                         </span>
                       </div>
+                    </div>
+
+                    <div className="flex items-center gap-2 sm:justify-end">
+                      <span className="text-xs font-bold text-[#345657]">Region/Terrain:</span>
+                      <select
+                        value={terrainRegion}
+                        onChange={(e) => setTerrainRegion(e.target.value)}
+                        className="py-1.5 px-2.5 rounded-xl bg-[#f6f8f3] border border-[#dce5dc] text-xs font-bold text-[#234b4c] focus:outline-none focus:ring-2 focus:ring-[#74a181]"
+                      >
+                        <option value="kashmir-plain">Kashmir Plains (₹1.64/km)</option>
+                        <option value="kashmir-hill">Kashmir Hilly (₹1.88/km)</option>
+                        <option value="jammu-plain">Jammu Plains (₹1.12/km)</option>
+                        <option value="jammu-hill">Jammu Hilly (₹1.59/km)</option>
+                      </select>
                     </div>
                   </div>
                 </div>
@@ -834,7 +950,7 @@ export default function App() {
                       <div>
                         <h2 className="text-base font-bold text-[#234b4c]">Select Vehicle Type</h2>
                         <p className="text-[11px] text-[#78908a]">
-                          All 9 commercial transit categories across Jammu & Kashmir
+                          Official government statutory rates across Jammu & Kashmir
                         </p>
                       </div>
                     </div>
@@ -911,8 +1027,22 @@ export default function App() {
                           </div>
 
                           <div className="mt-2.5 pt-2 border-t border-[#e2eae0] flex items-center justify-between text-[11px]">
-                            <span className="text-[#78908a]">Base: ₹{v.base}</span>
-                            <span className="font-bold text-[#345657]">₹{v.perKm}/km</span>
+                            <span className="text-[#78908a]">
+                              {v.calcType === "stage-slab"
+                                ? "₹9 to ₹26 Slabs"
+                                : v.calcType === "e-rickshaw"
+                                ? "Flat ₹15/km"
+                                : v.calcType === "e-auto"
+                                ? "₹25 1st km"
+                                : `Base: ₹${v.base}`}
+                            </span>
+                            <span className="font-bold text-[#345657]">
+                              {v.calcType === "stage-slab"
+                                ? "50% Concession >20km"
+                                : v.calcType === "e-auto"
+                                ? "₹20/km next"
+                                : `₹${v.perKm}/km`}
+                            </span>
                           </div>
                         </button>
                       );
@@ -1023,37 +1153,34 @@ export default function App() {
                       <h3 className="font-bold text-sm text-[#234b4c]">Transparent Math</h3>
                     </div>
                     <span className="text-[10px] font-bold text-[#78908a] bg-[#edf3eb] px-2 py-0.5 rounded-md">
-                      SRO-97 Formula
+                      2026 Revised Formula
                     </span>
                   </div>
 
                   <div className="mt-3.5 space-y-2.5 text-xs">
                     <div className="flex items-center justify-between">
-                      <span className="text-[#78908a]">Base Boarding Charge</span>
+                      <span className="text-[#78908a]">Base Rate / Starting Slab</span>
                       <span className="font-bold text-[#345657]">₹{fareParts.base}</span>
                     </div>
 
                     <div className="flex items-center justify-between">
-                      <span className="text-[#78908a]">
-                        Distance Cost ({distance || 0} km × ₹{fareParts.perKmRate}/km)
+                      <span className="text-[#78908a]">Calculation Basis</span>
+                      <span className="font-bold text-[#345657] text-right max-w-[200px] truncate">
+                        {fareParts.formulaDesc}
                       </span>
-                      <span className="font-bold text-[#345657]">₹{fareParts.distanceCost}</span>
                     </div>
 
-                    <div className="flex items-center justify-between">
-                      <span className="text-[#78908a] flex items-center gap-1">
-                        Regional J&K Terrain Factor
-                        <Info size={12} className="text-[#8a9c95]" />
-                      </span>
-                      <span
-                        className={`font-bold ${
-                          fareParts.localAdjustment < 0 ? "text-[#557b72]" : "text-[#bc633a]"
-                        }`}
-                      >
-                        {fareParts.localAdjustment < 0 ? "−" : "+"}₹
-                        {Math.abs(fareParts.localAdjustment)}
-                      </span>
-                    </div>
+                    {fareParts.localAdjustment !== 0 && (
+                      <div className="flex items-center justify-between">
+                        <span className="text-[#78908a] flex items-center gap-1">
+                          Terrain / Tourist Factor
+                          <Info size={12} className="text-[#8a9c95]" />
+                        </span>
+                        <span className="font-bold text-[#bc633a]">
+                          +₹{fareParts.localAdjustment}
+                        </span>
+                      </div>
+                    )}
 
                     <div className="pt-3 border-t border-[#e2eae0] flex items-center justify-between text-sm">
                       <span className="font-extrabold text-[#234b4c]">Total Fare Estimate</span>
@@ -1170,10 +1297,10 @@ export default function App() {
           <div className="bg-[#fbfcf8] border border-[#dce5dc] rounded-3xl p-6 sm:p-8 shadow-sm">
             <div className="pb-4 border-b border-[#e5ece3]">
               <h2 className="text-xl font-extrabold text-[#234b4c]">
-                Official J&K Transport Fare Schedules (SRO-97)
+                Official J&K Transport Fare Schedules (Revised 2026 Gazette)
               </h2>
               <p className="text-xs text-[#78908a] mt-1">
-                Mandatory maximum fare ceiling rates for all 9 non-SRTC commercial passenger vehicles in Jammu & Kashmir.
+                Mandatory maximum fare ceiling rates for all commercial passenger vehicles across Jammu & Kashmir.
               </p>
             </div>
             <div className="mt-6 overflow-x-auto">
@@ -1181,75 +1308,65 @@ export default function App() {
                 <thead>
                   <tr className="border-b border-[#dce5dc] text-[#78908a] uppercase text-[10px]">
                     <th className="py-3 px-4">Vehicle Category</th>
-                    <th className="py-3 px-4">Base Minimum Fare</th>
-                    <th className="py-3 px-4">Rate per KM</th>
-                    <th className="py-3 px-4">Standard Seating</th>
+                    <th className="py-3 px-4">Official Rate Rule</th>
+                    <th className="py-3 px-4">Standard Slabs</th>
                     <th className="py-3 px-4">Transit Applicability</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#eaf0e9] font-medium text-[#345657]">
-                  <tr>
-                    <td className="py-3.5 px-4 font-bold text-[#234b4c]">Shared Maxi-Cab (Sumo/Tavera)</td>
-                    <td className="py-3.5 px-4">₹ 35</td>
-                    <td className="py-3.5 px-4">₹ 5.20 / pass-km</td>
-                    <td className="py-3.5 px-4">4+1 to 7+1</td>
-                    <td className="py-3.5 px-4">Inter-district corridors</td>
+                  <tr className="bg-[#edf5ee]/40">
+                    <td className="py-3.5 px-4 font-bold text-[#234b4c]">⚡ E-Rickshaw (Toto / Cart)</td>
+                    <td className="py-3.5 px-4">Flat ₹15 per km</td>
+                    <td className="py-3.5 px-4">Up to 4 passengers</td>
+                    <td className="py-3.5 px-4">Local colony & market hubs</td>
+                  </tr>
+                  <tr className="bg-[#edf5ee]/40">
+                    <td className="py-3.5 px-4 font-bold text-[#234b4c]">⚡ E-Auto (Electric 3-Wheeler)</td>
+                    <td className="py-3.5 px-4">₹25 (1st km) + ₹20/km subsequent</td>
+                    <td className="py-3.5 px-4">Up to 3 passengers</td>
+                    <td className="py-3.5 px-4">Urban green commuting</td>
                   </tr>
                   <tr>
-                    <td className="py-3.5 px-4 font-bold text-[#234b4c]">Tata Magic / Passenger Van</td>
-                    <td className="py-3.5 px-4">₹ 25</td>
-                    <td className="py-3.5 px-4">₹ 4.20 / pass-km</td>
+                    <td className="py-3.5 px-4 font-bold text-[#234b4c]">🛺 Tata Magic / Local 4-Wheeler</td>
+                    <td className="py-3.5 px-4">Stage slabs: ₹9 (3km), ₹14 (5km), ₹17 (10km), ₹20 (15km), ₹26 (20km)</td>
                     <td className="py-3.5 px-4">6 to 8 seats</td>
-                    <td className="py-3.5 px-4">Feeder & rural routes</td>
+                    <td className="py-3.5 px-4">50% concession for distance &gt;20km</td>
                   </tr>
                   <tr>
-                    <td className="py-3.5 px-4 font-bold text-[#234b4c]">Mini Bus (Stage Carriage 407)</td>
-                    <td className="py-3.5 px-4">₹ 18</td>
-                    <td className="py-3.5 px-4">₹ 2.90 / km</td>
+                    <td className="py-3.5 px-4 font-bold text-[#234b4c]">🚌 Mini Bus (Matador / 407)</td>
+                    <td className="py-3.5 px-4">₹1.64/km (Kashmir Plain) · ₹1.88/km (Hill)</td>
                     <td className="py-3.5 px-4">Per seat (18-24)</td>
-                    <td className="py-3.5 px-4">Town & district routes</td>
+                    <td className="py-3.5 px-4">5,900+ Fleet transit backbone</td>
                   </tr>
                   <tr>
-                    <td className="py-3.5 px-4 font-bold text-[#234b4c]">Private 2+2 Bus (Non-SRTC)</td>
-                    <td className="py-3.5 px-4">₹ 15</td>
-                    <td className="py-3.5 px-4">₹ 2.40 / km</td>
+                    <td className="py-3.5 px-4 font-bold text-[#234b4c]">🚌 Private 2+2 Big Bus</td>
+                    <td className="py-3.5 px-4">₹1.12/km (Jammu Plain) · ₹1.40/km (Kashmir) · ₹1.59/km (Hill)</td>
                     <td className="py-3.5 px-4">Per seat (32+)</td>
-                    <td className="py-3.5 px-4">Long distance routes</td>
+                    <td className="py-3.5 px-4">Long distance stage carriage</td>
                   </tr>
                   <tr>
-                    <td className="py-3.5 px-4 font-bold text-[#234b4c]">Auto-Rickshaw (Petrol/CNG)</td>
-                    <td className="py-3.5 px-4">₹ 45 (first 2 km)</td>
-                    <td className="py-3.5 px-4">₹ 7.40 / km</td>
+                    <td className="py-3.5 px-4 font-bold text-[#234b4c]">🛺 Auto-Rickshaw (Petrol/CNG)</td>
+                    <td className="py-3.5 px-4">₹45 for first 2 km, then ₹7.40/km</td>
                     <td className="py-3.5 px-4">Up to 3 passengers</td>
                     <td className="py-3.5 px-4">City & town limits</td>
                   </tr>
                   <tr>
-                    <td className="py-3.5 px-4 font-bold text-[#234b4c]">E-Auto (Electric Auto)</td>
-                    <td className="py-3.5 px-4">₹ 30</td>
-                    <td className="py-3.5 px-4">₹ 6.00 / km</td>
-                    <td className="py-3.5 px-4">Up to 3 passengers</td>
-                    <td className="py-3.5 px-4">Urban zero-emission</td>
+                    <td className="py-3.5 px-4 font-bold text-[#234b4c]">🚕 Shared Maxi-Cab (Sumo/Bolero)</td>
+                    <td className="py-3.5 px-4">₹35 Base + ₹5.20 / passenger-km</td>
+                    <td className="py-3.5 px-4">4+1 to 7+1</td>
+                    <td className="py-3.5 px-4">Inter-district corridors</td>
                   </tr>
                   <tr>
-                    <td className="py-3.5 px-4 font-bold text-[#234b4c]">E-Rickshaw (Toto / Cart)</td>
-                    <td className="py-3.5 px-4">₹ 15</td>
-                    <td className="py-3.5 px-4">₹ 4.00 / km</td>
-                    <td className="py-3.5 px-4">Up to 4 passengers</td>
-                    <td className="py-3.5 px-4">Local colony & market</td>
-                  </tr>
-                  <tr>
-                    <td className="py-3.5 px-4 font-bold text-[#234b4c]">Private Sedan Taxi (Dzire/Etios)</td>
-                    <td className="py-3.5 px-4">₹ 140</td>
-                    <td className="py-3.5 px-4">₹ 14.50 / km</td>
+                    <td className="py-3.5 px-4 font-bold text-[#234b4c]">🚕 Standard Sedan Taxi (+18% Hiked)</td>
+                    <td className="py-3.5 px-4">₹140 Base + ₹14.50 / km</td>
                     <td className="py-3.5 px-4">Entire vehicle (4+1)</td>
-                    <td className="py-3.5 px-4">Dedicated sedan hire</td>
+                    <td className="py-3.5 px-4">Contract carriage (Dzire/Etios)</td>
                   </tr>
                   <tr>
-                    <td className="py-3.5 px-4 font-bold text-[#234b4c]">Private SUV Taxi (Innova/Crysta)</td>
-                    <td className="py-3.5 px-4">₹ 200</td>
-                    <td className="py-3.5 px-4">₹ 19.50 / km</td>
+                    <td className="py-3.5 px-4 font-bold text-[#234b4c]">🚕 Premium Tourist SUV (+18% Hiked)</td>
+                    <td className="py-3.5 px-4">₹220 Base + ₹21.00 / km</td>
                     <td className="py-3.5 px-4">Entire vehicle (6+1/7+1)</td>
-                    <td className="py-3.5 px-4">Mountain pass & tours</td>
+                    <td className="py-3.5 px-4">Innova Crysta, Scorpio, Fortuner</td>
                   </tr>
                 </tbody>
               </table>
@@ -1319,7 +1436,7 @@ export default function App() {
                   1
                 </span>
                 <div>
-                  <h4 className="font-bold text-[#234b4c]">Pick Your Route</h4>
+                  <h4 className="font-bold text-[#234b4c]">Pick Your Route & Terrain</h4>
                   <p className="text-[#78908a] mt-0.5">
                     Enter your start point and destination or click any quick corridor pill (like Srinagar ➔ Gulmarg).
                   </p>
@@ -1333,7 +1450,7 @@ export default function App() {
                 <div>
                   <h4 className="font-bold text-[#234b4c]">Select Vehicle (9 J&K Categories)</h4>
                   <p className="text-[#78908a] mt-0.5">
-                    Choose from Shared Cabs, Tata Magic, Mini Buses, Private Buses, Autos, E-Autos, E-Rickshaws, Sedan Taxis, and SUV Taxis.
+                    Choose from E-Rickshaws, E-Autos, Stage-wise Tata Magic, 5,900+ Matadors & Buses, or Contract Taxis.
                   </p>
                 </div>
               </div>
