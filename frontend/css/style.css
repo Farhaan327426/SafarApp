@@ -853,6 +853,74 @@ body {
   transform: rotate(180deg) scale(1.05);
 }
 
+/* LIVE ROUTE DISTANCE STATUS BOX */
+.live-route-badge-box {
+  margin-top: 14px;
+  padding: 12px 16px;
+  background: #edf5ee;
+  border: 1px solid #d2e4d4;
+  border-radius: var(--radius-lg);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+@media (min-width: 640px) {
+  .live-route-badge-box {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+}
+
+.live-route-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.live-route-icon {
+  font-size: 20px;
+}
+
+.live-route-title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.live-route-title-row strong {
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--color-primary);
+}
+
+.km-pill {
+  padding: 2px 8px;
+  background: var(--color-primary-light);
+  color: #f4f6ed;
+  font-size: 10px;
+  font-weight: 800;
+  border-radius: 20px;
+}
+
+.live-route-sub {
+  font-size: 11px;
+  color: var(--color-sage);
+  margin-top: 2px;
+  font-weight: 600;
+}
+
+.highway-tag {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--color-primary-light);
+  background: #ffffff;
+  padding: 4px 10px;
+  border-radius: 8px;
+  border: 1px solid #d2e4d4;
+}
+
 /* DISTANCE ROW */
 .distance-row {
   margin-top: 14px;

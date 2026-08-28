@@ -554,38 +554,187 @@ const routePresets = [
   },
 ];
 
-const recentEstimatesList = [
-  {
-    route: "Srinagar → Gulmarg",
-    meta: "Shared Maxi-Cab · Tangmarg corridor",
-    amount: "₹ 300",
-    time: "Today, 10:40 AM",
-    vehicleKey: "shared-cab",
-    from: "Srinagar",
-    to: "Gulmarg",
-    distance: 51,
-  },
-  {
-    route: "Jammu → Katra",
-    meta: "Standard Sedan Taxi · Vaishno Devi route",
-    amount: "₹ 850",
-    time: "Yesterday, 06:15 PM",
-    vehicleKey: "taxi",
-    from: "Jammu",
-    to: "Katra",
-    distance: 49,
-  },
-  {
-    route: "Anantnag → Srinagar",
-    meta: "Mini Bus (Matador) · NH-44 Expressway",
-    amount: "₹ 87",
-    time: "12 Jun, 09:15 AM",
-    vehicleKey: "mini-bus",
-    from: "Anantnag",
-    to: "Srinagar",
-    distance: 53,
-  },
-];
+// 3. J&K Geographic Location Coordinates Matrix (All 75+ Hubs across 22 RTO Districts)
+const locationCoordinates = {
+  "Srinagar": { lat: 34.0837, lng: 74.7973, region: "kashmir-plain", highway: "NH-44 / NH-1" },
+  "Lal Chowk": { lat: 34.0722, lng: 74.8105, region: "kashmir-plain", highway: "Residency / MA Road" },
+  "Lal Chowk (Srinagar)": { lat: 34.0722, lng: 74.8105, region: "kashmir-plain", highway: "Residency Road" },
+  "Srinagar Airport": { lat: 33.9871, lng: 74.7744, region: "kashmir-plain", highway: "Airport Road / Hyderpora" },
+  "Dal Lake (Dalgate)": { lat: 34.0886, lng: 74.8354, region: "kashmir-plain", highway: "Boulevard Road" },
+  "Hazratbal": { lat: 34.1258, lng: 74.8432, region: "kashmir-plain", highway: "Foreshore / Nigeen Road" },
+  "Batamaloo": { lat: 34.0772, lng: 74.7891, region: "kashmir-plain", highway: "Bypass Express Corridor" },
+  "Parimpora": { lat: 34.0921, lng: 74.7562, region: "kashmir-plain", highway: "NH-1 Bypass" },
+  "Pantha Chowk": { lat: 34.0322, lng: 74.8722, region: "kashmir-plain", highway: "NH-44 South Portal" },
+  "Soura": { lat: 34.1352, lng: 74.8021, region: "kashmir-plain", highway: "SKIMS Corridor" },
+  "Nowhatta": { lat: 34.0961, lng: 74.8152, region: "kashmir-plain", highway: "Old City Road" },
+  "Gulmarg": { lat: 34.0484, lng: 74.3805, region: "kashmir-hill", highway: "Tangmarg-Gulmarg Road" },
+  "Tangmarg": { lat: 34.0592, lng: 74.4253, region: "kashmir-hill", highway: "Narbal-Tangmarg Road" },
+  "Pahalgam": { lat: 34.0161, lng: 75.3150, region: "kashmir-hill", highway: "KP Road / Lidder Valley" },
+  "Sonmarg": { lat: 34.3098, lng: 75.2952, region: "kashmir-hill", highway: "NH-1 (Srinagar-Leh)" },
+  "Doodhpathri": { lat: 33.8647, lng: 74.6542, region: "kashmir-hill", highway: "Khansahib Meadow Road" },
+  "Yusmarg": { lat: 33.8312, lng: 74.6644, region: "kashmir-hill", highway: "Charar-e-Sharief Road" },
+  "Aharbal": { lat: 33.6477, lng: 74.7871, region: "kashmir-hill", highway: "Shopian-Aharbal Road" },
+  "Gurez Valley": { lat: 34.6369, lng: 74.8398, region: "kashmir-hill", highway: "Razdan Pass Road" },
+  "Sinthan Top": { lat: 33.5786, lng: 75.5028, region: "kashmir-hill", highway: "NH-244 Sinthan Pass" },
+  "Kokernag": { lat: 33.5852, lng: 75.3082, region: "kashmir-plain", highway: "Anantnag-Kokernag Road" },
+  "Verinag": { lat: 33.5358, lng: 75.2471, region: "kashmir-plain", highway: "Qazigund-Verinag Road" },
+  "Daksum": { lat: 33.6125, lng: 75.4382, region: "kashmir-hill", highway: "Kokernag-Kishtwar Highway" },
+  "Anantnag": { lat: 33.7311, lng: 75.1522, region: "kashmir-plain", highway: "NH-44 Expressway" },
+  "Bijbehara": { lat: 33.7942, lng: 75.1012, region: "kashmir-plain", highway: "NH-44 Expressway" },
+  "Awantipora": { lat: 33.9247, lng: 75.0167, region: "kashmir-plain", highway: "NH-44 Expressway" },
+  "Pampore": { lat: 34.0194, lng: 74.9292, region: "kashmir-plain", highway: "NH-44 Expressway" },
+  "Pulwama": { lat: 33.8719, lng: 74.8961, region: "kashmir-plain", highway: "Circular Road / NH-44" },
+  "Tral": { lat: 33.9312, lng: 75.1124, region: "kashmir-plain", highway: "Awantipora-Tral Road" },
+  "Shopian": { lat: 33.7214, lng: 74.8322, region: "kashmir-plain", highway: "Pulwama-Shopian Highway" },
+  "Kulgam": { lat: 33.6452, lng: 75.0214, region: "kashmir-plain", highway: "Kulgam-Anantnag Road" },
+  "Qazigund": { lat: 33.5936, lng: 75.1639, region: "kashmir-plain", highway: "NH-44 Gateway Portal" },
+  "Budgam": { lat: 34.0152, lng: 74.7214, region: "kashmir-plain", highway: "Srinagar-Budgam Road" },
+  "Chadoora": { lat: 33.9512, lng: 74.7924, region: "kashmir-plain", highway: "Chadoora Highway" },
+  "Magam": { lat: 34.0812, lng: 74.5824, region: "kashmir-plain", highway: "Gulmarg Road" },
+  "Beerwah": { lat: 34.0182, lng: 74.5931, region: "kashmir-plain", highway: "Magam-Beerwah Road" },
+  "Khansahib": { lat: 33.9341, lng: 74.6582, region: "kashmir-hill", highway: "Budgam-Khansahib Road" },
+  "Ganderbal": { lat: 34.2162, lng: 74.7812, region: "kashmir-plain", highway: "Nagbal-Ganderbal Highway" },
+  "Kangan": { lat: 34.2642, lng: 74.9012, region: "kashmir-hill", highway: "NH-1 Sonmarg Corridor" },
+  "Baramulla": { lat: 34.1982, lng: 74.3639, region: "kashmir-plain", highway: "NH-1 Valley Highway" },
+  "Sopore": { lat: 34.2982, lng: 74.4712, region: "kashmir-plain", highway: "Sangrama-Sopore Road" },
+  "Pattan": { lat: 34.1612, lng: 74.5512, region: "kashmir-plain", highway: "NH-1 Expressway" },
+  "Uri": { lat: 34.0842, lng: 74.0412, region: "kashmir-hill", highway: "NH-1 LOC Border Highway" },
+  "Bandipora": { lat: 34.4212, lng: 74.6412, region: "kashmir-plain", highway: "Bandipora-Srinagar Road" },
+  "Kupwara": { lat: 34.5262, lng: 74.2542, region: "kashmir-plain", highway: "Sopore-Kupwara Highway" },
+  "Handwara": { lat: 34.4012, lng: 74.2812, region: "kashmir-plain", highway: "Kupwara Highway" },
+  "Langate": { lat: 34.3612, lng: 74.3212, region: "kashmir-plain", highway: "NH-701A Corridor" },
+  "Karnah": { lat: 34.3912, lng: 73.8512, region: "kashmir-hill", highway: "Nastachun / Sadhna Pass" },
+  "Jammu": { lat: 32.7266, lng: 74.8570, region: "jammu-plain", highway: "NH-44 Main Terminal" },
+  "Jammu Tawi Station": { lat: 32.7052, lng: 74.8761, region: "jammu-plain", highway: "Railway Corridor" },
+  "Jammu Bus Stand": { lat: 32.7282, lng: 74.8621, region: "jammu-plain", highway: "General Bus Stand" },
+  "Gandhi Nagar (Jammu)": { lat: 32.7082, lng: 74.8612, region: "jammu-plain", highway: "University Road" },
+  "Janipur (Jammu)": { lat: 32.7512, lng: 74.8412, region: "jammu-plain", highway: "Bantalab Corridor" },
+  "Janipur": { lat: 32.7512, lng: 74.8412, region: "jammu-plain", highway: "Janipur Main Road" },
+  "Narwal (Jammu)": { lat: 32.6952, lng: 74.8912, region: "jammu-plain", highway: "NH-44 Bypass" },
+  "Katra": { lat: 32.9912, lng: 74.9312, region: "jammu-hill", highway: "NH-144 Katra Highway" },
+  "Katra Railway Station": { lat: 32.9852, lng: 74.9252, region: "jammu-hill", highway: "Shri Mata Vaishno Devi Terminal" },
+  "Banganga (Katra)": { lat: 33.0012, lng: 74.9452, region: "jammu-hill", highway: "Vaishno Devi Base Road" },
+  "Reasi": { lat: 33.0812, lng: 74.8312, region: "jammu-hill", highway: "Katra-Reasi Highway" },
+  "Udhampur": { lat: 32.9262, lng: 75.1412, region: "jammu-hill", highway: "NH-44 4-Lane Highway" },
+  "Patnitop": { lat: 33.1212, lng: 75.3282, region: "jammu-hill", highway: "NH-44 / Chenani-Nashri" },
+  "Sanasar": { lat: 33.1512, lng: 75.2812, region: "jammu-hill", highway: "Patnitop-Sanasar Road" },
+  "Chenani": { lat: 33.0312, lng: 75.2812, region: "jammu-hill", highway: "Dr. Syama Prasad Tunnel Rd" },
+  "Batote": { lat: 33.1612, lng: 75.3182, region: "jammu-hill", highway: "NH-244 / NH-44 Junction" },
+  "Banihal": { lat: 33.4912, lng: 75.2012, region: "jammu-hill", highway: "Navyug Tunnel / NH-44" },
+  "Ramban": { lat: 33.2412, lng: 75.1912, region: "jammu-hill", highway: "NH-44 Chenab Corridor" },
+  "Doda": { lat: 33.1452, lng: 75.5452, region: "jammu-hill", highway: "NH-244 Chenab Highway" },
+  "Bhaderwah": { lat: 32.9812, lng: 75.7112, region: "jammu-hill", highway: "Doda-Bhaderwah Road" },
+  "Kishtwar": { lat: 33.3152, lng: 75.7682, region: "jammu-hill", highway: "NH-244 Kishtwar Highway" },
+  "Rajouri": { lat: 33.3812, lng: 74.3112, region: "jammu-hill", highway: "NH-144A Jammu-Poonch" },
+  "Poonch": { lat: 33.7652, lng: 74.0952, region: "jammu-hill", highway: "NH-144A Border Highway" },
+  "Surankote": { lat: 33.6412, lng: 74.2612, region: "jammu-hill", highway: "Mughal Road / NH-144A" },
+  "Mendhar": { lat: 33.6112, lng: 74.1312, region: "jammu-hill", highway: "BG-Mendhar Road" },
+  "Bafliaz (Mughal Road)": { lat: 33.6012, lng: 74.3512, region: "jammu-hill", highway: "Historic Mughal Highway" },
+  "Akhnoor": { lat: 32.8982, lng: 74.7412, region: "jammu-plain", highway: "NH-144A Chenab Bridge Rd" },
+  "Sunderbani": { lat: 33.0412, lng: 74.4912, region: "jammu-hill", highway: "NH-144A Highway" },
+  "Samba": { lat: 32.5612, lng: 75.1182, region: "jammu-plain", highway: "NH-44 Jammu-Pathankot" },
+  "Kathua": { lat: 32.3712, lng: 75.5182, region: "jammu-plain", highway: "NH-44 Gateway Highway" },
+  "Hiranagar": { lat: 32.4512, lng: 75.2712, region: "jammu-plain", highway: "NH-44 Expressway" },
+  "R.S. Pura": { lat: 32.6112, lng: 74.7312, region: "jammu-plain", highway: "Suchetgarh Border Road" },
+  "Mansar Lake": { lat: 32.6982, lng: 75.1482, region: "jammu-plain", highway: "Samba-Mansar Road" }
+};
+
+// Road Distance & Terrain Resolution Engine
+function resolveRouteInfo(loc1, loc2) {
+  const s1 = (loc1 || "").trim();
+  const s2 = (loc2 || "").trim();
+  if (!s1 || !s2 || s1.toLowerCase() === s2.toLowerCase()) {
+    return {
+      distance: 5,
+      duration: "10m",
+      terrain: "Local Corridor",
+      region: "kashmir-plain",
+      highway: "Local Transit Route",
+      isPreset: false,
+    };
+  }
+
+  // 1. Check exact match in verified route presets
+  const presetMatch = routePresets.find(
+    (r) =>
+      (r.from.toLowerCase() === s1.toLowerCase() && r.to.toLowerCase() === s2.toLowerCase()) ||
+      (r.from.toLowerCase() === s2.toLowerCase() && r.to.toLowerCase() === s1.toLowerCase())
+  );
+  if (presetMatch) {
+    return {
+      distance: presetMatch.distance,
+      duration: presetMatch.duration,
+      terrain: presetMatch.terrain,
+      region: presetMatch.region || "kashmir-plain",
+      highway: presetMatch.highway,
+      stops: presetMatch.stops,
+      isPreset: true,
+    };
+  }
+
+  // 2. Lookup coordinate table
+  const c1 =
+    locationCoordinates[s1] ||
+    Object.entries(locationCoordinates).find(
+      ([k]) => k.toLowerCase() === s1.toLowerCase() || s1.toLowerCase().includes(k.toLowerCase())
+    )?.[1];
+  const c2 =
+    locationCoordinates[s2] ||
+    Object.entries(locationCoordinates).find(
+      ([k]) => k.toLowerCase() === s2.toLowerCase() || s2.toLowerCase().includes(k.toLowerCase())
+    )?.[1];
+
+  if (c1 && c2) {
+    const R = 6371; // Earth radius in KM
+    const dLat = ((c2.lat - c1.lat) * Math.PI) / 180;
+    const dLng = ((c2.lng - c1.lng) * Math.PI) / 180;
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos((c1.lat * Math.PI) / 180) *
+        Math.cos((c2.lat * Math.PI) / 180) *
+        Math.sin(dLng / 2) *
+        Math.sin(dLng / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    const aerialKm = R * c;
+
+    const isHilly = c1.region.includes("hill") || c2.region.includes("hill");
+    const roadFactor = isHilly ? 1.55 : 1.35;
+    const roadDistance = Math.max(2, Math.round(aerialKm * roadFactor));
+
+    const region =
+      c1.region.includes("jammu") || c2.region.includes("jammu")
+        ? isHilly
+          ? "jammu-hill"
+          : "jammu-plain"
+        : isHilly
+        ? "kashmir-hill"
+        : "kashmir-plain";
+
+    const hours = roadDistance / (isHilly ? 32 : 45);
+    const h = Math.floor(hours);
+    const m = Math.round((hours - h) * 60);
+    const duration = h > 0 ? `${h}h ${m}m` : `${Math.max(10, m)}m`;
+
+    return {
+      distance: roadDistance,
+      duration,
+      terrain: isHilly ? "Mountain Highway Corridor" : "Plains Commercial Corridor",
+      region,
+      highway: `${c1.highway} ➔ ${c2.highway}`,
+      isPreset: false,
+    };
+  }
+
+  // 3. Fallback realistic estimate
+  return {
+    distance: 28,
+    duration: "45m",
+    terrain: "Standard District Corridor",
+    region: "kashmir-plain",
+    highway: "J&K State Highway",
+    isPreset: false,
+  };
+}
 
 export default function App() {
   const [activeNav, setActiveNav] = useState("Fare calculator");
@@ -594,7 +743,7 @@ export default function App() {
   const [distance, setDistance] = useState("51");
   const [vehicle, setVehicle] = useState("shared-cab");
   const [vehicleCategoryFilter, setVehicleCategoryFilter] = useState("all");
-  const [terrainRegion, setTerrainRegion] = useState("kashmir-plain");
+  const [terrainRegion, setTerrainRegion] = useState("kashmir-hill");
   const [notice, setNotice] = useState("");
   const [showNotifications, setShowNotifications] = useState(false);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
@@ -603,27 +752,18 @@ export default function App() {
   const [searchToFocus, setSearchToFocus] = useState(false);
   const [priceMode, setPriceMode] = useState("per-seat");
 
-  const chosenVehicle = useMemo(
-    () => vehicleOptions.find((option) => option.key === vehicle) ?? vehicleOptions[0],
-    [vehicle]
-  );
+  // Dynamic Route & Distance Resolver
+  const currentRouteMeta = useMemo(() => {
+    return resolveRouteInfo(from, to);
+  }, [from, to]);
 
-  const filteredVehicles = useMemo(() => {
-    if (vehicleCategoryFilter === "all") return vehicleOptions;
-    return vehicleOptions.filter((v) => v.category === vehicleCategoryFilter);
-  }, [vehicleCategoryFilter]);
-
-  const routeMatch = useMemo(
-    () =>
-      routePresets.find(
-        (route) =>
-          (route.from.toLowerCase() === from.trim().toLowerCase() &&
-            route.to.toLowerCase() === to.trim().toLowerCase()) ||
-          (route.from.toLowerCase() === to.trim().toLowerCase() &&
-            route.to.toLowerCase() === from.trim().toLowerCase())
-      ),
-    [from, to]
-  );
+  // Synchronize distance and terrain on route update
+  const syncRouteDistance = (nextFrom, nextTo) => {
+    const info = resolveRouteInfo(nextFrom, nextTo);
+    setDistance(String(info.distance));
+    setTerrainRegion(info.region);
+    return info;
+  };
 
   // Exact Statutory Fare Calculations
   const fareParts = useMemo(() => {
@@ -768,9 +908,11 @@ export default function App() {
 
   const handleSwap = () => {
     const oldFrom = from;
-    setFrom(to);
+    const oldTo = to;
+    setFrom(oldTo);
     setTo(oldFrom);
-    showToast(`Swapped: ${to} ⇄ ${from}`);
+    syncRouteDistance(oldTo, oldFrom);
+    showToast(`Swapped: ${oldTo} ⇄ ${oldFrom}`);
   };
 
   const handleSelectPreset = (preset) => {
@@ -778,29 +920,30 @@ export default function App() {
     setTo(preset.to);
     setDistance(String(preset.distance));
     if (preset.region) setTerrainRegion(preset.region);
-    showToast(`Loaded ${preset.from} → ${preset.to} (${preset.distance} km)`);
+    showToast(`Loaded ${preset.from} ➔ ${preset.to} (${preset.distance} km)`);
+  };
+
+  const handleFromChange = (val) => {
+    setFrom(val);
+    syncRouteDistance(val, to);
+  };
+
+  const handleToChange = (val) => {
+    setTo(val);
+    syncRouteDistance(from, val);
   };
 
   const handleLocationPick = (type, loc) => {
     if (type === "from") {
       setFrom(loc);
       setSearchFromFocus(false);
+      syncRouteDistance(loc, to);
     } else {
       setTo(loc);
       setSearchToFocus(false);
+      syncRouteDistance(from, loc);
     }
-    const matching = routePresets.find(
-      (r) =>
-        (r.from.toLowerCase() === (type === "from" ? loc : from).toLowerCase() &&
-          r.to.toLowerCase() === (type === "to" ? loc : to).toLowerCase()) ||
-        (r.to.toLowerCase() === (type === "from" ? loc : from).toLowerCase() &&
-          r.from.toLowerCase() === (type === "to" ? loc : to).toLowerCase())
-    );
-    if (matching) {
-      setDistance(String(matching.distance));
-      if (matching.region) setTerrainRegion(matching.region);
-    }
-    showToast(`Set ${type === "from" ? "Starting Point" : "Destination"} to ${loc}`);
+    showToast(`Selected: ${loc}`);
   };
 
   const handleShare = () => {
@@ -1101,7 +1244,7 @@ export default function App() {
                           type="text"
                           value={from}
                           onFocus={() => setSearchFromFocus(true)}
-                          onChange={(e) => setFrom(e.target.value)}
+                          onChange={(e) => handleFromChange(e.target.value)}
                           placeholder="e.g. Srinagar, Lal Chowk"
                           className="w-full pl-10 pr-3 py-3 rounded-2xl bg-[#f6f8f3] border border-[#dce5dc] text-sm font-bold text-[#234b4c] focus:outline-none focus:ring-2 focus:ring-[#74a181] focus:bg-[#fbfcf8] transition"
                         />
@@ -1169,7 +1312,7 @@ export default function App() {
                           type="text"
                           value={to}
                           onFocus={() => setSearchToFocus(true)}
-                          onChange={(e) => setTo(e.target.value)}
+                          onChange={(e) => handleToChange(e.target.value)}
                           placeholder="e.g. Gulmarg, Pahalgam"
                           className="w-full pl-10 pr-3 py-3 rounded-2xl bg-[#f6f8f3] border border-[#dce5dc] text-sm font-bold text-[#234b4c] focus:outline-none focus:ring-2 focus:ring-[#74a181] focus:bg-[#fbfcf8] transition"
                         />
@@ -1215,31 +1358,62 @@ export default function App() {
                     </div>
                   </div>
 
-                  {/* Distance & Region Controls */}
-                  <div className="mt-4 pt-4 border-t border-[#eaf0e9] grid grid-cols-1 sm:grid-cols-2 items-center gap-3">
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs font-bold text-[#345657]">Distance:</span>
-                      <div className="relative flex-1 max-w-[130px]">
+                  {/* Real-time Dynamic Route & Highway Distance Card */}
+                  <div className="mt-4 p-3.5 rounded-2xl bg-[#edf5ee] border border-[#d2e4d4] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-8 h-8 rounded-xl bg-[#234b4c] text-[#f2bd70] flex items-center justify-center font-bold text-xs shrink-0">
+                        <Route size={16} />
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-extrabold text-[#234b4c]">
+                            {from} ➔ {to}
+                          </span>
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#345657] text-[#f4f6ed]">
+                            {distance} KM
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-[#557b72] font-medium mt-0.5">
+                          ⏱️ Approx {currentRouteMeta.duration} · 🏔️ {currentRouteMeta.terrain}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2 self-end sm:self-auto">
+                      <span className="text-[11px] font-bold text-[#78908a] hidden md:inline">
+                        Manual override:
+                      </span>
+                      <div className="relative w-24">
                         <input
                           type="number"
                           min="1"
                           max="800"
                           value={distance}
                           onChange={(e) => setDistance(e.target.value)}
-                          className="w-full py-1.5 pl-3 pr-9 rounded-xl bg-[#f6f8f3] border border-[#dce5dc] text-xs font-bold text-[#234b4c] focus:outline-none focus:ring-2 focus:ring-[#74a181]"
+                          className="w-full py-1 pl-2 pr-7 rounded-xl bg-[#fbfcf8] border border-[#c5d8c8] text-xs font-bold text-[#234b4c] focus:outline-none focus:ring-2 focus:ring-[#74a181]"
                         />
-                        <span className="absolute right-2.5 top-2 text-[10px] font-bold text-[#78908a]">
+                        <span className="absolute right-2 top-1.5 text-[10px] font-bold text-[#78908a]">
                           KM
                         </span>
                       </div>
                     </div>
+                  </div>
 
-                    <div className="flex items-center gap-2 sm:justify-end">
-                      <span className="text-xs font-bold text-[#345657]">Region/Terrain:</span>
+                  {/* Distance & Region Controls */}
+                  <div className="mt-3 pt-3 border-t border-[#eaf0e9] flex flex-wrap items-center justify-between gap-2 text-xs">
+                    <div className="flex items-center gap-1.5 text-[#557b72]">
+                      <Navigation size={13} className="text-[#d36b3d]" />
+                      <span className="text-[11px]">
+                        <strong>Corridor:</strong> {currentRouteMeta.highway}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <span className="text-[11px] font-bold text-[#345657]">Region/Terrain:</span>
                       <select
                         value={terrainRegion}
                         onChange={(e) => setTerrainRegion(e.target.value)}
-                        className="py-1.5 px-2.5 rounded-xl bg-[#f6f8f3] border border-[#dce5dc] text-xs font-bold text-[#234b4c] focus:outline-none focus:ring-2 focus:ring-[#74a181]"
+                        className="py-1 px-2 rounded-xl bg-[#f6f8f3] border border-[#dce5dc] text-xs font-bold text-[#234b4c] focus:outline-none focus:ring-2 focus:ring-[#74a181]"
                       >
                         <option value="kashmir-plain">Kashmir Plains (₹1.64/km)</option>
                         <option value="kashmir-hill">Kashmir Hilly (₹1.88/km)</option>

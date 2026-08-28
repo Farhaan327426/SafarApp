@@ -514,88 +514,190 @@ function showToast(msg) {
   }, 2800);
 }
 
-// 4. Alphabetically Sorted J&K Locations (All 22 District RTOs, Commercial Hubs & Tourist Corridors)
-const popularLocations = [
-  "Aharbal",
-  "Akhnoor",
-  "Anantnag",
-  "Awantipora",
-  "Bafliaz (Mughal Road)",
-  "Bandipora",
-  "Banganga (Katra)",
-  "Banihal",
-  "Baramulla",
-  "Batamaloo",
-  "Batote",
-  "Beerwah",
-  "Bhaderwah",
-  "Bijbehara",
-  "Budgam",
-  "Chadoora",
-  "Chenani",
-  "Daksum",
-  "Dal Lake (Dalgate)",
-  "Doda",
-  "Doodhpathri",
-  "Ganderbal",
-  "Gandhi Nagar (Jammu)",
-  "Gulmarg",
-  "Gurez Valley",
-  "Handwara",
-  "Hazratbal",
-  "Hiranagar",
-  "Jammu",
-  "Jammu Bus Stand",
-  "Jammu Tawi Station",
-  "Janipur (Jammu)",
-  "Kangan",
-  "Karnah",
-  "Kathua",
-  "Katra",
-  "Khansahib",
-  "Kishtwar",
-  "Kokernag",
-  "Kulgam",
-  "Kupwara",
-  "Lal Chowk (Srinagar)",
-  "Langate",
-  "Magam",
-  "Mansar Lake",
-  "Mendhar",
-  "Narbal",
-  "Narwal (Jammu)",
-  "Nowhatta",
-  "Pahalgam",
-  "Pampore",
-  "Pantha Chowk",
-  "Parimpora",
-  "Patnitop",
-  "Pattan",
-  "Poonch",
-  "Pulwama",
-  "Qazigund",
-  "R.S. Pura",
-  "Rajouri",
-  "Ramban",
-  "Reasi",
-  "Samba",
-  "Sanasar",
-  "Shopian",
-  "Sinthan Top",
-  "Sonmarg",
-  "Sopore",
-  "Soura",
-  "Srinagar",
-  "Srinagar Airport",
-  "Sunderbani",
-  "Surankote",
-  "Tangmarg",
-  "Tral",
-  "Udhampur",
-  "Uri",
-  "Verinag",
-  "Yusmarg"
-].sort((a, b) => a.localeCompare(b));
+// 4. J&K Geographic Location Coordinates Matrix (All 75+ Hubs across 22 RTO Districts)
+const locationCoordinates = {
+  "Srinagar": { lat: 34.0837, lng: 74.7973, region: "kashmir-plain", highway: "NH-44 / NH-1" },
+  "Lal Chowk": { lat: 34.0722, lng: 74.8105, region: "kashmir-plain", highway: "Residency / MA Road" },
+  "Lal Chowk (Srinagar)": { lat: 34.0722, lng: 74.8105, region: "kashmir-plain", highway: "Residency Road" },
+  "Srinagar Airport": { lat: 33.9871, lng: 74.7744, region: "kashmir-plain", highway: "Airport Road / Hyderpora" },
+  "Dal Lake (Dalgate)": { lat: 34.0886, lng: 74.8354, region: "kashmir-plain", highway: "Boulevard Road" },
+  "Hazratbal": { lat: 34.1258, lng: 74.8432, region: "kashmir-plain", highway: "Foreshore / Nigeen Road" },
+  "Batamaloo": { lat: 34.0772, lng: 74.7891, region: "kashmir-plain", highway: "Bypass Express Corridor" },
+  "Parimpora": { lat: 34.0921, lng: 74.7562, region: "kashmir-plain", highway: "NH-1 Bypass" },
+  "Pantha Chowk": { lat: 34.0322, lng: 74.8722, region: "kashmir-plain", highway: "NH-44 South Portal" },
+  "Soura": { lat: 34.1352, lng: 74.8021, region: "kashmir-plain", highway: "SKIMS Corridor" },
+  "Nowhatta": { lat: 34.0961, lng: 74.8152, region: "kashmir-plain", highway: "Old City Road" },
+  "Gulmarg": { lat: 34.0484, lng: 74.3805, region: "kashmir-hill", highway: "Tangmarg-Gulmarg Road" },
+  "Tangmarg": { lat: 34.0592, lng: 74.4253, region: "kashmir-hill", highway: "Narbal-Tangmarg Road" },
+  "Pahalgam": { lat: 34.0161, lng: 75.3150, region: "kashmir-hill", highway: "KP Road / Lidder Valley" },
+  "Sonmarg": { lat: 34.3098, lng: 75.2952, region: "kashmir-hill", highway: "NH-1 (Srinagar-Leh)" },
+  "Doodhpathri": { lat: 33.8647, lng: 74.6542, region: "kashmir-hill", highway: "Khansahib Meadow Road" },
+  "Yusmarg": { lat: 33.8312, lng: 74.6644, region: "kashmir-hill", highway: "Charar-e-Sharief Road" },
+  "Aharbal": { lat: 33.6477, lng: 74.7871, region: "kashmir-hill", highway: "Shopian-Aharbal Road" },
+  "Gurez Valley": { lat: 34.6369, lng: 74.8398, region: "kashmir-hill", highway: "Razdan Pass Road" },
+  "Sinthan Top": { lat: 33.5786, lng: 75.5028, region: "kashmir-hill", highway: "NH-244 Sinthan Pass" },
+  "Kokernag": { lat: 33.5852, lng: 75.3082, region: "kashmir-plain", highway: "Anantnag-Kokernag Road" },
+  "Verinag": { lat: 33.5358, lng: 75.2471, region: "kashmir-plain", highway: "Qazigund-Verinag Road" },
+  "Daksum": { lat: 33.6125, lng: 75.4382, region: "kashmir-hill", highway: "Kokernag-Kishtwar Highway" },
+  "Anantnag": { lat: 33.7311, lng: 75.1522, region: "kashmir-plain", highway: "NH-44 Expressway" },
+  "Bijbehara": { lat: 33.7942, lng: 75.1012, region: "kashmir-plain", highway: "NH-44 Expressway" },
+  "Awantipora": { lat: 33.9247, lng: 75.0167, region: "kashmir-plain", highway: "NH-44 Expressway" },
+  "Pampore": { lat: 34.0194, lng: 74.9292, region: "kashmir-plain", highway: "NH-44 Expressway" },
+  "Pulwama": { lat: 33.8719, lng: 74.8961, region: "kashmir-plain", highway: "Circular Road / NH-44" },
+  "Tral": { lat: 33.9312, lng: 75.1124, region: "kashmir-plain", highway: "Awantipora-Tral Road" },
+  "Shopian": { lat: 33.7214, lng: 74.8322, region: "kashmir-plain", highway: "Pulwama-Shopian Highway" },
+  "Kulgam": { lat: 33.6452, lng: 75.0214, region: "kashmir-plain", highway: "Kulgam-Anantnag Road" },
+  "Qazigund": { lat: 33.5936, lng: 75.1639, region: "kashmir-plain", highway: "NH-44 Gateway Portal" },
+  "Budgam": { lat: 34.0152, lng: 74.7214, region: "kashmir-plain", highway: "Srinagar-Budgam Road" },
+  "Chadoora": { lat: 33.9512, lng: 74.7924, region: "kashmir-plain", highway: "Chadoora Highway" },
+  "Magam": { lat: 34.0812, lng: 74.5824, region: "kashmir-plain", highway: "Gulmarg Road" },
+  "Beerwah": { lat: 34.0182, lng: 74.5931, region: "kashmir-plain", highway: "Magam-Beerwah Road" },
+  "Khansahib": { lat: 33.9341, lng: 74.6582, region: "kashmir-hill", highway: "Budgam-Khansahib Road" },
+  "Ganderbal": { lat: 34.2162, lng: 74.7812, region: "kashmir-plain", highway: "Nagbal-Ganderbal Highway" },
+  "Kangan": { lat: 34.2642, lng: 74.9012, region: "kashmir-hill", highway: "NH-1 Sonmarg Corridor" },
+  "Baramulla": { lat: 34.1982, lng: 74.3639, region: "kashmir-plain", highway: "NH-1 Valley Highway" },
+  "Sopore": { lat: 34.2982, lng: 74.4712, region: "kashmir-plain", highway: "Sangrama-Sopore Road" },
+  "Pattan": { lat: 34.1612, lng: 74.5512, region: "kashmir-plain", highway: "NH-1 Expressway" },
+  "Uri": { lat: 34.0842, lng: 74.0412, region: "kashmir-hill", highway: "NH-1 LOC Border Highway" },
+  "Bandipora": { lat: 34.4212, lng: 74.6412, region: "kashmir-plain", highway: "Bandipora-Srinagar Road" },
+  "Kupwara": { lat: 34.5262, lng: 74.2542, region: "kashmir-plain", highway: "Sopore-Kupwara Highway" },
+  "Handwara": { lat: 34.4012, lng: 74.2812, region: "kashmir-plain", highway: "Kupwara Highway" },
+  "Langate": { lat: 34.3612, lng: 74.3212, region: "kashmir-plain", highway: "NH-701A Corridor" },
+  "Karnah": { lat: 34.3912, lng: 73.8512, region: "kashmir-hill", highway: "Nastachun / Sadhna Pass" },
+  "Jammu": { lat: 32.7266, lng: 74.8570, region: "jammu-plain", highway: "NH-44 Main Terminal" },
+  "Jammu Tawi Station": { lat: 32.7052, lng: 74.8761, region: "jammu-plain", highway: "Railway Corridor" },
+  "Jammu Bus Stand": { lat: 32.7282, lng: 74.8621, region: "jammu-plain", highway: "General Bus Stand" },
+  "Gandhi Nagar (Jammu)": { lat: 32.7082, lng: 74.8612, region: "jammu-plain", highway: "University Road" },
+  "Janipur (Jammu)": { lat: 32.7512, lng: 74.8412, region: "jammu-plain", highway: "Bantalab Corridor" },
+  "Janipur": { lat: 32.7512, lng: 74.8412, region: "jammu-plain", highway: "Janipur Main Road" },
+  "Narwal (Jammu)": { lat: 32.6952, lng: 74.8912, region: "jammu-plain", highway: "NH-44 Bypass" },
+  "Katra": { lat: 32.9912, lng: 74.9312, region: "jammu-hill", highway: "NH-144 Katra Highway" },
+  "Katra Railway Station": { lat: 32.9852, lng: 74.9252, region: "jammu-hill", highway: "Shri Mata Vaishno Devi Terminal" },
+  "Banganga (Katra)": { lat: 33.0012, lng: 74.9452, region: "jammu-hill", highway: "Vaishno Devi Base Road" },
+  "Reasi": { lat: 33.0812, lng: 74.8312, region: "jammu-hill", highway: "Katra-Reasi Highway" },
+  "Udhampur": { lat: 32.9262, lng: 75.1412, region: "jammu-hill", highway: "NH-44 4-Lane Highway" },
+  "Patnitop": { lat: 33.1212, lng: 75.3282, region: "jammu-hill", highway: "NH-44 / Chenani-Nashri" },
+  "Sanasar": { lat: 33.1512, lng: 75.2812, region: "jammu-hill", highway: "Patnitop-Sanasar Road" },
+  "Chenani": { lat: 33.0312, lng: 75.2812, region: "jammu-hill", highway: "Dr. Syama Prasad Tunnel Rd" },
+  "Batote": { lat: 33.1612, lng: 75.3182, region: "jammu-hill", highway: "NH-244 / NH-44 Junction" },
+  "Banihal": { lat: 33.4912, lng: 75.2012, region: "jammu-hill", highway: "Navyug Tunnel / NH-44" },
+  "Ramban": { lat: 33.2412, lng: 75.1912, region: "jammu-hill", highway: "NH-44 Chenab Corridor" },
+  "Doda": { lat: 33.1452, lng: 75.5452, region: "jammu-hill", highway: "NH-244 Chenab Highway" },
+  "Bhaderwah": { lat: 32.9812, lng: 75.7112, region: "jammu-hill", highway: "Doda-Bhaderwah Road" },
+  "Kishtwar": { lat: 33.3152, lng: 75.7682, region: "jammu-hill", highway: "NH-244 Kishtwar Highway" },
+  "Rajouri": { lat: 33.3812, lng: 74.3112, region: "jammu-hill", highway: "NH-144A Jammu-Poonch" },
+  "Poonch": { lat: 33.7652, lng: 74.0952, region: "jammu-hill", highway: "NH-144A Border Highway" },
+  "Surankote": { lat: 33.6412, lng: 74.2612, region: "jammu-hill", highway: "Mughal Road / NH-144A" },
+  "Mendhar": { lat: 33.6112, lng: 74.1312, region: "jammu-hill", highway: "BG-Mendhar Road" },
+  "Bafliaz (Mughal Road)": { lat: 33.6012, lng: 74.3512, region: "jammu-hill", highway: "Historic Mughal Highway" },
+  "Akhnoor": { lat: 32.8982, lng: 74.7412, region: "jammu-plain", highway: "NH-144A Chenab Bridge Rd" },
+  "Sunderbani": { lat: 33.0412, lng: 74.4912, region: "jammu-hill", highway: "NH-144A Highway" },
+  "Samba": { lat: 32.5612, lng: 75.1182, region: "jammu-plain", highway: "NH-44 Jammu-Pathankot" },
+  "Kathua": { lat: 32.3712, lng: 75.5182, region: "jammu-plain", highway: "NH-44 Gateway Highway" },
+  "Hiranagar": { lat: 32.4512, lng: 75.2712, region: "jammu-plain", highway: "NH-44 Expressway" },
+  "R.S. Pura": { lat: 32.6112, lng: 74.7312, region: "jammu-plain", highway: "Suchetgarh Border Road" },
+  "Mansar Lake": { lat: 32.6982, lng: 75.1482, region: "jammu-plain", highway: "Samba-Mansar Road" }
+};
+
+// Road Distance & Terrain Resolution Engine
+function resolveRouteInfo(loc1, loc2) {
+  const s1 = (loc1 || "").trim();
+  const s2 = (loc2 || "").trim();
+  if (!s1 || !s2 || s1.toLowerCase() === s2.toLowerCase()) {
+    return {
+      distance: 5,
+      duration: "10m",
+      terrain: "Local Corridor",
+      region: "kashmir-plain",
+      highway: "Local Transit Route",
+      isPreset: false,
+    };
+  }
+
+  // 1. Check exact match in verified route presets
+  const presetMatch = routePresets.find(
+    (r) =>
+      (r.from.toLowerCase() === s1.toLowerCase() && r.to.toLowerCase() === s2.toLowerCase()) ||
+      (r.from.toLowerCase() === s2.toLowerCase() && r.to.toLowerCase() === s1.toLowerCase())
+  );
+  if (presetMatch) {
+    return {
+      distance: presetMatch.distance,
+      duration: presetMatch.duration,
+      terrain: presetMatch.terrain,
+      region: presetMatch.region || "kashmir-plain",
+      highway: presetMatch.highway,
+      stops: presetMatch.stops,
+      isPreset: true,
+    };
+  }
+
+  // 2. Lookup coordinate table
+  const c1 =
+    locationCoordinates[s1] ||
+    Object.entries(locationCoordinates).find(
+      ([k]) => k.toLowerCase() === s1.toLowerCase() || s1.toLowerCase().includes(k.toLowerCase())
+    )?.[1];
+  const c2 =
+    locationCoordinates[s2] ||
+    Object.entries(locationCoordinates).find(
+      ([k]) => k.toLowerCase() === s2.toLowerCase() || s2.toLowerCase().includes(k.toLowerCase())
+    )?.[1];
+
+  if (c1 && c2) {
+    const R = 6371; // Earth radius in KM
+    const dLat = ((c2.lat - c1.lat) * Math.PI) / 180;
+    const dLng = ((c2.lng - c1.lng) * Math.PI) / 180;
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos((c1.lat * Math.PI) / 180) *
+        Math.cos((c2.lat * Math.PI) / 180) *
+        Math.sin(dLng / 2) *
+        Math.sin(dLng / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    const aerialKm = R * c;
+
+    const isHilly = c1.region.includes("hill") || c2.region.includes("hill");
+    const roadFactor = isHilly ? 1.55 : 1.35;
+    const roadDistance = Math.max(2, Math.round(aerialKm * roadFactor));
+
+    const region =
+      c1.region.includes("jammu") || c2.region.includes("jammu")
+        ? isHilly
+          ? "jammu-hill"
+          : "jammu-plain"
+        : isHilly
+        ? "kashmir-hill"
+        : "kashmir-plain";
+
+    const hours = roadDistance / (isHilly ? 32 : 45);
+    const h = Math.floor(hours);
+    const m = Math.round((hours - h) * 60);
+    const duration = h > 0 ? `${h}h ${m}m` : `${Math.max(10, m)}m`;
+
+    return {
+      distance: roadDistance,
+      duration,
+      terrain: isHilly ? "Mountain Highway Corridor" : "Plains Commercial Corridor",
+      region,
+      highway: `${c1.highway} ➔ ${c2.highway}`,
+      isPreset: false,
+    };
+  }
+
+  // 3. Fallback realistic estimate
+  return {
+    distance: 28,
+    duration: "45m",
+    terrain: "Standard District Corridor",
+    region: "kashmir-plain",
+    highway: "J&K State Highway",
+    isPreset: false,
+  };
+}
+
+// 5. Alphabetically Sorted J&K Locations (All 22 District RTOs, Commercial Hubs & Tourist Corridors)
+const popularLocations = Object.keys(locationCoordinates).sort((a, b) => a.localeCompare(b));
 
 // Inject Alphabetical Locations into Datalist
 function renderDatalist() {
@@ -821,6 +923,17 @@ function calculateAndRender() {
   }
   if (mathTotalFare) mathTotalFare.textContent = formatRupees(finalFare);
 
+  // Update Live Route Distance Card in Step 1
+  const routeInfo = resolveRouteInfo(currentFrom, currentTo);
+  const liveRouteName = document.getElementById("live-route-name");
+  const liveRouteKmPill = document.getElementById("live-route-km-pill");
+  const liveRouteMeta = document.getElementById("live-route-meta");
+  const liveRouteHighway = document.getElementById("live-route-highway");
+  if (liveRouteName) liveRouteName.textContent = `${currentFrom} ➔ ${currentTo}`;
+  if (liveRouteKmPill) liveRouteKmPill.textContent = `${km} KM`;
+  if (liveRouteMeta) liveRouteMeta.textContent = `⏱️ Approx ${routeInfo.duration} · 🏔️ ${routeInfo.terrain}`;
+  if (liveRouteHighway) liveRouteHighway.textContent = routeInfo.highway;
+
   // Toggle Seat Mode Visibility
   if (seatModeContainer) {
     if (!v.isPerSeat) {
@@ -831,25 +944,19 @@ function calculateAndRender() {
   }
 
   // Update Corridor Context details
-  const match = routePresets.find(
-    (r) =>
-      (r.from.toLowerCase() === currentFrom.toLowerCase() && r.to.toLowerCase() === currentTo.toLowerCase()) ||
-      (r.from.toLowerCase() === currentTo.toLowerCase() && r.to.toLowerCase() === currentFrom.toLowerCase())
-  );
-
   const contextCard = document.getElementById("corridor-context-card");
   if (contextCard) {
-    if (match) {
+    if (routeInfo.isPreset) {
       contextCard.style.display = "block";
       const dur = document.getElementById("context-duration");
       const hwy = document.getElementById("context-highway");
       const trn = document.getElementById("context-terrain");
       const chips = document.getElementById("context-stops-chips");
-      if (dur) dur.textContent = match.duration;
-      if (hwy) hwy.textContent = match.highway;
-      if (trn) trn.textContent = match.terrain;
-      if (chips) {
-        chips.innerHTML = match.stops.map((s) => `<span>📍 ${s}</span>`).join("");
+      if (dur) dur.textContent = routeInfo.duration;
+      if (hwy) hwy.textContent = routeInfo.highway;
+      if (trn) trn.textContent = routeInfo.terrain;
+      if (chips && routeInfo.stops) {
+        chips.innerHTML = routeInfo.stops.map((s) => `<span>📍 ${s}</span>`).join("");
       }
     } else {
       contextCard.style.display = "none";
@@ -951,19 +1058,11 @@ function switchTab(tabId) {
   });
 }
 
-function checkRouteMatch() {
-  const match = routePresets.find(
-    (r) =>
-      (r.from.toLowerCase() === currentFrom.trim().toLowerCase() &&
-        r.to.toLowerCase() === currentTo.trim().toLowerCase()) ||
-      (r.from.toLowerCase() === currentTo.trim().toLowerCase() &&
-        r.to.toLowerCase() === currentFrom.trim().toLowerCase())
-  );
-  if (match) {
-    currentDistance = match.distance;
-    if (match.region) currentTerrainRegion = match.region;
-    if (inputDistance) inputDistance.value = currentDistance;
-  }
+function updateRouteDistance(fromLoc, toLoc) {
+  const info = resolveRouteInfo(fromLoc, toLoc);
+  currentDistance = info.distance;
+  currentTerrainRegion = info.region;
+  if (inputDistance) inputDistance.value = currentDistance;
 }
 
 // Attach Event Listeners
@@ -971,12 +1070,12 @@ function attachListeners() {
   if (inputFrom) {
     inputFrom.addEventListener("input", (e) => {
       currentFrom = e.target.value;
-      checkRouteMatch();
+      updateRouteDistance(currentFrom, currentTo);
       calculateAndRender();
     });
     inputFrom.addEventListener("change", (e) => {
       currentFrom = e.target.value;
-      checkRouteMatch();
+      updateRouteDistance(currentFrom, currentTo);
       calculateAndRender();
     });
   }
@@ -984,12 +1083,12 @@ function attachListeners() {
   if (inputTo) {
     inputTo.addEventListener("input", (e) => {
       currentTo = e.target.value;
-      checkRouteMatch();
+      updateRouteDistance(currentFrom, currentTo);
       calculateAndRender();
     });
     inputTo.addEventListener("change", (e) => {
       currentTo = e.target.value;
-      checkRouteMatch();
+      updateRouteDistance(currentFrom, currentTo);
       calculateAndRender();
     });
   }
@@ -1008,7 +1107,7 @@ function attachListeners() {
       currentTo = temp;
       if (inputFrom) inputFrom.value = currentFrom;
       if (inputTo) inputTo.value = currentTo;
-      checkRouteMatch();
+      updateRouteDistance(currentFrom, currentTo);
       calculateAndRender();
       showToast(`Swapped: ${currentFrom} ⇄ ${currentTo}`);
     });
@@ -1020,7 +1119,7 @@ function attachListeners() {
       currentTo = "Gulmarg";
       currentDistance = 51;
       currentVehicleKey = "shared-cab";
-      currentTerrainRegion = "kashmir-plain";
+      currentTerrainRegion = "kashmir-hill";
       if (inputFrom) inputFrom.value = currentFrom;
       if (inputTo) inputTo.value = currentTo;
       if (inputDistance) inputDistance.value = currentDistance;
