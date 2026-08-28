@@ -35,6 +35,11 @@
   padding: 0;
 }
 
+/* CRITICAL: Ensure hidden attribute always hides elements completely */
+[hidden] {
+  display: none !important;
+}
+
 body {
   font-family: var(--font-family);
   background-color: var(--color-bg);
@@ -1559,10 +1564,15 @@ body {
   z-index: 100;
   background: rgba(0, 0, 0, 0.45);
   backdrop-filter: blur(4px);
-  display: flex;
+  display: none;
   align-items: center;
   justify-content: center;
   padding: 16px;
+}
+
+/* Display modal only when it is NOT hidden */
+.modal-backdrop:not([hidden]) {
+  display: flex !important;
 }
 
 .modal-dialog {
@@ -1688,8 +1698,12 @@ body {
   font-weight: 700;
   box-shadow: var(--shadow-xl);
   border: 1px solid #3c6b69;
-  display: flex;
+  display: none;
   align-items: center;
   gap: 8px;
   z-index: 120;
+}
+
+.toast-notification:not([hidden]) {
+  display: flex !important;
 }

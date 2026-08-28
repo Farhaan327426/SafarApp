@@ -8,7 +8,6 @@ import {
   CarFront,
   Check,
   CheckCircle2,
-  ChevronDown,
   ChevronRight,
   CircleHelp,
   CircleGauge,
@@ -20,18 +19,14 @@ import {
   MapPin,
   MapPinned,
   Menu,
-  MoreHorizontal,
   Navigation,
   PhoneCall,
   RefreshCw,
   Route,
-  Search,
-  Settings2,
   Share2,
   ShieldAlert,
   ShieldCheck,
   Sparkles,
-  Users,
   X,
 } from "lucide-react";
 
@@ -112,7 +107,6 @@ const routePresets = [
     terrain: "Mountain Pass",
     highway: "NH-1A / Tangmarg Rd",
     stops: ["Tangmarg", "Magam", "Narbal"],
-    recommended: "Shared Cab or Private Taxi",
   },
   {
     from: "Srinagar",
@@ -122,7 +116,6 @@ const routePresets = [
     terrain: "Scenic Valley Corridor",
     highway: "KP Road / NH-44",
     stops: ["Pampore", "Awantipora", "Anantnag"],
-    recommended: "Shared Cab / Private Taxi",
   },
   {
     from: "Srinagar",
@@ -132,7 +125,6 @@ const routePresets = [
     terrain: "High Mountain Highway",
     highway: "NH-1 (Srinagar-Leh)",
     stops: ["Ganderbal", "Kangan", "Gund"],
-    recommended: "Shared Cab / Tourist Taxi",
   },
   {
     from: "Jammu",
@@ -142,7 +134,6 @@ const routePresets = [
     terrain: "Expressway Foothills",
     highway: "NH-44 / Katra Bypass",
     stops: ["Nagrota", "Jhajjar Kotli"],
-    recommended: "Mini Bus / Shared Taxi",
   },
   {
     from: "Anantnag",
@@ -152,7 +143,6 @@ const routePresets = [
     terrain: "Plains / 4-Lane Highway",
     highway: "NH-44 Valley Expressway",
     stops: ["Bijbehara", "Awantipora", "Pampore"],
-    recommended: "Mini Bus / Shared Cab",
   },
   {
     from: "Sopore",
@@ -162,17 +152,6 @@ const routePresets = [
     terrain: "Plains Road",
     highway: "Sopore-Srinagar Highway",
     stops: ["Sangrama", "Pattan", "Shalteng"],
-    recommended: "Shared Cab / Mini Bus",
-  },
-  {
-    from: "Srinagar Airport",
-    to: "Lal Chowk",
-    distance: 12,
-    duration: "25m",
-    terrain: "City / Airport Corridor",
-    highway: "Airport Road / Hyderpora",
-    stops: ["Hyderpora", "Rambagh", "Jahangir Chowk"],
-    recommended: "Prepaid Taxi / Auto",
   },
 ];
 
@@ -207,35 +186,6 @@ const recentEstimatesList = [
     to: "Srinagar",
     distance: 53,
   },
-  {
-    route: "Srinagar Airport → Lal Chowk",
-    meta: "Auto-Rickshaw · City Transfer",
-    amount: "₹ 140",
-    time: "10 Jun, 02:30 PM",
-    vehicleKey: "auto",
-    from: "Srinagar Airport",
-    to: "Lal Chowk",
-    distance: 12,
-  },
-];
-
-const faqs = [
-  {
-    q: "How does Safar calculate the fair fare?",
-    a: "Safar combines statutory rates regulated by the J&K Transport Department (SRO-97 / MVD guidelines) with verified distance and route terrain factors. This gives you a clear baseline before you negotiate or board.",
-  },
-  {
-    q: "Is this price per seat or for the whole cab?",
-    a: "For Shared Cabs and Mini Buses, the rate shown is per passenger seat. For Private Taxis, the rate is for the entire vehicle. For Auto-rickshaws, it is for the entire trip (up to 3 persons).",
-  },
-  {
-    q: "What if a driver asks for significantly more?",
-    a: "During heavy snowfall, road blockages, or peak tourist season, private operators may quote higher rates. You can show the official breakdown from Safar or call the J&K Traffic Helpline (1033 / 0194-2450022).",
-  },
-  {
-    q: "Are toll taxes and parking charges included?",
-    a: "Standard estimates do not include special toll plazas (like Banihal or expressway tolls) or airport parking fees. These are paid directly if applicable.",
-  },
 ];
 
 export default function App() {
@@ -244,7 +194,6 @@ export default function App() {
   const [to, setTo] = useState("Gulmarg");
   const [distance, setDistance] = useState("51");
   const [vehicle, setVehicle] = useState("shared-cab");
-  const [hasCalculated, setHasCalculated] = useState(true);
   const [notice, setNotice] = useState("");
   const [showNotifications, setShowNotifications] = useState(false);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
@@ -284,7 +233,6 @@ export default function App() {
         : 15;
     const totalSingle = Math.max(15, base + distanceCost + localAdjustment);
     
-    // Calculate full cab multiplier if applicable
     const seatsMultiplier = chosenVehicle.key === "shared-cab" ? 5 : chosenVehicle.key === "mini-bus" ? 18 : 1;
     const fullCabCost = chosenVehicle.key === "taxi" ? totalSingle : totalSingle * seatsMultiplier;
 
@@ -321,7 +269,6 @@ export default function App() {
     setFrom(preset.from);
     setTo(preset.to);
     setDistance(String(preset.distance));
-    setHasCalculated(true);
     showToast(`Loaded ${preset.from} → ${preset.to} (${preset.distance} km)`);
   };
 
@@ -333,7 +280,6 @@ export default function App() {
       setTo(loc);
       setSearchToFocus(false);
     }
-    // Check if there is an automatic match
     const matching = routePresets.find(
       (r) =>
         (r.from.toLowerCase() === (type === "from" ? loc : from).toLowerCase() &&
@@ -426,7 +372,6 @@ export default function App() {
 
           {/* Right Action Utilities */}
           <div className="flex items-center gap-2 sm:gap-3">
-            {/* Live rates heartbeat status */}
             <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[#edf5ee] border border-[#d2e4d4] text-[11px] text-[#426a54] font-medium">
               <span className="relative flex h-2 w-2">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#529b68] opacity-75"></span>
@@ -435,7 +380,6 @@ export default function App() {
               <span>SRO-97 Verified Rates</span>
             </div>
 
-            {/* How it works button */}
             <button
               onClick={() => setShowHelpModal(true)}
               className="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-xl text-[#345657] bg-[#f0f4ee] hover:bg-[#e4ece2] border border-[#dce5dc] transition"
@@ -445,7 +389,6 @@ export default function App() {
               <span className="hidden sm:inline">Help</span>
             </button>
 
-            {/* Notification Bell */}
             <div className="relative">
               <button
                 onClick={() => setShowNotifications(!showNotifications)}
@@ -547,35 +490,15 @@ export default function App() {
                 );
               })}
             </nav>
-
-            <div className="pt-4 border-t border-[#dce5dc] space-y-2">
-              <button
-                onClick={() => {
-                  setShowHelpModal(true);
-                  setMobileNavOpen(false);
-                }}
-                className="w-full flex items-center gap-2 p-2.5 text-xs font-semibold text-[#557b72] hover:bg-[#eaf0e9] rounded-xl"
-              >
-                <HelpCircle size={16} />
-                <span>How Safar Works</span>
-              </button>
-              <div className="p-3 rounded-xl bg-[#eaf0e9] text-[11px] text-[#557b72]">
-                <p className="font-bold">Passenger Helpline: 1033</p>
-                <p className="text-[10px] text-[#78908a]">Jammu & Kashmir Transport Helpdesk</p>
-              </div>
-            </div>
           </div>
         </div>
       )}
 
       {/* Main App Body */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
-        {/* ========================================================================= */}
-        {/* TAB 1: FARE CALCULATOR (PRIMARY LANDING VIEW)                             */}
-        {/* ========================================================================= */}
         {activeNav === "Fare calculator" && (
           <div className="space-y-6">
-            {/* Friendly Hero Banner */}
+            {/* Hero Card */}
             <section className="bg-gradient-to-r from-[#234b4c] via-[#2c5b5c] to-[#345657] rounded-3xl p-6 sm:p-8 text-[#f4f6ed] shadow-lg relative overflow-hidden">
               <div className="relative z-10 max-w-2xl">
                 <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#f2bd70]/20 text-[#f2bd70] border border-[#f2bd70]/30 text-xs font-bold uppercase tracking-wider mb-3">
@@ -589,13 +512,6 @@ export default function App() {
                 <p className="mt-2 text-xs sm:text-sm text-[#c7dad0] leading-relaxed">
                   Simple, transparent estimates for Shared Cabs, Autos, Mini Buses, and Private Taxis based on Jammu & Kashmir official transport guidelines.
                 </p>
-              </div>
-
-              {/* Decorative Mountain SVGs */}
-              <div className="absolute right-0 bottom-0 w-80 h-40 opacity-20 pointer-events-none">
-                <svg viewBox="0 0 400 150" className="w-full h-full" preserveAspectRatio="none">
-                  <path d="M0 150 L80 60 L140 100 L220 30 L300 90 L360 40 L400 150 Z" fill="#ffffff" />
-                </svg>
               </div>
             </section>
 
@@ -642,7 +558,6 @@ export default function App() {
                         setTo("Gulmarg");
                         setDistance("51");
                         setVehicle("shared-cab");
-                        setHasCalculated(true);
                         showToast("Reset to Srinagar ➔ Gulmarg");
                       }}
                       className="flex items-center gap-1 text-xs font-semibold text-[#78908a] hover:text-[#d36b3d] transition"
@@ -665,10 +580,7 @@ export default function App() {
                           type="text"
                           value={from}
                           onFocus={() => setSearchFromFocus(true)}
-                          onChange={(e) => {
-                            setFrom(e.target.value);
-                            setHasCalculated(false);
-                          }}
+                          onChange={(e) => setFrom(e.target.value)}
                           placeholder="e.g. Srinagar, Lal Chowk"
                           className="w-full pl-10 pr-3 py-3 rounded-2xl bg-[#f6f8f3] border border-[#dce5dc] text-sm font-bold text-[#234b4c] focus:outline-none focus:ring-2 focus:ring-[#74a181] focus:bg-[#fbfcf8] transition"
                         />
@@ -725,10 +637,7 @@ export default function App() {
                           type="text"
                           value={to}
                           onFocus={() => setSearchToFocus(true)}
-                          onChange={(e) => {
-                            setTo(e.target.value);
-                            setHasCalculated(false);
-                          }}
+                          onChange={(e) => setTo(e.target.value)}
                           placeholder="e.g. Gulmarg, Pahalgam"
                           className="w-full pl-10 pr-3 py-3 rounded-2xl bg-[#f6f8f3] border border-[#dce5dc] text-sm font-bold text-[#234b4c] focus:outline-none focus:ring-2 focus:ring-[#74a181] focus:bg-[#fbfcf8] transition"
                         />
@@ -779,19 +688,13 @@ export default function App() {
                           min="1"
                           max="800"
                           value={distance}
-                          onChange={(e) => {
-                            setDistance(e.target.value);
-                            setHasCalculated(false);
-                          }}
+                          onChange={(e) => setDistance(e.target.value)}
                           className="w-full py-2 pl-3 pr-10 rounded-xl bg-[#f6f8f3] border border-[#dce5dc] text-sm font-bold text-[#234b4c] focus:outline-none focus:ring-2 focus:ring-[#74a181]"
                         />
                         <span className="absolute right-3 top-2.5 text-xs font-bold text-[#78908a]">
                           KM
                         </span>
                       </div>
-                      <span className="text-xs text-[#78908a]">
-                        (~{Math.round((Number(distance) || 1) * 0.621)} miles)
-                      </span>
                     </div>
                   </div>
                 </div>
@@ -819,7 +722,6 @@ export default function App() {
                           key={v.key}
                           onClick={() => {
                             setVehicle(v.key);
-                            setHasCalculated(true);
                             showToast(`Selected ${v.label}`);
                           }}
                           className={`relative p-4 rounded-2xl text-left border-2 transition-all flex flex-col justify-between ${
@@ -873,11 +775,6 @@ export default function App() {
               <div className="lg:col-span-5 space-y-6">
                 {/* Result Evergreen Hero Card */}
                 <div className="relative bg-gradient-to-br from-[#234b4c] via-[#204445] to-[#183637] rounded-3xl p-6 sm:p-7 text-[#f4f6ed] shadow-xl overflow-hidden border border-[#3c6b69]">
-                  {/* Decorative ambient background */}
-                  <div className="absolute -top-12 -right-12 w-48 h-48 rounded-full bg-[#3d706d]/30 blur-2xl pointer-events-none" />
-                  <div className="absolute -bottom-8 -left-8 w-36 h-36 rounded-full bg-[#f2bd70]/10 blur-xl pointer-events-none" />
-
-                  {/* Header info */}
                   <div className="relative z-10 flex items-start justify-between">
                     <div>
                       <div className="inline-flex items-center gap-1.5 text-[10px] font-extrabold uppercase tracking-widest text-[#f2bd70] bg-[#f2bd70]/15 px-2.5 py-1 rounded-full border border-[#f2bd70]/25">
@@ -1017,13 +914,6 @@ export default function App() {
                       </span>
                     </div>
                   </div>
-
-                  <div className="mt-4 p-3 rounded-2xl bg-[#f2f6f0] border border-[#dbe6d9] text-[11px] text-[#4d7159] flex items-start gap-2">
-                    <Info size={15} className="shrink-0 mt-0.5 text-[#557b72]" />
-                    <p className="leading-relaxed">
-                      Rates represent official standard schedules. During extreme winter weather or night hours, slight driver variations may occur.
-                    </p>
-                  </div>
                 </div>
 
                 {/* Corridor Context Card */}
@@ -1063,308 +953,113 @@ export default function App() {
                 )}
               </div>
             </div>
+          </div>
+        )}
 
-            {/* Bottom Section: Recent Estimates & FAQ Accordions */}
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 pt-4">
-              {/* Recent Estimates List (6 Cols) */}
-              <div className="lg:col-span-6 bg-[#fbfcf8] border border-[#dce5dc] rounded-3xl p-5 sm:p-6 shadow-sm">
-                <div className="flex items-center justify-between pb-3 border-b border-[#e5ece3]">
-                  <div className="flex items-center gap-2">
-                    <Clock3 size={17} className="text-[#557b72]" />
-                    <h3 className="font-bold text-sm text-[#234b4c]">Recent Corridor Estimates</h3>
+        {/* Other tabs */}
+        {activeNav === "Route guide" && (
+          <div className="bg-[#fbfcf8] border border-[#dce5dc] rounded-3xl p-6 sm:p-8 shadow-sm">
+            <h2 className="text-xl font-extrabold text-[#234b4c] pb-4 border-b border-[#e5ece3]">
+              J&K Transit Corridors Directory
+            </h2>
+            <div className="mt-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {routePresets.map((r) => (
+                <div key={`${r.from}-${r.to}`} className="p-5 rounded-2xl bg-[#f8faf6] border border-[#e2eae0]">
+                  <div className="flex justify-between items-center text-sm font-bold text-[#234b4c]">
+                    <span>{r.from} ➔ {r.to}</span>
+                    <span className="text-xs text-[#d36b3d] bg-[#fbf3ec] px-2 py-0.5 rounded">{r.duration}</span>
                   </div>
+                  <p className="text-xs text-[#78908a] mt-2">{r.distance} km • {r.highway}</p>
                   <button
-                    onClick={() => setActiveNav("Recent estimates")}
-                    className="text-xs font-bold text-[#d36b3d] hover:underline"
+                    onClick={() => {
+                      handleSelectPreset(r);
+                      setActiveNav("Fare calculator");
+                    }}
+                    className="mt-4 w-full py-2 bg-[#e5eee4] text-[#234b4c] font-bold text-xs rounded-xl hover:bg-[#234b4c] hover:text-[#f4f6ed] transition"
                   >
-                    View All
+                    Calculate This Route ➔
                   </button>
                 </div>
+              ))}
+            </div>
+          </div>
+        )}
 
-                <div className="mt-3.5 space-y-2.5">
-                  {recentEstimatesList.slice(0, 3).map((item) => (
+        {activeNav === "Recent estimates" && (
+          <div className="bg-[#fbfcf8] border border-[#dce5dc] rounded-3xl p-6 sm:p-8 shadow-sm">
+            <h2 className="text-xl font-extrabold text-[#234b4c] pb-4 border-b border-[#e5ece3]">
+              Recent Calculations
+            </h2>
+            <div className="mt-6 space-y-3">
+              {recentEstimatesList.map((item) => (
+                <div key={item.route} className="p-4 rounded-2xl bg-[#f8faf6] border border-[#e2eae0] flex justify-between items-center">
+                  <div>
+                    <h4 className="font-bold text-sm text-[#234b4c]">{item.route}</h4>
+                    <p className="text-xs text-[#78908a]">{item.meta}</p>
+                  </div>
+                  <div className="flex items-center gap-4">
+                    <span className="text-base font-extrabold text-[#d36b3d]">{item.amount}</span>
                     <button
-                      key={item.route}
                       onClick={() => {
                         setFrom(item.from);
                         setTo(item.to);
                         setDistance(String(item.distance));
                         setVehicle(item.vehicleKey);
-                        setHasCalculated(true);
-                        showToast(`Loaded ${item.route}`);
-                      }}
-                      className="w-full flex items-center justify-between p-3 rounded-2xl bg-[#f8faf6] border border-[#e2eae0] hover:bg-[#edf5ee] hover:border-[#c5d8c7] transition text-left"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-xl bg-[#e5eee4] text-[#345657] flex items-center justify-center">
-                          <Route size={16} />
-                        </div>
-                        <div>
-                          <p className="text-xs font-bold text-[#234b4c]">{item.route}</p>
-                          <p className="text-[10px] text-[#78908a]">{item.meta}</p>
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <span className="text-xs font-extrabold text-[#d36b3d]">{item.amount}</span>
-                        <p className="text-[9px] text-[#8a9c95]">{item.time}</p>
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Passenger Rights & Tips (6 Cols) */}
-              <div className="lg:col-span-6 bg-[#fbfcf8] border border-[#dce5dc] rounded-3xl p-5 sm:p-6 shadow-sm">
-                <div className="flex items-center gap-2 pb-3 border-b border-[#e5ece3]">
-                  <ShieldAlert size={17} className="text-[#d36b3d]" />
-                  <h3 className="font-bold text-sm text-[#234b4c]">Passenger Rights & Tips</h3>
-                </div>
-
-                <div className="mt-3.5 space-y-3 text-xs text-[#557b72]">
-                  <div className="flex items-start gap-2.5">
-                    <CheckCircle2 size={16} className="text-[#557b72] shrink-0 mt-0.5" />
-                    <p>
-                      <strong className="text-[#234b4c]">Confirm Before Boarding:</strong> Always clarify if the quoted rate is per passenger or for the entire vehicle before getting into shared cabs or autos.
-                    </p>
-                  </div>
-                  <div className="flex items-start gap-2.5">
-                    <CheckCircle2 size={16} className="text-[#557b72] shrink-0 mt-0.5" />
-                    <p>
-                      <strong className="text-[#234b4c]">Luggage Policy:</strong> Standard handheld baggage is free. Extra commercial crates or ski bags may incur a nominal ₹30–₹50 surcharge.
-                    </p>
-                  </div>
-                  <div className="flex items-start gap-2.5">
-                    <CheckCircle2 size={16} className="text-[#557b72] shrink-0 mt-0.5" />
-                    <p>
-                      <strong className="text-[#234b4c]">Helpline Support:</strong> Dial <strong>1033</strong> or contact the local Transport Authority if any driver refuses standard rates or overcharges.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* ========================================================================= */}
-        {/* TAB 2: ROUTE GUIDE & CORRIDOR DIRECTORY                                   */}
-        {/* ========================================================================= */}
-        {activeNav === "Route guide" && (
-          <div className="space-y-6">
-            <div className="bg-[#fbfcf8] border border-[#dce5dc] rounded-3xl p-6 sm:p-8 shadow-sm">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-[#e5ece3]">
-                <div>
-                  <h2 className="text-xl font-extrabold text-[#234b4c]">J&K Transit Corridors</h2>
-                  <p className="text-xs text-[#78908a] mt-1">
-                    Verified distances, typical travel times, and recommended transit modes across Jammu & Kashmir.
-                  </p>
-                </div>
-                <button
-                  onClick={() => setActiveNav("Fare calculator")}
-                  className="px-4 py-2 rounded-xl bg-[#234b4c] text-[#f4f6ed] font-bold text-xs hover:bg-[#1a3839] transition self-start"
-                >
-                  Back to Calculator
-                </button>
-              </div>
-
-              <div className="mt-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {routePresets.map((r) => (
-                  <div
-                    key={`${r.from}-${r.to}`}
-                    className="p-5 rounded-2xl bg-[#f8faf6] border border-[#e2eae0] hover:border-[#adc9b2] transition flex flex-col justify-between"
-                  >
-                    <div>
-                      <div className="flex items-center justify-between text-xs">
-                        <span className="font-extrabold text-[#234b4c] text-sm">
-                          {r.from} ➔ {r.to}
-                        </span>
-                        <span className="font-bold text-[#d36b3d] bg-[#fbf3ec] px-2 py-0.5 rounded-md">
-                          {r.duration}
-                        </span>
-                      </div>
-
-                      <div className="mt-3 space-y-1.5 text-xs text-[#78908a]">
-                        <p>
-                          <strong className="text-[#345657]">Distance:</strong> {r.distance} km
-                        </p>
-                        <p>
-                          <strong className="text-[#345657]">Highway:</strong> {r.highway}
-                        </p>
-                        <p>
-                          <strong className="text-[#345657]">Terrain:</strong> {r.terrain}
-                        </p>
-                      </div>
-
-                      <div className="mt-3 pt-2 border-t border-[#e2eae0]">
-                        <p className="text-[10px] font-bold text-[#78908a] uppercase">Key Stops:</p>
-                        <div className="flex flex-wrap gap-1 mt-1">
-                          {r.stops.map((s) => (
-                            <span
-                              key={s}
-                              className="px-1.5 py-0.5 rounded bg-[#edf3eb] text-[10px] font-medium text-[#345657]"
-                            >
-                              {s}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-
-                    <button
-                      onClick={() => {
-                        handleSelectPreset(r);
                         setActiveNav("Fare calculator");
                       }}
-                      className="mt-4 w-full py-2 rounded-xl bg-[#e5eee4] text-[#234b4c] font-bold text-xs hover:bg-[#234b4c] hover:text-[#f4f6ed] transition flex items-center justify-center gap-1.5"
+                      className="px-3 py-1.5 bg-[#234b4c] text-[#f4f6ed] text-xs font-bold rounded-xl"
                     >
-                      <span>Calculate This Route</span>
-                      <ArrowRight size={14} />
+                      Recalculate
                     </button>
                   </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* ========================================================================= */}
-        {/* TAB 3: RECENT ESTIMATES                                                   */}
-        {/* ========================================================================= */}
-        {activeNav === "Recent estimates" && (
-          <div className="space-y-6">
-            <div className="bg-[#fbfcf8] border border-[#dce5dc] rounded-3xl p-6 sm:p-8 shadow-sm">
-              <div className="flex items-center justify-between pb-6 border-b border-[#e5ece3]">
-                <div>
-                  <h2 className="text-xl font-extrabold text-[#234b4c]">Calculation History</h2>
-                  <p className="text-xs text-[#78908a] mt-1">
-                    Past route fares generated during your session. Click any card to re-estimate.
-                  </p>
                 </div>
-                <button
-                  onClick={() => showToast("History is saved locally in your browser")}
-                  className="text-xs font-bold text-[#557b72] hover:underline"
-                >
-                  Local Storage Synced
-                </button>
-              </div>
-
-              <div className="mt-6 space-y-3">
-                {recentEstimatesList.map((item) => (
-                  <div
-                    key={item.route}
-                    className="p-4 rounded-2xl bg-[#f8faf6] border border-[#e2eae0] flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-[#edf5ee] transition"
-                  >
-                    <div className="flex items-center gap-3.5">
-                      <div className="w-10 h-10 rounded-2xl bg-[#234b4c] text-[#f2bd70] flex items-center justify-center font-bold">
-                        <Route size={18} />
-                      </div>
-                      <div>
-                        <h4 className="font-bold text-sm text-[#234b4c]">{item.route}</h4>
-                        <p className="text-xs text-[#78908a]">{item.meta}</p>
-                        <p className="text-[10px] text-[#8a9c95] mt-0.5">{item.time}</p>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-4 self-end sm:self-center">
-                      <span className="text-lg font-black text-[#d36b3d]">{item.amount}</span>
-                      <button
-                        onClick={() => {
-                          setFrom(item.from);
-                          setTo(item.to);
-                          setDistance(String(item.distance));
-                          setVehicle(item.vehicleKey);
-                          setHasCalculated(true);
-                          setActiveNav("Fare calculator");
-                          showToast(`Loaded ${item.route}`);
-                        }}
-                        className="px-3.5 py-1.5 rounded-xl bg-[#234b4c] text-[#f4f6ed] text-xs font-bold hover:bg-[#1a3839] transition"
-                      >
-                        Recalculate
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
+              ))}
             </div>
           </div>
         )}
 
-        {/* ========================================================================= */}
-        {/* TAB 4: OFFICIAL RATE CARD & PASSENGER RIGHTS                             */}
-        {/* ========================================================================= */}
         {activeNav === "Official rate card" && (
-          <div className="space-y-6">
-            <div className="bg-[#fbfcf8] border border-[#dce5dc] rounded-3xl p-6 sm:p-8 shadow-sm">
-              <div className="pb-6 border-b border-[#e5ece3]">
-                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#edf5ee] text-[#426a54] text-xs font-bold uppercase mb-2">
-                  <ShieldCheck size={14} /> Statutory Notification (SRO-97)
-                </div>
-                <h2 className="text-xl font-extrabold text-[#234b4c]">
-                  Official J&K Transport Fare Schedules
-                </h2>
-                <p className="text-xs text-[#78908a] mt-1">
-                  Legal fare ceilings mandated by the Motor Vehicles Department (MVD), Jammu & Kashmir.
-                </p>
-              </div>
-
-              {/* Rate Card Table */}
-              <div className="mt-6 overflow-x-auto">
-                <table className="w-full text-left text-xs border-collapse">
-                  <thead>
-                    <tr className="border-b border-[#dce5dc] text-[#78908a] uppercase text-[10px]">
-                      <th className="py-3 px-4">Vehicle Category</th>
-                      <th className="py-3 px-4">Base Minimum Fare</th>
-                      <th className="py-3 px-4">Rate per KM</th>
-                      <th className="py-3 px-4">Standard Seating</th>
-                      <th className="py-3 px-4">Applicability</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-[#eaf0e9] font-medium text-[#345657]">
-                    <tr>
-                      <td className="py-3.5 px-4 font-bold text-[#234b4c]">Shared Maxi-Cab (Sumo/Tavera)</td>
-                      <td className="py-3.5 px-4">₹ 35</td>
-                      <td className="py-3.5 px-4">₹ 5.20 / passenger-km</td>
-                      <td className="py-3.5 px-4">4+1 to 7+1</td>
-                      <td className="py-3.5 px-4">Inter-district corridors</td>
-                    </tr>
-                    <tr>
-                      <td className="py-3.5 px-4 font-bold text-[#234b4c]">Auto-Rickshaw (3-Wheeler)</td>
-                      <td className="py-3.5 px-4">₹ 45 (first 2 km)</td>
-                      <td className="py-3.5 px-4">₹ 7.40 / km</td>
-                      <td className="py-3.5 px-4">Up to 3 passengers</td>
-                      <td className="py-3.5 px-4">Town & City limits</td>
-                    </tr>
-                    <tr>
-                      <td className="py-3.5 px-4 font-bold text-[#234b4c]">Mini Bus (Stage Carriage 407)</td>
-                      <td className="py-3.5 px-4">₹ 18</td>
-                      <td className="py-3.5 px-4">₹ 2.90 / km</td>
-                      <td className="py-3.5 px-4">Per seat (18+ seats)</td>
-                      <td className="py-3.5 px-4">Regular transit routes</td>
-                    </tr>
-                    <tr>
-                      <td className="py-3.5 px-4 font-bold text-[#234b4c]">Private Tourist Taxi</td>
-                      <td className="py-3.5 px-4">₹ 160</td>
-                      <td className="py-3.5 px-4">₹ 16.50 / km</td>
-                      <td className="py-3.5 px-4">Entire Vehicle (4+1)</td>
-                      <td className="py-3.5 px-4">Dedicated hire / sightseeing</td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-
-              {/* FAQs Section */}
-              <div className="mt-8 pt-6 border-t border-[#e5ece3]">
-                <h3 className="font-bold text-base text-[#234b4c] mb-4">
-                  Frequently Asked Questions
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {faqs.map((f, idx) => (
-                    <div key={idx} className="p-4 rounded-2xl bg-[#f8faf6] border border-[#e2eae0]">
-                      <h4 className="font-bold text-xs text-[#234b4c]">{f.q}</h4>
-                      <p className="text-xs text-[#78908a] mt-1.5 leading-relaxed">{f.a}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
+          <div className="bg-[#fbfcf8] border border-[#dce5dc] rounded-3xl p-6 sm:p-8 shadow-sm">
+            <h2 className="text-xl font-extrabold text-[#234b4c] pb-4 border-b border-[#e5ece3]">
+              Official J&K Transport Fare Schedules (SRO-97)
+            </h2>
+            <div className="mt-6 overflow-x-auto">
+              <table className="w-full text-left text-xs border-collapse">
+                <thead>
+                  <tr className="border-b border-[#dce5dc] text-[#78908a] uppercase text-[10px]">
+                    <th className="py-3 px-4">Vehicle Category</th>
+                    <th className="py-3 px-4">Base Minimum Fare</th>
+                    <th className="py-3 px-4">Rate per KM</th>
+                    <th className="py-3 px-4">Standard Seating</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[#eaf0e9] font-medium text-[#345657]">
+                  <tr>
+                    <td className="py-3.5 px-4 font-bold text-[#234b4c]">Shared Maxi-Cab (Sumo/Tavera)</td>
+                    <td className="py-3.5 px-4">₹ 35</td>
+                    <td className="py-3.5 px-4">₹ 5.20 / passenger-km</td>
+                    <td className="py-3.5 px-4">4+1 to 7+1</td>
+                  </tr>
+                  <tr>
+                    <td className="py-3.5 px-4 font-bold text-[#234b4c]">Auto-Rickshaw (3-Wheeler)</td>
+                    <td className="py-3.5 px-4">₹ 45 (first 2 km)</td>
+                    <td className="py-3.5 px-4">₹ 7.40 / km</td>
+                    <td className="py-3.5 px-4">Up to 3 passengers</td>
+                  </tr>
+                  <tr>
+                    <td className="py-3.5 px-4 font-bold text-[#234b4c]">Mini Bus (Stage Carriage 407)</td>
+                    <td className="py-3.5 px-4">₹ 18</td>
+                    <td className="py-3.5 px-4">₹ 2.90 / km</td>
+                    <td className="py-3.5 px-4">Per seat (18+ seats)</td>
+                  </tr>
+                  <tr>
+                    <td className="py-3.5 px-4 font-bold text-[#234b4c]">Private Tourist Taxi</td>
+                    <td className="py-3.5 px-4">₹ 160</td>
+                    <td className="py-3.5 px-4">₹ 16.50 / km</td>
+                    <td className="py-3.5 px-4">Entire Vehicle (4+1)</td>
+                  </tr>
+                </tbody>
+              </table>
             </div>
           </div>
         )}
@@ -1382,12 +1077,6 @@ export default function App() {
           <div className="flex items-center gap-4 text-[11px]">
             <button onClick={() => setShowHelpModal(true)} className="hover:text-[#234b4c]">
               How it Works
-            </button>
-            <button
-              onClick={() => showToast("Rate data is updated daily according to J&K Transport schedules")}
-              className="hover:text-[#234b4c]"
-            >
-              Rate Card Policy
             </button>
             <span className="text-[#dce5dc]">|</span>
             <span>24/7 Helpline: <strong>1033</strong></span>

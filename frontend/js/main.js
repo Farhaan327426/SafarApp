@@ -211,9 +211,9 @@ function renderQuickPresets() {
       currentFrom = preset.from;
       currentTo = preset.to;
       currentDistance = preset.distance;
-      inputFrom.value = currentFrom;
-      inputTo.value = currentTo;
-      inputDistance.value = currentDistance;
+      if (inputFrom) inputFrom.value = currentFrom;
+      if (inputTo) inputTo.value = currentTo;
+      if (inputDistance) inputDistance.value = currentDistance;
       calculateAndRender();
       showToast(`Loaded ${preset.from} ➔ ${preset.to}`);
     });
@@ -314,10 +314,13 @@ function calculateAndRender() {
   if (contextCard) {
     if (match) {
       contextCard.style.display = "block";
-      document.getElementById("context-duration").textContent = match.duration;
-      document.getElementById("context-highway").textContent = match.highway;
-      document.getElementById("context-terrain").textContent = match.terrain;
+      const dur = document.getElementById("context-duration");
+      const hwy = document.getElementById("context-highway");
+      const trn = document.getElementById("context-terrain");
       const chips = document.getElementById("context-stops-chips");
+      if (dur) dur.textContent = match.duration;
+      if (hwy) hwy.textContent = match.highway;
+      if (trn) trn.textContent = match.terrain;
       if (chips) {
         chips.innerHTML = match.stops.map((s) => `<span>📍 ${s}</span>`).join("");
       }
@@ -356,9 +359,9 @@ function renderRouteGuide() {
       currentFrom = r.from;
       currentTo = r.to;
       currentDistance = r.distance;
-      inputFrom.value = currentFrom;
-      inputTo.value = currentTo;
-      inputDistance.value = currentDistance;
+      if (inputFrom) inputFrom.value = currentFrom;
+      if (inputTo) inputTo.value = currentTo;
+      if (inputDistance) inputDistance.value = currentDistance;
       switchTab("calculator");
       calculateAndRender();
       showToast(`Loaded ${r.from} ➔ ${r.to}`);
@@ -395,9 +398,9 @@ function renderHistory() {
       currentTo = item.to;
       currentDistance = item.distance;
       currentVehicleKey = item.vehicleKey;
-      inputFrom.value = currentFrom;
-      inputTo.value = currentTo;
-      inputDistance.value = currentDistance;
+      if (inputFrom) inputFrom.value = currentFrom;
+      if (inputTo) inputTo.value = currentTo;
+      if (inputDistance) inputDistance.value = currentDistance;
       switchTab("calculator");
       calculateAndRender();
       showToast(`Loaded ${item.route}`);
@@ -420,122 +423,143 @@ function switchTab(tabId) {
   });
 }
 
-// Event Listeners
-if (inputFrom) {
-  inputFrom.addEventListener("input", (e) => {
-    currentFrom = e.target.value;
-    calculateAndRender();
+// Attach Event Listeners
+function attachListeners() {
+  if (inputFrom) {
+    inputFrom.addEventListener("input", (e) => {
+      currentFrom = e.target.value;
+      calculateAndRender();
+    });
+  }
+
+  if (inputTo) {
+    inputTo.addEventListener("input", (e) => {
+      currentTo = e.target.value;
+      calculateAndRender();
+    });
+  }
+
+  if (inputDistance) {
+    inputDistance.addEventListener("input", (e) => {
+      currentDistance = Math.max(1, Number(e.target.value) || 1);
+      calculateAndRender();
+    });
+  }
+
+  if (swapBtn) {
+    swapBtn.addEventListener("click", () => {
+      const temp = currentFrom;
+      currentFrom = currentTo;
+      currentTo = temp;
+      if (inputFrom) inputFrom.value = currentFrom;
+      if (inputTo) inputTo.value = currentTo;
+      calculateAndRender();
+      showToast(`Swapped: ${currentFrom} ⇄ ${currentTo}`);
+    });
+  }
+
+  if (resetBtn) {
+    resetBtn.addEventListener("click", () => {
+      currentFrom = "Srinagar";
+      currentTo = "Gulmarg";
+      currentDistance = 51;
+      currentVehicleKey = "shared-cab";
+      if (inputFrom) inputFrom.value = currentFrom;
+      if (inputTo) inputTo.value = currentTo;
+      if (inputDistance) inputDistance.value = currentDistance;
+      calculateAndRender();
+      showToast("Route reset to Srinagar ➔ Gulmarg");
+    });
+  }
+
+  // Seat mode switch pills
+  document.querySelectorAll(".mode-pill").forEach((pill) => {
+    pill.addEventListener("click", () => {
+      document.querySelectorAll(".mode-pill").forEach((p) => p.classList.remove("active"));
+      pill.classList.add("active");
+      currentPriceMode = pill.getAttribute("data-mode");
+      calculateAndRender();
+    });
   });
-}
 
-if (inputTo) {
-  inputTo.addEventListener("input", (e) => {
-    currentTo = e.target.value;
-    calculateAndRender();
+  // Navigation tab click handlers
+  document.querySelectorAll(".nav-tab, .drawer-link").forEach((tab) => {
+    tab.addEventListener("click", () => {
+      const target = tab.getAttribute("data-tab");
+      switchTab(target);
+      if (mobileDrawer) mobileDrawer.hidden = true;
+    });
   });
+
+  // Modal triggers
+  const hideModal = () => {
+    if (helpModal) helpModal.hidden = true;
+  };
+  const showModal = () => {
+    if (helpModal) helpModal.hidden = false;
+  };
+
+  if (helpModalTrigger) helpModalTrigger.addEventListener("click", showModal);
+  if (footerHelpTrigger) footerHelpTrigger.addEventListener("click", showModal);
+  if (closeModalBtn) closeModalBtn.addEventListener("click", hideModal);
+  if (modalCloseActionBtn) modalCloseActionBtn.addEventListener("click", hideModal);
+  if (helpModal) {
+    helpModal.addEventListener("click", (e) => {
+      if (e.target === helpModal) hideModal();
+    });
+  }
+
+  // Notifications dropdown toggle
+  if (notificationsBtn && notificationsDropdown) {
+    notificationsBtn.addEventListener("click", () => {
+      notificationsDropdown.hidden = !notificationsDropdown.hidden;
+    });
+  }
+
+  // Mobile drawer toggle
+  if (mobileMenuBtn && mobileDrawer) {
+    mobileMenuBtn.addEventListener("click", () => (mobileDrawer.hidden = false));
+  }
+  if (closeDrawerBtn && mobileDrawer) {
+    closeDrawerBtn.addEventListener("click", () => (mobileDrawer.hidden = true));
+  }
+  const drawerBackdrop = document.querySelector(".drawer-backdrop");
+  if (drawerBackdrop && mobileDrawer) {
+    drawerBackdrop.addEventListener("click", () => (mobileDrawer.hidden = true));
+  }
+
+  // Share button
+  if (shareFareBtn) {
+    shareFareBtn.addEventListener("click", () => {
+      const text = `🚗 Safar Fare Estimate: ${currentFrom} to ${currentTo} (${currentDistance} km) is ${displayPriceVal.textContent}. Official J&K transit rates on Safar.`;
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(text);
+        showToast("Estimate copied to clipboard!");
+      } else {
+        showToast("Ready to share!");
+      }
+    });
+  }
+
+  if (helplineBtn) {
+    helplineBtn.addEventListener("click", () => {
+      showToast("J&K Transport Helpline: Dial 1033");
+    });
+  }
 }
 
-if (inputDistance) {
-  inputDistance.addEventListener("input", (e) => {
-    currentDistance = Math.max(1, Number(e.target.value) || 1);
-    calculateAndRender();
-  });
-}
-
-if (swapBtn) {
-  swapBtn.addEventListener("click", () => {
-    const temp = currentFrom;
-    currentFrom = currentTo;
-    currentTo = temp;
-    inputFrom.value = currentFrom;
-    inputTo.value = currentTo;
-    calculateAndRender();
-    showToast(`Swapped: ${currentFrom} ⇄ ${currentTo}`);
-  });
-}
-
-if (resetBtn) {
-  resetBtn.addEventListener("click", () => {
-    currentFrom = "Srinagar";
-    currentTo = "Gulmarg";
-    currentDistance = 51;
-    currentVehicleKey = "shared-cab";
-    inputFrom.value = currentFrom;
-    inputTo.value = currentTo;
-    inputDistance.value = currentDistance;
-    calculateAndRender();
-    showToast("Route reset to Srinagar ➔ Gulmarg");
-  });
-}
-
-// Seat mode switch pills
-document.querySelectorAll(".mode-pill").forEach((pill) => {
-  pill.addEventListener("click", () => {
-    document.querySelectorAll(".mode-pill").forEach((p) => p.classList.remove("active"));
-    pill.classList.add("active");
-    currentPriceMode = pill.getAttribute("data-mode");
-    calculateAndRender();
-  });
-});
-
-// Navigation tab click handlers
-document.querySelectorAll(".nav-tab, .drawer-link").forEach((tab) => {
-  tab.addEventListener("click", () => {
-    const target = tab.getAttribute("data-tab");
-    switchTab(target);
-    if (mobileDrawer) mobileDrawer.hidden = true;
-  });
-});
-
-// Modal triggers
-if (helpModalTrigger) helpModalTrigger.addEventListener("click", () => (helpModal.hidden = false));
-if (footerHelpTrigger) footerHelpTrigger.addEventListener("click", () => (helpModal.hidden = false));
-if (closeModalBtn) closeModalBtn.addEventListener("click", () => (helpModal.hidden = true));
-if (modalCloseActionBtn) modalCloseActionBtn.addEventListener("click", () => (helpModal.hidden = true));
-
-// Notifications dropdown toggle
-if (notificationsBtn && notificationsDropdown) {
-  notificationsBtn.addEventListener("click", () => {
-    notificationsDropdown.hidden = !notificationsDropdown.hidden;
-  });
-}
-
-// Mobile drawer toggle
-if (mobileMenuBtn && mobileDrawer) {
-  mobileMenuBtn.addEventListener("click", () => (mobileDrawer.hidden = false));
-}
-if (closeDrawerBtn && mobileDrawer) {
-  closeDrawerBtn.addEventListener("click", () => (mobileDrawer.hidden = true));
-}
-const drawerBackdrop = document.querySelector(".drawer-backdrop");
-if (drawerBackdrop && mobileDrawer) {
-  drawerBackdrop.addEventListener("click", () => (mobileDrawer.hidden = true));
-}
-
-// Share button
-if (shareFareBtn) {
-  shareFareBtn.addEventListener("click", () => {
-    const text = `🚗 Safar Fare Estimate: ${currentFrom} to ${currentTo} (${currentDistance} km) is ${displayPriceVal.textContent}. Official J&K transit rates on Safar.`;
-    if (navigator.clipboard) {
-      navigator.clipboard.writeText(text);
-      showToast("Estimate copied to clipboard!");
-    } else {
-      showToast("Ready to share!");
-    }
-  });
-}
-
-if (helplineBtn) {
-  helplineBtn.addEventListener("click", () => {
-    showToast("J&K Transport Helpline: Dial 1033");
-  });
-}
-
-// Initialization on load
-document.addEventListener("DOMContentLoaded", () => {
+// Initialization function
+function initSafar() {
+  attachListeners();
   renderQuickPresets();
   renderVehicleCards();
   renderRouteGuide();
   renderHistory();
   calculateAndRender();
-});
+}
+
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", initSafar);
+} else {
+  initSafar();
+}
