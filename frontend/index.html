@@ -191,7 +191,7 @@
                   <label class="field-label origin"><span class="dot-orange"></span> Starting Point</label>
                   <div class="input-icon-wrap">
                     <svg class="field-icon icon-orange" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
-                    <input type="text" id="input-from" value="Srinagar" placeholder="e.g. Srinagar, Lal Chowk">
+                    <input type="text" id="input-from" value="Srinagar" list="locations-list" placeholder="e.g. Srinagar, Lal Chowk" autocomplete="off">
                   </div>
                 </div>
 
@@ -205,10 +205,15 @@
                   <label class="field-label dest"><span class="dot-green"></span> Destination</label>
                   <div class="input-icon-wrap">
                     <svg class="field-icon icon-green" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
-                    <input type="text" id="input-to" value="Gulmarg" placeholder="e.g. Gulmarg, Pahalgam">
+                    <input type="text" id="input-to" value="Gulmarg" list="locations-list" placeholder="e.g. Gulmarg, Pahalgam" autocomplete="off">
                   </div>
                 </div>
               </div>
+
+              <!-- Datalist for alphabetical suggestions -->
+              <datalist id="locations-list">
+                <!-- Injected in alphabetical order by JS -->
+              </datalist>
 
               <!-- Distance Row -->
               <div class="distance-row">

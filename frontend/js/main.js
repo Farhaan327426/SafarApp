@@ -514,9 +514,99 @@ function showToast(msg) {
   }, 2800);
 }
 
-// Format Currency
-function formatRupees(num) {
-  return "₹ " + Math.round(num).toLocaleString("en-IN");
+// 4. Alphabetically Sorted J&K Locations (All 22 District RTOs, Commercial Hubs & Tourist Corridors)
+const popularLocations = [
+  "Aharbal",
+  "Akhnoor",
+  "Anantnag",
+  "Awantipora",
+  "Bafliaz (Mughal Road)",
+  "Bandipora",
+  "Banganga (Katra)",
+  "Banihal",
+  "Baramulla",
+  "Batamaloo",
+  "Batote",
+  "Beerwah",
+  "Bhaderwah",
+  "Bijbehara",
+  "Budgam",
+  "Chadoora",
+  "Chenani",
+  "Daksum",
+  "Dal Lake (Dalgate)",
+  "Doda",
+  "Doodhpathri",
+  "Ganderbal",
+  "Gandhi Nagar (Jammu)",
+  "Gulmarg",
+  "Gurez Valley",
+  "Handwara",
+  "Hazratbal",
+  "Hiranagar",
+  "Jammu",
+  "Jammu Bus Stand",
+  "Jammu Tawi Station",
+  "Janipur (Jammu)",
+  "Kangan",
+  "Karnah",
+  "Kathua",
+  "Katra",
+  "Khansahib",
+  "Kishtwar",
+  "Kokernag",
+  "Kulgam",
+  "Kupwara",
+  "Lal Chowk (Srinagar)",
+  "Langate",
+  "Magam",
+  "Mansar Lake",
+  "Mendhar",
+  "Narbal",
+  "Narwal (Jammu)",
+  "Nowhatta",
+  "Pahalgam",
+  "Pampore",
+  "Pantha Chowk",
+  "Parimpora",
+  "Patnitop",
+  "Pattan",
+  "Poonch",
+  "Pulwama",
+  "Qazigund",
+  "R.S. Pura",
+  "Rajouri",
+  "Ramban",
+  "Reasi",
+  "Samba",
+  "Sanasar",
+  "Shopian",
+  "Sinthan Top",
+  "Sonmarg",
+  "Sopore",
+  "Soura",
+  "Srinagar",
+  "Srinagar Airport",
+  "Sunderbani",
+  "Surankote",
+  "Tangmarg",
+  "Tral",
+  "Udhampur",
+  "Uri",
+  "Verinag",
+  "Yusmarg"
+].sort((a, b) => a.localeCompare(b));
+
+// Inject Alphabetical Locations into Datalist
+function renderDatalist() {
+  const datalist = document.getElementById("locations-list");
+  if (!datalist) return;
+  datalist.innerHTML = "";
+  popularLocations.forEach((loc) => {
+    const opt = document.createElement("option");
+    opt.value = loc;
+    datalist.appendChild(opt);
+  });
 }
 
 // Render Quick Corridor Pills
@@ -861,11 +951,32 @@ function switchTab(tabId) {
   });
 }
 
+function checkRouteMatch() {
+  const match = routePresets.find(
+    (r) =>
+      (r.from.toLowerCase() === currentFrom.trim().toLowerCase() &&
+        r.to.toLowerCase() === currentTo.trim().toLowerCase()) ||
+      (r.from.toLowerCase() === currentTo.trim().toLowerCase() &&
+        r.to.toLowerCase() === currentFrom.trim().toLowerCase())
+  );
+  if (match) {
+    currentDistance = match.distance;
+    if (match.region) currentTerrainRegion = match.region;
+    if (inputDistance) inputDistance.value = currentDistance;
+  }
+}
+
 // Attach Event Listeners
 function attachListeners() {
   if (inputFrom) {
     inputFrom.addEventListener("input", (e) => {
       currentFrom = e.target.value;
+      checkRouteMatch();
+      calculateAndRender();
+    });
+    inputFrom.addEventListener("change", (e) => {
+      currentFrom = e.target.value;
+      checkRouteMatch();
       calculateAndRender();
     });
   }
@@ -873,6 +984,12 @@ function attachListeners() {
   if (inputTo) {
     inputTo.addEventListener("input", (e) => {
       currentTo = e.target.value;
+      checkRouteMatch();
+      calculateAndRender();
+    });
+    inputTo.addEventListener("change", (e) => {
+      currentTo = e.target.value;
+      checkRouteMatch();
       calculateAndRender();
     });
   }
@@ -891,6 +1008,7 @@ function attachListeners() {
       currentTo = temp;
       if (inputFrom) inputFrom.value = currentFrom;
       if (inputTo) inputTo.value = currentTo;
+      checkRouteMatch();
       calculateAndRender();
       showToast(`Swapped: ${currentFrom} ⇄ ${currentTo}`);
     });
@@ -1000,6 +1118,7 @@ function attachListeners() {
 // Initialization function
 function initSafar() {
   attachListeners();
+  renderDatalist();
   renderQuickPresets();
   renderVehicleCards();
   renderRouteGuide();

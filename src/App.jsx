@@ -1109,25 +1109,36 @@ export default function App() {
 
                       {/* Autocomplete Dropdown for FROM */}
                       {searchFromFocus && (
-                        <div className="absolute top-full mt-1 left-0 right-0 bg-[#fbfcf8] border border-[#dce5dc] rounded-2xl shadow-xl p-2 z-30 max-h-48 overflow-y-auto">
-                          <p className="text-[10px] font-bold text-[#78908a] px-2 py-1 uppercase">
-                            Suggested Hubs
-                          </p>
+                        <div className="absolute top-full mt-1 left-0 right-0 bg-[#fbfcf8] border border-[#dce5dc] rounded-2xl shadow-xl p-2 z-30 max-h-56 overflow-y-auto">
+                          <div className="flex items-center justify-between px-2 py-1 border-b border-[#e5ece3] mb-1">
+                            <p className="text-[10px] font-bold text-[#78908a] uppercase">
+                              Alphabetical Hubs (A-Z)
+                            </p>
+                            <span className="text-[9px] font-bold text-[#557b72] bg-[#edf5ee] px-1.5 py-0.5 rounded">
+                              22 Districts
+                            </span>
+                          </div>
                           {popularLocations
                             .filter((loc) => loc.toLowerCase().includes(from.toLowerCase()))
+                            .sort((a, b) => a.localeCompare(b))
                             .map((loc) => (
                               <button
                                 key={loc}
                                 onClick={() => handleLocationPick("from", loc)}
-                                className="w-full text-left px-2.5 py-1.5 rounded-lg text-xs font-semibold text-[#345657] hover:bg-[#edf5ee] flex items-center justify-between"
+                                className="w-full text-left px-2.5 py-1.5 rounded-lg text-xs font-semibold text-[#345657] hover:bg-[#edf5ee] flex items-center justify-between transition"
                               >
-                                <span>{loc}</span>
+                                <span className="flex items-center gap-1.5">
+                                  <span className="w-5 h-5 rounded-md bg-[#eaf0e9] text-[#234b4c] text-[10px] font-extrabold flex items-center justify-center">
+                                    {loc[0].toUpperCase()}
+                                  </span>
+                                  <span>{loc}</span>
+                                </span>
                                 <ChevronRight size={13} className="text-[#78908a]" />
                               </button>
                             ))}
                           <button
                             onClick={() => setSearchFromFocus(false)}
-                            className="w-full mt-1 text-center text-[11px] font-bold text-[#78908a] py-1 hover:text-[#d36b3d]"
+                            className="w-full mt-1.5 text-center text-[11px] font-bold text-[#78908a] py-1 hover:text-[#d36b3d]"
                           >
                             Close
                           </button>
@@ -1166,25 +1177,36 @@ export default function App() {
 
                       {/* Autocomplete Dropdown for TO */}
                       {searchToFocus && (
-                        <div className="absolute top-full mt-1 left-0 right-0 bg-[#fbfcf8] border border-[#dce5dc] rounded-2xl shadow-xl p-2 z-30 max-h-48 overflow-y-auto">
-                          <p className="text-[10px] font-bold text-[#78908a] px-2 py-1 uppercase">
-                            Suggested Destinations
-                          </p>
+                        <div className="absolute top-full mt-1 left-0 right-0 bg-[#fbfcf8] border border-[#dce5dc] rounded-2xl shadow-xl p-2 z-30 max-h-56 overflow-y-auto">
+                          <div className="flex items-center justify-between px-2 py-1 border-b border-[#e5ece3] mb-1">
+                            <p className="text-[10px] font-bold text-[#78908a] uppercase">
+                              Alphabetical Destinations (A-Z)
+                            </p>
+                            <span className="text-[9px] font-bold text-[#557b72] bg-[#edf5ee] px-1.5 py-0.5 rounded">
+                              22 Districts
+                            </span>
+                          </div>
                           {popularLocations
                             .filter((loc) => loc.toLowerCase().includes(to.toLowerCase()))
+                            .sort((a, b) => a.localeCompare(b))
                             .map((loc) => (
                               <button
                                 key={loc}
                                 onClick={() => handleLocationPick("to", loc)}
-                                className="w-full text-left px-2.5 py-1.5 rounded-lg text-xs font-semibold text-[#345657] hover:bg-[#edf5ee] flex items-center justify-between"
+                                className="w-full text-left px-2.5 py-1.5 rounded-lg text-xs font-semibold text-[#345657] hover:bg-[#edf5ee] flex items-center justify-between transition"
                               >
-                                <span>{loc}</span>
+                                <span className="flex items-center gap-1.5">
+                                  <span className="w-5 h-5 rounded-md bg-[#eaf0e9] text-[#234b4c] text-[10px] font-extrabold flex items-center justify-center">
+                                    {loc[0].toUpperCase()}
+                                  </span>
+                                  <span>{loc}</span>
+                                </span>
                                 <ChevronRight size={13} className="text-[#78908a]" />
                               </button>
                             ))}
                           <button
                             onClick={() => setSearchToFocus(false)}
-                            className="w-full mt-1 text-center text-[11px] font-bold text-[#78908a] py-1 hover:text-[#d36b3d]"
+                            className="w-full mt-1.5 text-center text-[11px] font-bold text-[#78908a] py-1 hover:text-[#d36b3d]"
                           >
                             Close
                           </button>
