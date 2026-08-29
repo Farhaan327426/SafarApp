@@ -7,7 +7,7 @@
 const vehicleOptions = [
   {
     key: "e-rickshaw",
-    category: "ev",
+    category: "auto",
     label: "E-Rickshaw (Toto / Cart)",
     sublabel: "Local Colony & Market Cart",
     detail: "Official flat rate: ₹15/km per passenger or local hop",
@@ -22,7 +22,7 @@ const vehicleOptions = [
   },
   {
     key: "e-auto",
-    category: "ev",
+    category: "auto",
     label: "E-Auto (Electric 3-Wheeler)",
     sublabel: "Battery Electric Auto (L5M)",
     detail: "Official rate: ₹25 for 1st km, then ₹20/km thereafter",
@@ -97,7 +97,7 @@ const vehicleOptions = [
   },
   {
     key: "auto",
-    category: "ev",
+    category: "auto",
     label: "Auto-Rickshaw (Petrol/CNG)",
     sublabel: "3-Wheeler Metered Auto",
     detail: "Official rate: ₹45 for first 2 km, then ₹7.40/km",
@@ -599,17 +599,49 @@ const locationCoordinates = {
   "Mansar Lake": { lat: 32.6982, lng: 75.1482, region: "jammu-plain", highway: "Samba-Mansar Road" }
 };
 
+// Helper to find location coordinates with exact/prefix/longest match
+function findLocationCoord(query) {
+  if (!query) return null;
+  const q = query.trim().toLowerCase();
+  if (locationCoordinates[query]) return { ...locationCoordinates[query], name: query };
+
+  // Exact match case-insensitive
+  for (const [name, coord] of Object.entries(locationCoordinates)) {
+    if (name.toLowerCase() === q) return { ...coord, name };
+  }
+
+  // Best match (longest matching key)
+  const matches = Object.entries(locationCoordinates)
+    .filter(([name]) => {
+      const n = name.toLowerCase();
+      return q.includes(n) || n.includes(q);
+    })
+    .sort((a, b) => b[0].length - a[0].length);
+
+  return matches.length > 0 ? { ...matches[0][1], name: matches[0][0] } : null;
+}
+
 // Road Distance & Terrain Resolution Engine
 function resolveRouteInfo(loc1, loc2) {
   const s1 = (loc1 || "").trim();
   const s2 = (loc2 || "").trim();
-  if (!s1 || !s2 || s1.toLowerCase() === s2.toLowerCase()) {
+  if (!s1 || !s2) {
     return {
-      distance: 5,
-      duration: "10m",
+      distance: 10,
+      duration: "20m",
       terrain: "Local Corridor",
       region: "kashmir-plain",
       highway: "Local Transit Route",
+      isPreset: false,
+    };
+  }
+  if (s1.toLowerCase() === s2.toLowerCase()) {
+    return {
+      distance: 3,
+      duration: "8m",
+      terrain: "Local City Hop",
+      region: "kashmir-plain",
+      highway: "Local Street / Link Road",
       isPreset: false,
     };
   }
@@ -632,17 +664,9 @@ function resolveRouteInfo(loc1, loc2) {
     };
   }
 
-  // 2. Lookup coordinate table
-  const c1 =
-    locationCoordinates[s1] ||
-    Object.entries(locationCoordinates).find(
-      ([k]) => k.toLowerCase() === s1.toLowerCase() || s1.toLowerCase().includes(k.toLowerCase())
-    )?.[1];
-  const c2 =
-    locationCoordinates[s2] ||
-    Object.entries(locationCoordinates).find(
-      ([k]) => k.toLowerCase() === s2.toLowerCase() || s2.toLowerCase().includes(k.toLowerCase())
-    )?.[1];
+  // 2. Lookup coordinate table with smart matcher
+  const c1 = findLocationCoord(s1);
+  const c2 = findLocationCoord(s2);
 
   if (c1 && c2) {
     const R = 6371; // Earth radius in KM
@@ -657,12 +681,12 @@ function resolveRouteInfo(loc1, loc2) {
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     const aerialKm = R * c;
 
-    const isHilly = c1.region.includes("hill") || c2.region.includes("hill");
+    const isHilly = (c1.region && c1.region.includes("hill")) || (c2.region && c2.region.includes("hill"));
     const roadFactor = isHilly ? 1.55 : 1.35;
-    const roadDistance = Math.max(2, Math.round(aerialKm * roadFactor));
+    const roadDistance = Math.max(3, Math.round(aerialKm * roadFactor));
 
     const region =
-      c1.region.includes("jammu") || c2.region.includes("jammu")
+      (c1.region && c1.region.includes("jammu")) || (c2.region && c2.region.includes("jammu"))
         ? isHilly
           ? "jammu-hill"
           : "jammu-plain"
@@ -680,17 +704,23 @@ function resolveRouteInfo(loc1, loc2) {
       duration,
       terrain: isHilly ? "Mountain Highway Corridor" : "Plains Commercial Corridor",
       region,
-      highway: `${c1.highway} ➔ ${c2.highway}`,
+      highway: `${c1.highway || "NH-44"} ➔ ${c2.highway || "State Highway"}`,
       isPreset: false,
     };
   }
 
-  // 3. Fallback realistic estimate
+  // 3. Fallback for custom or unlisted stops with dynamic variation
+  let hash = 0;
+  for (let i = 0; i < s1.length; i++) hash = (hash << 5) - hash + s1.charCodeAt(i);
+  for (let i = 0; i < s2.length; i++) hash = (hash << 5) - hash + s2.charCodeAt(i);
+  const pseudoDist = Math.max(6, (Math.abs(hash) % 45) + 12);
+  const approxMins = Math.round((pseudoDist / 38) * 60);
+
   return {
-    distance: 28,
-    duration: "45m",
+    distance: pseudoDist,
+    duration: approxMins >= 60 ? `${Math.floor(approxMins / 60)}h ${approxMins % 60}m` : `${approxMins}m`,
     terrain: "Standard District Corridor",
-    region: "kashmir-plain",
+    region: s1.toLowerCase().includes("jammu") || s2.toLowerCase().includes("jammu") ? "jammu-plain" : "kashmir-plain",
     highway: "J&K State Highway",
     isPreset: false,
   };
@@ -743,11 +773,49 @@ function renderVehicleCards() {
     ? vehicleOptions
     : vehicleOptions.filter((v) => v.category === currentCategoryFilter);
 
+  const km = Math.max(1, Number(currentDistance) || 1);
+
   list.forEach((v) => {
     const isSelected = v.key === currentVehicleKey;
     const card = document.createElement("button");
     card.className = `vehicle-card ${isSelected ? "selected" : ""}`;
     
+    let cardFare = 0;
+    switch (v.calcType) {
+      case "e-rickshaw":
+        cardFare = Math.max(15, Math.round(km * 15));
+        break;
+      case "e-auto":
+        cardFare = km <= 1 ? 25 : 25 + Math.round((km - 1) * 20);
+        break;
+      case "stage-slab":
+        if (km <= 3) cardFare = 9;
+        else if (km <= 5) cardFare = 14;
+        else if (km <= 10) cardFare = 17;
+        else if (km <= 15) cardFare = 20;
+        else if (km <= 20) cardFare = 26;
+        else cardFare = 26 + Math.round((km - 20) * 1.40);
+        break;
+      case "stage-carriage":
+        {
+          const rate = currentTerrainRegion === "kashmir-plain" ? 1.64 : currentTerrainRegion === "kashmir-hill" ? 1.88 : currentTerrainRegion === "jammu-plain" ? 1.12 : 1.59;
+          cardFare = Math.max(10, Math.round(km * rate));
+        }
+        break;
+      case "stage-carriage-big":
+        {
+          const rate = currentTerrainRegion === "kashmir-plain" ? 1.40 : currentTerrainRegion === "kashmir-hill" ? 1.64 : currentTerrainRegion === "jammu-plain" ? 1.12 : 1.59;
+          cardFare = Math.max(10, Math.round(km * rate));
+        }
+        break;
+      case "metered-auto":
+        cardFare = km <= 2 ? 45 : 45 + Math.round((km - 2) * 7.4);
+        break;
+      default:
+        cardFare = Math.max(15, v.base + Math.round(km * v.perKm) + (v.key === "suv-taxi" ? 20 : 0));
+        break;
+    }
+
     let footerBaseText = `Base: ₹${v.base}`;
     let footerRateText = `₹${v.perKm}/km`;
     if (v.calcType === "stage-slab") {
@@ -764,7 +832,10 @@ function renderVehicleCards() {
     card.innerHTML = `
       <div class="vehicle-card-top">
         <div class="vehicle-icon-box">${v.icon}</div>
-        <span class="vehicle-badge">${v.badge}</span>
+        <div style="display: flex; align-items: center; gap: 6px;">
+          <span style="font-weight: 800; font-size: 11px; background: #eef4ed; color: #234b4c; padding: 2px 7px; border-radius: 6px; border: 1px solid #d2e4d4;">₹ ${cardFare}</span>
+          <span class="vehicle-badge">${v.badge}</span>
+        </div>
       </div>
       <div class="vehicle-card-meta">
         <div class="vehicle-title-row">
