@@ -1520,10 +1520,6 @@ export default function App() {
             {/* Hero Card */}
             <section className="bg-gradient-to-r from-[#234b4c] via-[#2c5b5c] to-[#345657] rounded-3xl p-6 sm:p-8 text-[#f4f6ed] shadow-lg relative overflow-hidden">
               <div className="relative z-10 max-w-3xl">
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#f2bd70]/20 text-[#f2bd70] border border-[#f2bd70]/30 text-xs font-bold uppercase tracking-wider mb-3">
-                  <Sparkles size={13} />
-                  <span>Official Transit Fare Guide</span>
-                </div>
                 <h1 className="text-2xl sm:text-4xl font-extrabold tracking-tight leading-tight">
                   Know what you owe <br className="hidden sm:block" />
                   before you go.
