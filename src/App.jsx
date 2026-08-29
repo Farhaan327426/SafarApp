@@ -50,18 +50,20 @@ const vehicleOptions = [
     calcType: "e-rickshaw",
     base: 15,
     perKm: 15.0,
-    capacity: "Up to 4 Persons / Per Seat",
+    capacity: "Up to 4 Persons",
     badge: "Flat ₹15/km",
-    isPerSeat: true,
-    seatsMultiplier: 4,
-    color: "#2e8b57",
+    isPerSeat: false,
+    seatsMultiplier: 1,
+    color: "#2f855a",
+    districtFootprint: "Srinagar SMC, Jammu JMC, Katra, Baramulla, Anantnag (1–6 km)",
   },
   {
     key: "e-auto",
     category: "ev",
-    label: "E-Auto (Electric 3-Wheeler)",
-    sublabel: "Battery Electric Auto (L5M)",
-    detail: "Official rate: ₹25 for 1st km, then ₹20/km thereafter",
+    permitType: "municipal-feeder",
+    label: "E-Auto (Smart Metered)",
+    sublabel: "3-Wheeler Electric Auto",
+    detail: "Official statutory tariff: ₹25 for first 1 km, then ₹20/km",
     icon: Zap,
     calcType: "e-auto",
     base: 25,
@@ -71,58 +73,84 @@ const vehicleOptions = [
     isPerSeat: false,
     seatsMultiplier: 1,
     color: "#237249",
+    districtFootprint: "Srinagar & Jammu Municipal Limits (1–12 km)",
   },
   {
     key: "tata-magic",
     category: "shared",
+    permitType: "stage-carriage",
     label: "Tata Magic / Feeder 4-Wheeler",
-    sublabel: "Maruti Eeco / Magic / Winger",
-    detail: "Official stage slabs: ₹9 (3km), ₹14 (5km), ₹17 (10km), ₹20 (15km), ₹26 (20km)",
+    sublabel: "Maruti Eeco / Magic / Feeder Van",
+    detail: "Stage slabs: ₹9 (3km), ₹14 (5km), ₹17 (10km), ₹20 (15km), ₹26 (20km)",
     icon: CarFront,
     calcType: "stage-slab",
     base: 9,
     perKm: 1.4,
     capacity: "6 to 8 Seats",
-    badge: "Stage Slabs (₹9-₹26)",
+    badge: "Stage Slabs",
     isPerSeat: true,
     seatsMultiplier: 7,
     color: "#c27438",
+    districtFootprint: "Baramulla, Sopore, Kupwara, Rural South & Outer Jammu",
+  },
+  {
+    key: "vikram-tempo",
+    category: "shared",
+    permitType: "stage-carriage",
+    label: "Vikram / Safa Tempo (Jammu Urban)",
+    sublabel: "Fixed-Route Shared 6–8 Seater",
+    detail: "Urban stage slabs: ₹8 (0-3km), ₹12 (3-6km), ₹15 (6-10km), ₹18 (10-15km)",
+    icon: CarFront,
+    calcType: "urban-stage",
+    base: 8,
+    perKm: 1.5,
+    capacity: "6 to 8 Seats",
+    badge: "Urban Slabs (₹8-₹18)",
+    isPerSeat: true,
+    seatsMultiplier: 6,
+    color: "#a65c2a",
+    districtFootprint: "Jammu Urban (Satwari, Gandhi Nagar, Jewel, Janipur, Canal Rd)",
   },
   {
     key: "mini-bus",
     category: "bus",
+    permitType: "stage-carriage",
     label: "Mini Bus / Matador (407)",
     sublabel: "Tata 407 / Swaraj Mazda / Matador",
-    detail: "5,900+ Fleet Backbone: ₹1.64/km (Kashmir) · ₹1.59-₹1.88/km (Hilly)",
+    detail: "5,900+ Fleet Backbone: ₹1.64/km (Kashmir Plain) · ₹1.88/km (Hilly)",
     icon: BusFront,
     calcType: "stage-carriage",
     base: 10,
     perKm: 1.64,
-    capacity: "Per Passenger (18-24 Seats)",
+    capacity: "18-24 Seats",
     badge: "₹1.64/km",
     isPerSeat: true,
     seatsMultiplier: 18,
     color: "#557b72",
+    districtFootprint: "Universal High-Frequency Stage across all 20 Districts (5–45 km)",
   },
   {
     key: "private-bus",
     category: "bus",
+    permitType: "stage-carriage",
     label: "Private 2+2 Bus (Stage Carriage)",
-    sublabel: "Standard 32-52 Seater (Non-SRTC)",
+    sublabel: "Standard 32–52 Seater (Non-SRTC)",
     detail: "Official rate: ₹1.12/km (Jammu Plain) · ₹1.40-₹1.64/km (Kashmir)",
     icon: BusFront,
     calcType: "stage-carriage-big",
     base: 10,
     perKm: 1.4,
-    capacity: "Per Passenger (32+ Seats)",
+    capacity: "32+ Seats",
     badge: "₹1.12 - ₹1.40/km",
     isPerSeat: true,
     seatsMultiplier: 32,
     color: "#3f6e5b",
+    districtFootprint: "Inter-District Trunk Highways (Srinagar-Baramulla, Jammu-Katra-Poonch)",
   },
   {
     key: "shared-cab",
     category: "shared",
+    permitType: "shared-maxi-cab",
     label: "Shared Maxi-Cab",
     sublabel: "Tata Sumo / Bolero / Tavera",
     detail: "Inter-district standard corridor: ₹35 base + ₹5.20/km per seat",
@@ -130,15 +158,36 @@ const vehicleOptions = [
     calcType: "standard",
     base: 35,
     perKm: 5.2,
-    capacity: "4 to 7 Seats",
+    capacity: "5 to 7 Seats",
     badge: "Most Popular",
     isPerSeat: true,
     seatsMultiplier: 5,
     color: "#d36b3d",
+    districtFootprint: "Universal Inter-District & Mountain Pass Lifeline (All 20 Districts)",
+  },
+  {
+    key: "force-traveler",
+    category: "taxi",
+    permitType: "contract-tourist",
+    label: "Force Traveler (14-Seater)",
+    sublabel: "Tempo Traveler / Group Carrier",
+    detail: "Official tariff: ₹2.25/km per seat (Shared) or ₹29.00/km (Full Charter)",
+    icon: BusFront,
+    calcType: "tourist-group",
+    base: 0,
+    perKm: 2.25,
+    contractPerKm: 29.0,
+    capacity: "14 Passengers",
+    badge: "14-Seater Group",
+    isPerSeat: true,
+    seatsMultiplier: 14,
+    color: "#2c5282",
+    districtFootprint: "Srinagar-Gulmarg, Pahalgam, Sonamarg, Katra & Tourist Corridors",
   },
   {
     key: "auto",
     category: "ev",
+    permitType: "metered-auto",
     label: "Auto-Rickshaw (Petrol/CNG)",
     sublabel: "3-Wheeler Metered Auto",
     detail: "Official rate: ₹45 for first 2 km, then ₹7.40/km",
@@ -147,32 +196,36 @@ const vehicleOptions = [
     base: 45,
     perKm: 7.4,
     capacity: "Up to 3 Persons",
-    badge: "Metered (₹45 first 2km)",
+    badge: "Metered (₹45)",
     isPerSeat: false,
     seatsMultiplier: 1,
     color: "#bc8a20",
+    districtFootprint: "Urban Municipal Stands (Srinagar, Jammu, Katra, Udhampur, Anantnag)",
   },
   {
     key: "taxi",
     category: "taxi",
+    permitType: "contract-tourist",
     label: "Standard Sedan Taxi (Contract)",
-    sublabel: "Maruti Dzire / Toyota Etios / Indica",
+    sublabel: "Maruti Dzire / Toyota Etios",
     detail: "Official 18% hiked contract hire: ₹140 base + ₹14.50/km",
     icon: CarFront,
     calcType: "standard",
     base: 140,
     perKm: 14.5,
     capacity: "Entire Vehicle (4+1)",
-    badge: "Contract Taxi",
+    badge: "Contract Sedan",
     isPerSeat: false,
     seatsMultiplier: 1,
     color: "#3e6b8a",
+    districtFootprint: "Dedicated Point-to-Point, Airport Transfers & Inter-District",
   },
   {
     key: "suv-taxi",
     category: "taxi",
+    permitType: "contract-tourist",
     label: "Premium Tourist SUV Taxi",
-    sublabel: "Innova Crysta / Scorpio / Fortuner",
+    sublabel: "Innova Crysta / Scorpio",
     detail: "Official 18% hiked tourist contract hire: ₹220 base + ₹21.00/km",
     icon: CarFront,
     calcType: "standard",
@@ -183,6 +236,7 @@ const vehicleOptions = [
     isPerSeat: false,
     seatsMultiplier: 1,
     color: "#28536b",
+    districtFootprint: "All J&K Alpine Circuits, Airport Transfers & Long-Distance",
   },
 ];
 
@@ -912,6 +966,35 @@ export default function App() {
         }
         break;
 
+      case "tourist-group":
+        {
+          const seatCost = Math.max(25, Math.round(km * 2.25));
+          const charterCost = Math.max(1200, Math.round(km * 29.0));
+          totalSingle = seatCost;
+          formulaDesc = `${km} km × ₹2.25/km (Per Seat) · ₹29/km (Charter)`;
+        }
+        break;
+
+      case "urban-stage":
+        if (km <= 3) {
+          totalSingle = 8;
+          base = 8;
+          formulaDesc = "Urban Stage: 0 to 3 KM (₹8)";
+        } else if (km <= 6) {
+          totalSingle = 12;
+          base = 12;
+          formulaDesc = "Urban Stage: 3 to 6 KM (₹12)";
+        } else if (km <= 10) {
+          totalSingle = 15;
+          base = 15;
+          formulaDesc = "Urban Stage: 6 to 10 KM (₹15)";
+        } else {
+          totalSingle = 18;
+          base = 18;
+          formulaDesc = "Urban Stage: 10 to 15 KM (₹18)";
+        }
+        break;
+
       case "metered-auto":
         base = 45;
         distanceCost = km <= 2 ? 0 : Math.round((km - 2) * 7.4);
@@ -928,7 +1011,9 @@ export default function App() {
         break;
     }
 
-    const fullCabCost = chosenVehicle.isPerSeat
+    const fullCabCost = chosenVehicle.key === "force-traveler"
+      ? Math.max(1200, Math.round(km * 29.0))
+      : chosenVehicle.isPerSeat
       ? totalSingle * chosenVehicle.seatsMultiplier
       : totalSingle;
 
@@ -942,6 +1027,103 @@ export default function App() {
       perKmRate: chosenVehicle.perKm,
     };
   }, [chosenVehicle, distance, terrainRegion]);
+
+  const activePresets = useMemo(() => {
+    if (vehicle === "tata-magic") {
+      return [
+        { from: "Baramulla", to: "Kreeri", distance: 14 },
+        { from: "Sopore", to: "Watergam", distance: 12 },
+        { from: "Handwara", to: "Langate", distance: 6 },
+        { from: "R.S. Pura", to: "Bishnah", distance: 12 },
+        { from: "Anantnag", to: "Achabal", distance: 9 },
+        { from: "Pattan", to: "Magam", distance: 12 },
+      ];
+    }
+    if (vehicle === "force-traveler") {
+      return [
+        { from: "Srinagar", to: "Gulmarg", distance: 51 },
+        { from: "Srinagar", to: "Pahalgam", distance: 92 },
+        { from: "Srinagar", to: "Sonmarg", distance: 80 },
+        { from: "Katra", to: "Shiv Khori", distance: 74 },
+        { from: "Parimpora", to: "Uri", distance: 98 },
+      ];
+    }
+    if (vehicle === "vikram-tempo") {
+      return [
+        { from: "Jammu Bus Stand", to: "Gandhi Nagar (Jammu)", distance: 4 },
+        { from: "Jammu Bus Stand", to: "Bari Brahmana", distance: 14 },
+        { from: "Jammu", to: "Janipur", distance: 7 },
+        { from: "Jammu Tawi Station", to: "Satwari", distance: 5 },
+      ];
+    }
+    if (vehicle === "e-rickshaw") {
+      return [
+        { from: "Lal Chowk", to: "Dal Lake (Dalgate)", distance: 4 },
+        { from: "Lal Chowk", to: "Hazratbal", distance: 11 },
+        { from: "Batamaloo", to: "Parimpora", distance: 6 },
+        { from: "Katra", to: "Banganga (Katra)", distance: 4 },
+      ];
+    }
+    return routePresets;
+  }, [vehicle]);
+
+  const contextAlerts = useMemo(() => {
+    const f = from.toLowerCase();
+    const t = to.toLowerCase();
+    const km = Number(distance) || 0;
+    const isNorthDest = ["baramulla", "sopore", "kupwara", "handwara", "uri", "bandipora", "pattan"].some(
+      (d) => t.includes(d) || f.includes(d)
+    );
+
+    const isBatamalooNorthRedirect =
+      (f.includes("batamaloo") && isNorthDest && !t.includes("batamaloo")) ||
+      (t.includes("batamaloo") && isNorthDest && !f.includes("batamaloo"));
+
+    const isMughalRoad =
+      (f.includes("shopian") && (t.includes("poonch") || t.includes("rajouri") || t.includes("bafliaz") || t.includes("surankote"))) ||
+      (t.includes("shopian") && (f.includes("poonch") || f.includes("rajouri") || f.includes("bafliaz") || f.includes("surankote")));
+
+    const isSinthanTop =
+      (f.includes("kishtwar") && (t.includes("anantnag") || t.includes("kokernag"))) ||
+      (t.includes("kishtwar") && (f.includes("anantnag") || f.includes("kokernag")));
+
+    const isRazdanPass =
+      (f.includes("bandipora") && t.includes("gurez")) ||
+      (t.includes("bandipora") && f.includes("gurez")) ||
+      f.includes("gurez") ||
+      t.includes("gurez");
+
+    const isWinterClosure = isMughalRoad || isSinthanTop || isRazdanPass;
+
+    const isFrontier =
+      f.includes("gurez") ||
+      t.includes("gurez") ||
+      f.includes("karnah") ||
+      t.includes("karnah") ||
+      f.includes("tangdhar") ||
+      t.includes("tangdhar") ||
+      f.includes("uri");
+
+    const isPilgrimage =
+      f.includes("katra") ||
+      t.includes("katra") ||
+      f.includes("banganga") ||
+      t.includes("banganga") ||
+      f.includes("baltal") ||
+      t.includes("baltal") ||
+      f.includes("nunwan") ||
+      t.includes("nunwan");
+
+    const isRangeWarning = (vehicle === "e-rickshaw" || vehicle === "e-auto") && km > 8;
+
+    return {
+      isBatamalooNorthRedirect,
+      isWinterClosure,
+      isFrontier,
+      isPilgrimage,
+      isRangeWarning,
+    };
+  }, [from, to, distance, vehicle]);
 
   const displayFare = useMemo(() => {
     if (!chosenVehicle.isPerSeat) {
@@ -1227,12 +1409,12 @@ export default function App() {
               </div>
             </section>
 
-            {/* Quick 1-Click Popular Corridor Pills */}
+            {/* Quick 1-Click Popular Corridor Pills (Adapted to Selected Vehicle) */}
             <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
               <span className="text-xs font-bold text-[#78908a] uppercase tracking-wider shrink-0 flex items-center gap-1">
-                <Compass size={14} /> Quick Trips:
+                <Compass size={14} /> Quick Trips ({chosenVehicle.label.split(" ")[0]}):
               </span>
-              {routePresets.map((preset) => (
+              {activePresets.map((preset) => (
                 <button
                   key={`${preset.from}-${preset.to}`}
                   onClick={() => handleSelectPreset(preset)}
@@ -1262,7 +1444,7 @@ export default function App() {
                       <div>
                         <h2 className="text-base font-bold text-[#234b4c]">Choose Your Vehicle Mode</h2>
                         <p className="text-[11px] text-[#78908a]">
-                          Official government statutory tariffs across Jammu & Kashmir
+                          Official government statutory tariffs across Jammu & Kashmir (11 Categories)
                         </p>
                       </div>
                     </div>
@@ -1312,6 +1494,15 @@ export default function App() {
                             else if (km <= 15) cardFare = 20;
                             else if (km <= 20) cardFare = 26;
                             else cardFare = 26 + Math.round((km - 20) * 1.40);
+                            break;
+                          case "urban-stage":
+                            if (km <= 3) cardFare = 8;
+                            else if (km <= 6) cardFare = 12;
+                            else if (km <= 10) cardFare = 15;
+                            else cardFare = 18;
+                            break;
+                          case "tourist-group":
+                            cardFare = Math.max(25, Math.round(km * 2.25));
                             break;
                           case "stage-carriage":
                             {
@@ -1364,7 +1555,7 @@ export default function App() {
                                 </span>
                               ) : (
                                 <span className="text-[10px] font-bold text-[#557b72] bg-[#edf3eb] px-2 py-0.5 rounded-md">
-                                  ₹{v.perKm}/km
+                                  {v.calcType === "urban-stage" ? "₹8-₹18" : v.calcType === "stage-slab" ? "₹9-₹26" : `₹${v.perKm}/km`}
                                 </span>
                               )}
                               <span
@@ -1386,21 +1577,24 @@ export default function App() {
                             </div>
                             <p className="text-[11px] font-medium text-[#78908a]">{v.sublabel}</p>
                             <p className="text-[10px] text-[#8a9c95] mt-0.5 leading-snug">{v.detail}</p>
+                            {v.districtFootprint && (
+                              <p className="text-[10px] font-medium text-[#4d7f7c] mt-1 bg-[#edf5ee] px-2 py-0.5 rounded-md inline-block">
+                                {v.districtFootprint}
+                              </p>
+                            )}
                           </div>
 
                           <div className="mt-2.5 pt-2 border-t border-[#e2eae0] flex items-center justify-between text-[11px]">
                             <span className="text-[#78908a]">
-                              {v.calcType === "stage-slab"
-                                ? "6 to 8 Seats"
-                                : v.calcType === "e-rickshaw"
-                                ? "Up to 4 Persons"
-                                : v.calcType === "e-auto" || v.calcType === "metered-auto"
-                                ? "Up to 3 Persons"
-                                : v.capacity || "Govt Approved"}
+                              {v.capacity}
                             </span>
                             <span className="font-bold text-[#345657]">
                               {v.calcType === "stage-slab"
                                 ? "Stage Slabs"
+                                : v.calcType === "urban-stage"
+                                ? "Urban Slabs"
+                                : v.calcType === "tourist-group"
+                                ? "₹2.25/km"
                                 : v.calcType === "e-auto"
                                 ? "₹20/km"
                                 : v.calcType === "metered-auto"
@@ -1614,6 +1808,67 @@ export default function App() {
                       </div>
                     </div>
                   </div>
+
+                  {/* Real-time Contextual Alerts (Batamaloo Redirect, Winter Mountain Closures, Frontier & Pilgrimage) */}
+                  {contextAlerts.isBatamalooNorthRedirect && (
+                    <div className="mt-3.5 p-3 rounded-2xl bg-[#fdf5eb] border border-[#f0cfa0] text-[#784319] text-xs flex items-start gap-2.5">
+                      <AlertTriangle size={16} className="text-[#d36b3d] shrink-0 mt-0.5" />
+                      <div>
+                        <p className="font-bold text-[12px]">Stand Shift Notice (Parimpora Terminal):</p>
+                        <p className="text-[11px] mt-0.5 text-[#8f5223]">
+                          North-bound cabs & buses depart from <strong>Parimpora Regional Stand</strong>. From Batamaloo, take a local city Matador/E-Auto (₹10–15) to Parimpora for Baramulla, Sopore, Kupwara & Uri.
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  {contextAlerts.isWinterClosure && (
+                    <div className="mt-3.5 p-3 rounded-2xl bg-[#ebf3f7] border border-[#a8c9db] text-[#1f4860] text-xs flex items-start gap-2.5">
+                      <Snowflake size={16} className="text-[#2b6cb0] shrink-0 mt-0.5" />
+                      <div>
+                        <p className="font-bold text-[12px]">Seasonal Mountain Pass Advisory:</p>
+                        <p className="text-[11px] mt-0.5 text-[#2c5282]">
+                          High-altitude corridors (Mughal Road / Sinthan Top / Razdan Pass) are closed in winter due to snow. Regular transit routes divert via NH-44 highway.
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  {contextAlerts.isFrontier && (
+                    <div className="mt-3.5 p-3 rounded-2xl bg-[#f0f4ee] border border-[#c3d8c6] text-[#234b4c] text-xs flex items-start gap-2.5">
+                      <ShieldCheck size={16} className="text-[#557b72] shrink-0 mt-0.5" />
+                      <div>
+                        <p className="font-bold text-[12px]">Frontier / Border Transit Zone:</p>
+                        <p className="text-[11px] mt-0.5 text-[#345657]">
+                          Movement through border/pass areas (Gurez, Karnah, Uri border) is subject to civil/army convoy timings, identity verification, and weather clearance.
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  {contextAlerts.isPilgrimage && (
+                    <div className="mt-3.5 p-3 rounded-2xl bg-[#fbf5e6] border border-[#f0d898] text-[#6b4710] text-xs flex items-start gap-2.5">
+                      <Sparkles size={16} className="text-[#b7791f] shrink-0 mt-0.5" />
+                      <div>
+                        <p className="font-bold text-[12px]">Pilgrimage Corridor Statutory Tariffs:</p>
+                        <p className="text-[11px] mt-0.5 text-[#744210]">
+                          Official registered stand rates apply for Shri Mata Vaishno Devi (Katra) and Shri Amarnathji Yatra base camps (Baltal & Nunwan).
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  {contextAlerts.isRangeWarning && (
+                    <div className="mt-3.5 p-3 rounded-2xl bg-[#fff8eb] border border-[#f9dca2] text-[#8a5314] text-xs flex items-start gap-2.5">
+                      <Zap size={16} className="text-[#d36b3d] shrink-0 mt-0.5" />
+                      <div>
+                        <p className="font-bold text-[12px]">Urban Range Notice:</p>
+                        <p className="text-[11px] mt-0.5 text-[#975a16]">
+                          E-Rickshaws and E-Autos operate within municipal limits (1–8 km). For highway transit ({distance} km), commuters use Shared Maxi-Cabs or Matadors.
+                        </p>
+                      </div>
+                    </div>
+                  )}
 
                   {/* Distance & Region Controls */}
                   <div className="mt-3 pt-3 border-t border-[#eaf0e9] flex flex-wrap items-center justify-between gap-2 text-xs">
