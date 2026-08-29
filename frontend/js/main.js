@@ -83,7 +83,7 @@ const vehicleOptions = [
     permitType: "stage-carriage",
     label: "Mini Bus / Matador (407)",
     sublabel: "Tata 407 / Swaraj Mazda / Matador",
-    detail: "5,900+ Fleet Backbone: ₹1.64/km (Kashmir Plain) · ₹1.88/km (Hilly)",
+    detail: "Official rate: ₹1.64/km (Kashmir Plain) · ₹1.88/km (Hilly)",
     calcType: "stage-carriage",
     base: 10,
     perKm: 1.64,

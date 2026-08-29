@@ -117,7 +117,7 @@ const vehicleOptions = [
     permitType: "stage-carriage",
     label: "Mini Bus / Matador (407)",
     sublabel: "Tata 407 / Swaraj Mazda / Matador",
-    detail: "5,900+ Fleet Backbone: ₹1.64/km (Kashmir Plain) · ₹1.88/km (Hilly)",
+    detail: "Official rate: ₹1.64/km (Kashmir Plain) · ₹1.88/km (Hilly)",
     icon: BusFront,
     calcType: "stage-carriage",
     base: 10,
@@ -1394,18 +1394,8 @@ export default function App() {
                   before you board across J&K.
                 </h1>
                 <p className="mt-2 text-xs sm:text-sm text-[#c7dad0] leading-relaxed">
-                  Verified government statutory rates for Electric Vehicles (EVs), Stage-wise Tata Magic, 5,900+ Matadors & Buses, and 18% revised Contract Taxis across Jammu & Kashmir.
+                  Verified government statutory rates for Electric Vehicles (EVs), Stage-wise Tata Magic, Matadors & Buses, and 18% revised Contract Taxis across Jammu & Kashmir.
                 </p>
-                <div className="mt-3 flex flex-wrap items-center gap-2">
-                  <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[#183637]/80 border border-[#4d7f7c]/60 text-[11px] text-[#f2bd70]">
-                    <BusFront size={13} />
-                    <span><strong>5,900+ Private Fleet:</strong> Stage carriages, minibuses (Matadors) & private service buses power the vast bulk of J&K transit</span>
-                  </div>
-                  <div className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-[#183637]/60 border border-[#4d7f7c]/40 text-[10px] text-[#c4d6cb]">
-                    <ShieldCheck size={12} className="text-[#74a181]" />
-                    <span>Excludes Govt SRTC & E-buses</span>
-                  </div>
-                </div>
               </div>
             </section>
 
@@ -1448,11 +1438,6 @@ export default function App() {
                         </p>
                       </div>
                     </div>
-
-                    {/* Exclusions Notice */}
-                    <span className="text-[10px] font-bold text-[#78908a] bg-[#eef4ed] px-2.5 py-1 rounded-lg border border-[#dce5dc] self-start sm:self-auto">
-                      Non-SRTC & Non-E-Bus
-                    </span>
                   </div>
 
                   {/* Category Filter Tabs */}
@@ -2187,7 +2172,7 @@ export default function App() {
                     <td className="py-3.5 px-4 font-bold text-[#234b4c]">🚌 Mini Bus (Matador / 407)</td>
                     <td className="py-3.5 px-4">₹1.64/km (Kashmir Plain) · ₹1.88/km (Hill)</td>
                     <td className="py-3.5 px-4">Per seat (18-24)</td>
-                    <td className="py-3.5 px-4">5,900+ Fleet transit backbone</td>
+                    <td className="py-3.5 px-4">Local high-frequency stage route</td>
                   </tr>
                   <tr>
                     <td className="py-3.5 px-4 font-bold text-[#234b4c]">🚌 Private 2+2 Big Bus</td>
@@ -2221,21 +2206,6 @@ export default function App() {
                   </tr>
                 </tbody>
               </table>
-            </div>
-
-            {/* Private Fleet Context Information Card */}
-            <div className="mt-6 p-5 rounded-2xl bg-[#edf5ee] border border-[#d2e4d4] flex flex-col sm:flex-row items-start gap-4">
-              <div className="w-10 h-10 rounded-xl bg-[#234b4c] text-[#f2bd70] flex items-center justify-center shrink-0">
-                <BusFront size={20} />
-              </div>
-              <div className="space-y-1">
-                <h4 className="text-sm font-bold text-[#234b4c]">
-                  J&K Private Transit Fleet Dynamics (5,900+ Registered Fleet)
-                </h4>
-                <p className="text-xs text-[#426a54] leading-relaxed">
-                  <strong>Private Fleet Reality:</strong> Private stage carriages, minibuses (commonly known as <strong>Matadors</strong>), and private service vehicles make up the vast bulk of public transit across Jammu & Kashmir, with over <strong>5,900 private service buses</strong> actively registered. Safar provides transparent legal maximum fare ceilings for this critical private lifeline.
-                </p>
-              </div>
             </div>
           </div>
         )}
@@ -2301,7 +2271,7 @@ export default function App() {
                 <div>
                   <h4 className="font-bold text-[#234b4c]">Select Vehicle (9 J&K Categories)</h4>
                   <p className="text-[#78908a] mt-0.5">
-                    Choose from E-Rickshaws, E-Autos, Stage-wise Tata Magic, 5,900+ Matadors & Buses, or Contract Taxis.
+                    Choose from E-Rickshaws, E-Autos, Stage-wise Tata Magic, Matadors, Buses, or Contract Taxis.
                   </p>
                 </div>
               </div>
