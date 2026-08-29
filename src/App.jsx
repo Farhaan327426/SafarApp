@@ -768,12 +768,12 @@ function resolveRouteInfo(loc1, loc2) {
 
 export default function App() {
   const [activeNav, setActiveNav] = useState("Fare calculator");
-  const [from, setFrom] = useState("Srinagar");
-  const [to, setTo] = useState("Gulmarg");
-  const [distance, setDistance] = useState("51");
+  const [from, setFrom] = useState("");
+  const [to, setTo] = useState("");
+  const [distance, setDistance] = useState("");
   const [vehicle, setVehicle] = useState("shared-cab");
   const [vehicleCategoryFilter, setVehicleCategoryFilter] = useState("all");
-  const [terrainRegion, setTerrainRegion] = useState("kashmir-hill");
+  const [terrainRegion, setTerrainRegion] = useState("kashmir-plain");
   const [notice, setNotice] = useState("");
   const [showNotifications, setShowNotifications] = useState(false);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
@@ -781,6 +781,8 @@ export default function App() {
   const [searchFromFocus, setSearchFromFocus] = useState(false);
   const [searchToFocus, setSearchToFocus] = useState(false);
   const [priceMode, setPriceMode] = useState("per-seat");
+
+  const hasRoute = Boolean(from.trim() && to.trim());
 
   // Dynamic Route & Distance Resolver
   const currentRouteMeta = useMemo(() => {
@@ -800,6 +802,10 @@ export default function App() {
 
   // Synchronize distance and terrain on route update
   const syncRouteDistance = (nextFrom, nextTo) => {
+    if (!nextFrom.trim() || !nextTo.trim()) {
+      setDistance("");
+      return null;
+    }
     const info = resolveRouteInfo(nextFrom, nextTo);
     setDistance(String(info.distance));
     setTerrainRegion(info.region);
@@ -808,7 +814,19 @@ export default function App() {
 
   // Exact Statutory Fare Calculations
   const fareParts = useMemo(() => {
-    const km = Math.max(1, Number(distance) || 1);
+    const km = Number(distance) || 0;
+    if (km <= 0) {
+      return {
+        base: chosenVehicle.base,
+        distanceCost: 0,
+        localAdjustment: 0,
+        totalSingle: 0,
+        fullCabCost: 0,
+        formulaDesc: `Official rate: ₹${chosenVehicle.perKm}/km`,
+        perKmRate: chosenVehicle.perKm,
+      };
+    }
+
     let base = chosenVehicle.base;
     let distanceCost = 0;
     let localAdjustment = 0;
@@ -817,7 +835,6 @@ export default function App() {
 
     switch (chosenVehicle.calcType) {
       case "e-rickshaw":
-        // Flat ₹15 per kilometer
         base = 15;
         distanceCost = Math.round(km * 15);
         totalSingle = Math.max(15, distanceCost);
@@ -825,16 +842,13 @@ export default function App() {
         break;
 
       case "e-auto":
-        // ₹25 for 1st km, ₹20 for every subsequent km
         base = 25;
         distanceCost = km <= 1 ? 0 : Math.round((km - 1) * 20);
         totalSingle = km <= 1 ? 25 : 25 + distanceCost;
-        formulaDesc = km <= 1 ? "1st KM Base Fare (₹25)" : `₹25 (1st km) + ${(km - 1)} km × ₹20/km`;
+        formulaDesc = km <= 1 ? "1st KM Base (₹25)" : `₹25 (1st km) + ${(km - 1)} km × ₹20/km`;
         break;
 
       case "stage-slab":
-        // Tata Magic / Feeder 4-Wheelers:
-        // Up to 3 km: ₹9, Up to 5 km: ₹14, Up to 10 km: ₹17, Up to 15 km: ₹20, 15-20 km: ₹26, >20 km: 50% concession
         if (km <= 3) {
           totalSingle = 9;
           base = 9;
@@ -858,15 +872,13 @@ export default function App() {
         } else {
           base = 26;
           const extraKm = km - 20;
-          distanceCost = Math.round(extraKm * 1.40); // 50% concessional rate beyond 20km
+          distanceCost = Math.round(extraKm * 1.40);
           totalSingle = 26 + distanceCost;
-          formulaDesc = `₹26 (20km slab) + ${extraKm} km @ 50% Concessional Rate (₹1.40/km)`;
+          formulaDesc = `₹26 (20km slab) + ${extraKm} km @ 50% Concession (₹1.40/km)`;
         }
         break;
 
       case "stage-carriage":
-        // Mini Bus / Matador:
-        // Kashmir Plain: ₹1.64/km, Jammu Plain: ₹1.12/km, Hill: ₹1.59-₹1.88/km
         {
           const ratePerKm =
             terrainRegion === "kashmir-plain"
@@ -876,16 +888,14 @@ export default function App() {
               : terrainRegion === "jammu-plain"
               ? 1.12
               : 1.59;
-          base = 10; // statutory minimum boarding
+          base = 10;
           distanceCost = Math.round(km * ratePerKm);
           totalSingle = Math.max(10, distanceCost);
-          formulaDesc = `${km} km × ₹${ratePerKm}/km (${terrainRegion.replace("-", " ")})`;
+          formulaDesc = `${km} km × ₹${ratePerKm}/km`;
         }
         break;
 
       case "stage-carriage-big":
-        // Big Private 2+2 Bus:
-        // Kashmir Plain: ₹1.40/km, Jammu Plain: ₹1.12/km, Hill: ₹1.59/km
         {
           const ratePerKm =
             terrainRegion === "kashmir-plain"
@@ -898,25 +908,23 @@ export default function App() {
           base = 10;
           distanceCost = Math.round(km * ratePerKm);
           totalSingle = Math.max(10, distanceCost);
-          formulaDesc = `${km} km × ₹${ratePerKm}/km (${terrainRegion.replace("-", " ")})`;
+          formulaDesc = `${km} km × ₹${ratePerKm}/km`;
         }
         break;
 
       case "metered-auto":
-        // Auto-Rickshaw: ₹45 for first 2 km, then ₹7.40/km
         base = 45;
         distanceCost = km <= 2 ? 0 : Math.round((km - 2) * 7.4);
         totalSingle = km <= 2 ? 45 : 45 + distanceCost;
-        formulaDesc = km <= 2 ? "First 2 KM Minimum Meter (₹45)" : `₹45 (First 2 km) + ${(km - 2)} km × ₹7.40/km`;
+        formulaDesc = km <= 2 ? "First 2 KM Meter (₹45)" : `₹45 (First 2 km) + ${(km - 2)} km × ₹7.40/km`;
         break;
 
       default:
-        // Standard & Contract Taxi (+18% revised rates)
         base = chosenVehicle.base;
         distanceCost = Math.round(km * chosenVehicle.perKm);
         localAdjustment = chosenVehicle.key === "suv-taxi" ? 20 : 0;
         totalSingle = Math.max(15, base + distanceCost + localAdjustment);
-        formulaDesc = `Base ₹${base} + (${km} km × ₹${chosenVehicle.perKm}/km)`;
+        formulaDesc = `${km} km × ₹${chosenVehicle.perKm}/km`;
         break;
     }
 
@@ -1258,17 +1266,16 @@ export default function App() {
 
                     <button
                       onClick={() => {
-                        setFrom("Srinagar");
-                        setTo("Gulmarg");
-                        setDistance("51");
-                        setVehicle("shared-cab");
+                        setFrom("");
+                        setTo("");
+                        setDistance("");
                         setTerrainRegion("kashmir-plain");
-                        showToast("Reset to Srinagar ➔ Gulmarg");
+                        showToast("Cleared route inputs. Choose your points!");
                       }}
                       className="flex items-center gap-1 text-xs font-semibold text-[#78908a] hover:text-[#d36b3d] transition"
                     >
                       <RefreshCw size={13} />
-                      <span>Reset</span>
+                      <span>Clear</span>
                     </button>
                   </div>
 
@@ -1286,7 +1293,7 @@ export default function App() {
                           value={from}
                           onFocus={() => setSearchFromFocus(true)}
                           onChange={(e) => handleFromChange(e.target.value)}
-                          placeholder="e.g. Srinagar, Lal Chowk"
+                          placeholder="e.g. Srinagar, Lal Chowk, Katra"
                           className="w-full pl-10 pr-3 py-3 rounded-2xl bg-[#f6f8f3] border border-[#dce5dc] text-sm font-bold text-[#234b4c] focus:outline-none focus:ring-2 focus:ring-[#74a181] focus:bg-[#fbfcf8] transition"
                         />
                       </div>
@@ -1354,7 +1361,7 @@ export default function App() {
                           value={to}
                           onFocus={() => setSearchToFocus(true)}
                           onChange={(e) => handleToChange(e.target.value)}
-                          placeholder="e.g. Gulmarg, Pahalgam"
+                          placeholder="e.g. Gulmarg, Pahalgam, Jammu"
                           className="w-full pl-10 pr-3 py-3 rounded-2xl bg-[#f6f8f3] border border-[#dce5dc] text-sm font-bold text-[#234b4c] focus:outline-none focus:ring-2 focus:ring-[#74a181] focus:bg-[#fbfcf8] transition"
                         />
                       </div>
@@ -1408,14 +1415,18 @@ export default function App() {
                       <div>
                         <div className="flex items-center gap-2">
                           <span className="text-xs font-extrabold text-[#234b4c]">
-                            {from} ➔ {to}
+                            {hasRoute ? `${from} ➔ ${to}` : "Choose Boarding & Deboarding Points"}
                           </span>
-                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#345657] text-[#f4f6ed]">
-                            {distance} KM
-                          </span>
+                          {hasRoute && (
+                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#345657] text-[#f4f6ed]">
+                              {distance || 0} KM
+                            </span>
+                          )}
                         </div>
                         <p className="text-[11px] text-[#557b72] font-medium mt-0.5">
-                          ⏱️ Approx {currentRouteMeta.duration} · 🏔️ {currentRouteMeta.terrain}
+                          {hasRoute
+                            ? `⏱️ Approx ${currentRouteMeta.duration} · 🏔️ ${currentRouteMeta.terrain}`
+                            : "Select starting point and destination to calculate statutory fare"}
                         </p>
                       </div>
                     </div>
@@ -1431,6 +1442,7 @@ export default function App() {
                           max="800"
                           value={distance}
                           onChange={(e) => setDistance(e.target.value)}
+                          placeholder="KM"
                           className="w-full py-1 pl-2 pr-7 rounded-xl bg-[#fbfcf8] border border-[#c5d8c8] text-xs font-bold text-[#234b4c] focus:outline-none focus:ring-2 focus:ring-[#74a181]"
                         />
                         <span className="absolute right-2 top-1.5 text-[10px] font-bold text-[#78908a]">
@@ -1445,7 +1457,7 @@ export default function App() {
                     <div className="flex items-center gap-1.5 text-[#557b72]">
                       <Navigation size={13} className="text-[#d36b3d]" />
                       <span className="text-[11px]">
-                        <strong>Corridor:</strong> {currentRouteMeta.highway}
+                        <strong>Corridor:</strong> {hasRoute ? currentRouteMeta.highway : "Select route"}
                       </span>
                     </div>
 
@@ -1508,41 +1520,43 @@ export default function App() {
                     {filteredVehicles.map((v) => {
                       const Icon = v.icon;
                       const selected = vehicle === v.key;
-                      const km = Math.max(1, Number(distance) || 1);
+                      const km = Number(distance) || 0;
                       let cardFare = 0;
-                      switch (v.calcType) {
-                        case "e-rickshaw":
-                          cardFare = Math.max(15, Math.round(km * 15));
-                          break;
-                        case "e-auto":
-                          cardFare = km <= 1 ? 25 : 25 + Math.round((km - 1) * 20);
-                          break;
-                        case "stage-slab":
-                          if (km <= 3) cardFare = 9;
-                          else if (km <= 5) cardFare = 14;
-                          else if (km <= 10) cardFare = 17;
-                          else if (km <= 15) cardFare = 20;
-                          else if (km <= 20) cardFare = 26;
-                          else cardFare = 26 + Math.round((km - 20) * 1.40);
-                          break;
-                        case "stage-carriage":
-                          {
-                            const rate = terrainRegion === "kashmir-plain" ? 1.64 : terrainRegion === "kashmir-hill" ? 1.88 : terrainRegion === "jammu-plain" ? 1.12 : 1.59;
-                            cardFare = Math.max(10, Math.round(km * rate));
-                          }
-                          break;
-                        case "stage-carriage-big":
-                          {
-                            const rate = terrainRegion === "kashmir-plain" ? 1.40 : terrainRegion === "kashmir-hill" ? 1.64 : terrainRegion === "jammu-plain" ? 1.12 : 1.59;
-                            cardFare = Math.max(10, Math.round(km * rate));
-                          }
-                          break;
-                        case "metered-auto":
-                          cardFare = km <= 2 ? 45 : 45 + Math.round((km - 2) * 7.4);
-                          break;
-                        default:
-                          cardFare = Math.max(15, v.base + Math.round(km * v.perKm) + (v.key === "suv-taxi" ? 20 : 0));
-                          break;
+                      if (km > 0) {
+                        switch (v.calcType) {
+                          case "e-rickshaw":
+                            cardFare = Math.max(15, Math.round(km * 15));
+                            break;
+                          case "e-auto":
+                            cardFare = km <= 1 ? 25 : 25 + Math.round((km - 1) * 20);
+                            break;
+                          case "stage-slab":
+                            if (km <= 3) cardFare = 9;
+                            else if (km <= 5) cardFare = 14;
+                            else if (km <= 10) cardFare = 17;
+                            else if (km <= 15) cardFare = 20;
+                            else if (km <= 20) cardFare = 26;
+                            else cardFare = 26 + Math.round((km - 20) * 1.40);
+                            break;
+                          case "stage-carriage":
+                            {
+                              const rate = terrainRegion === "kashmir-plain" ? 1.64 : terrainRegion === "kashmir-hill" ? 1.88 : terrainRegion === "jammu-plain" ? 1.12 : 1.59;
+                              cardFare = Math.max(10, Math.round(km * rate));
+                            }
+                            break;
+                          case "stage-carriage-big":
+                            {
+                              const rate = terrainRegion === "kashmir-plain" ? 1.40 : terrainRegion === "kashmir-hill" ? 1.64 : terrainRegion === "jammu-plain" ? 1.12 : 1.59;
+                              cardFare = Math.max(10, Math.round(km * rate));
+                            }
+                            break;
+                          case "metered-auto":
+                            cardFare = km <= 2 ? 45 : 45 + Math.round((km - 2) * 7.4);
+                            break;
+                          default:
+                            cardFare = Math.max(15, v.base + Math.round(km * v.perKm) + (v.key === "suv-taxi" ? 20 : 0));
+                            break;
+                        }
                       }
 
                       return (
@@ -1569,9 +1583,15 @@ export default function App() {
                               <Icon size={18} />
                             </div>
                             <div className="flex items-center gap-1.5">
-                              <span className="text-[11px] font-black text-[#234b4c] bg-[#eef4ed] px-2 py-0.5 rounded-lg border border-[#d2e4d4]">
-                                ₹{cardFare}
-                              </span>
+                              {hasRoute && cardFare > 0 ? (
+                                <span className="text-[11px] font-black text-[#234b4c] bg-[#eef4ed] px-2 py-0.5 rounded-lg border border-[#d2e4d4]">
+                                  ₹{cardFare}
+                                </span>
+                              ) : (
+                                <span className="text-[10px] font-bold text-[#557b72] bg-[#edf3eb] px-2 py-0.5 rounded-md">
+                                  ₹{v.perKm}/km
+                                </span>
+                              )}
                               <span
                                 className={`text-[10px] font-bold px-2 py-0.5 rounded-md ${
                                   selected
@@ -1631,7 +1651,13 @@ export default function App() {
                         <span>Official Fare Estimate</span>
                       </div>
                       <p className="text-xs text-[#c4d6cb] mt-2 font-medium">
-                        {from} <ArrowRight size={12} className="inline mx-1" /> {to}
+                        {hasRoute ? (
+                          <>
+                            {from} <ArrowRight size={12} className="inline mx-1" /> {to}
+                          </>
+                        ) : (
+                          "Choose Boarding & Deboarding Points"
+                        )}
                       </p>
                     </div>
 
@@ -1671,10 +1697,12 @@ export default function App() {
                     <p className="text-[11px] text-[#aac2b3] font-medium">Govt Approved Fare Range</p>
                     <div className="flex items-baseline gap-2 mt-1">
                       <span className="text-4xl sm:text-5xl font-black tracking-tight text-[#ffffff]">
-                        ₹{displayFare.toLocaleString("en-IN")}
+                        {hasRoute && displayFare > 0 ? `₹${displayFare.toLocaleString("en-IN")}` : "₹ —"}
                       </span>
                       <span className="text-xs text-[#f2bd70] font-semibold">
-                        {!chosenVehicle.isPerSeat
+                        {!hasRoute
+                          ? "(Choose route to calculate)"
+                          : !chosenVehicle.isPerSeat
                           ? `(Entire ${chosenVehicle.label})`
                           : priceMode === "full-cab"
                           ? `(Entire Vehicle - ${chosenVehicle.seatsMultiplier} Seats)`
@@ -1691,7 +1719,7 @@ export default function App() {
                     </div>
                     <div className="bg-[#183637]/50 p-2.5 rounded-xl border border-[#386260]/60">
                       <p className="text-[10px] text-[#aac2b3]">Calculated Distance</p>
-                      <p className="font-bold text-[#ffffff] mt-0.5">{distance || 0} KM</p>
+                      <p className="font-bold text-[#ffffff] mt-0.5">{hasRoute && distance ? `${distance} KM` : "—"}</p>
                     </div>
                   </div>
 

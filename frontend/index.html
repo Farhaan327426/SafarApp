@@ -191,7 +191,7 @@
                   <label class="field-label origin"><span class="dot-orange"></span> Boarding Point (Pickup)</label>
                   <div class="input-icon-wrap">
                     <svg class="field-icon icon-orange" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
-                    <input type="text" id="input-from" value="Srinagar" list="locations-list" placeholder="e.g. Srinagar, Lal Chowk" autocomplete="off">
+                    <input type="text" id="input-from" value="" list="locations-list" placeholder="e.g. Srinagar, Lal Chowk, Katra" autocomplete="off">
                   </div>
                 </div>
 
@@ -205,7 +205,7 @@
                   <label class="field-label dest"><span class="dot-green"></span> Deboarding Point (Drop-off)</label>
                   <div class="input-icon-wrap">
                     <svg class="field-icon icon-green" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
-                    <input type="text" id="input-to" value="Gulmarg" list="locations-list" placeholder="e.g. Gulmarg, Pahalgam" autocomplete="off">
+                    <input type="text" id="input-to" value="" list="locations-list" placeholder="e.g. Gulmarg, Pahalgam, Jammu" autocomplete="off">
                   </div>
                 </div>
               </div>
@@ -221,14 +221,14 @@
                   <span class="live-route-icon">🛣️</span>
                   <div>
                     <div class="live-route-title-row">
-                      <strong id="live-route-name">Srinagar ➔ Gulmarg</strong>
-                      <span id="live-route-km-pill" class="km-pill">51 KM</span>
+                      <strong id="live-route-name">Choose Boarding & Deboarding Points</strong>
+                      <span id="live-route-km-pill" class="km-pill" style="display: none;">0 KM</span>
                     </div>
-                    <p id="live-route-meta" class="live-route-sub">⏱️ Approx 1h 35m · 🏔️ Mountain Pass Corridor</p>
+                    <p id="live-route-meta" class="live-route-sub">Select your starting point and destination in J&K</p>
                   </div>
                 </div>
                 <div class="live-route-right">
-                  <span id="live-route-highway" class="highway-tag">NH-1A / Tangmarg Rd</span>
+                  <span id="live-route-highway" class="highway-tag">J&K Transit Network</span>
                 </div>
               </div>
 
@@ -240,7 +240,7 @@
                 </div>
                 <div class="distance-control">
                   <div class="unit-input-wrap">
-                    <input type="number" id="input-distance" value="51" min="1" max="800">
+                    <input type="number" id="input-distance" value="" placeholder="KM" min="1" max="800">
                     <span class="unit-suffix">KM</span>
                   </div>
                 </div>

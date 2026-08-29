@@ -467,9 +467,9 @@ const recentEstimates = [
 ];
 
 // State variables
-let currentFrom = "Srinagar";
-let currentTo = "Gulmarg";
-let currentDistance = 51;
+let currentFrom = "";
+let currentTo = "";
+let currentDistance = 0;
 let currentVehicleKey = "shared-cab";
 let currentPriceMode = "per-seat";
 let currentCategoryFilter = "all";
@@ -837,11 +837,16 @@ function renderVehicleCards() {
       footerRateText = "₹7.40/km Meter";
     }
 
+    const hasRoute = Boolean(currentFrom.trim() && currentTo.trim() && km > 0);
+    const fareBadge = hasRoute && cardFare > 0
+      ? `<span style="font-weight: 800; font-size: 11px; background: #eef4ed; color: #234b4c; padding: 2px 7px; border-radius: 6px; border: 1px solid #d2e4d4;">₹ ${cardFare}</span>`
+      : `<span style="font-weight: 700; font-size: 10px; background: #edf3eb; color: #557b72; padding: 2px 6px; border-radius: 6px;">₹${v.perKm}/km</span>`;
+
     card.innerHTML = `
       <div class="vehicle-card-top">
         <div class="vehicle-icon-box">${v.icon}</div>
         <div style="display: flex; align-items: center; gap: 6px;">
-          <span style="font-weight: 800; font-size: 11px; background: #eef4ed; color: #234b4c; padding: 2px 7px; border-radius: 6px; border: 1px solid #d2e4d4;">₹ ${cardFare}</span>
+          ${fareBadge}
           <span class="vehicle-badge">${v.badge}</span>
         </div>
       </div>
@@ -869,106 +874,111 @@ function renderVehicleCards() {
 // Calculate and update UI
 function calculateAndRender() {
   const v = vehicleOptions.find((opt) => opt.key === currentVehicleKey) || vehicleOptions[0];
-  const km = Math.max(1, Number(currentDistance) || 1);
+  const km = Number(currentDistance) || 0;
+  const hasRoute = Boolean(currentFrom.trim() && currentTo.trim() && km > 0);
   let base = v.base;
   let distCost = 0;
   let adj = 0;
   let totalSingle = 0;
   let formulaDesc = "";
 
-  switch (v.calcType) {
-    case "e-rickshaw":
-      base = 15;
-      distCost = Math.round(km * 15);
-      totalSingle = Math.max(15, distCost);
-      formulaDesc = `Flat ₹15/km (${km} km × ₹15)`;
-      break;
+  if (km > 0) {
+    switch (v.calcType) {
+      case "e-rickshaw":
+        base = 15;
+        distCost = Math.round(km * 15);
+        totalSingle = Math.max(15, distCost);
+        formulaDesc = `Flat ₹15/km (${km} km × ₹15)`;
+        break;
 
-    case "e-auto":
-      base = 25;
-      distCost = km <= 1 ? 0 : Math.round((km - 1) * 20);
-      totalSingle = km <= 1 ? 25 : 25 + distCost;
-      formulaDesc = km <= 1 ? "1st KM Base Fare (₹25)" : `₹25 (1st km) + ${(km - 1)} km × ₹20/km`;
-      break;
+      case "e-auto":
+        base = 25;
+        distCost = km <= 1 ? 0 : Math.round((km - 1) * 20);
+        totalSingle = km <= 1 ? 25 : 25 + distCost;
+        formulaDesc = km <= 1 ? "1st KM Base (₹25)" : `₹25 (1st km) + ${(km - 1)} km × ₹20/km`;
+        break;
 
-    case "stage-slab":
-      if (km <= 3) {
-        totalSingle = 9;
-        base = 9;
-        formulaDesc = "Stage Slab: 0 to 3 KM (₹9)";
-      } else if (km <= 5) {
-        totalSingle = 14;
-        base = 14;
-        formulaDesc = "Stage Slab: 3 to 5 KM (₹14)";
-      } else if (km <= 10) {
-        totalSingle = 17;
-        base = 17;
-        formulaDesc = "Stage Slab: 5 to 10 KM (₹17)";
-      } else if (km <= 15) {
-        totalSingle = 20;
-        base = 20;
-        formulaDesc = "Stage Slab: 10 to 15 KM (₹20)";
-      } else if (km <= 20) {
-        totalSingle = 26;
-        base = 26;
-        formulaDesc = "Stage Slab: 15 to 20 KM (₹26)";
-      } else {
-        base = 26;
-        const extraKm = km - 20;
-        distCost = Math.round(extraKm * 1.40);
-        totalSingle = 26 + distCost;
-        formulaDesc = `₹26 (20km slab) + ${extraKm} km @ 50% Concession (₹1.40/km)`;
-      }
-      break;
+      case "stage-slab":
+        if (km <= 3) {
+          totalSingle = 9;
+          base = 9;
+          formulaDesc = "Stage Slab: 0 to 3 KM (₹9)";
+        } else if (km <= 5) {
+          totalSingle = 14;
+          base = 14;
+          formulaDesc = "Stage Slab: 3 to 5 KM (₹14)";
+        } else if (km <= 10) {
+          totalSingle = 17;
+          base = 17;
+          formulaDesc = "Stage Slab: 5 to 10 KM (₹17)";
+        } else if (km <= 15) {
+          totalSingle = 20;
+          base = 20;
+          formulaDesc = "Stage Slab: 10 to 15 KM (₹20)";
+        } else if (km <= 20) {
+          totalSingle = 26;
+          base = 26;
+          formulaDesc = "Stage Slab: 15 to 20 KM (₹26)";
+        } else {
+          base = 26;
+          const extraKm = km - 20;
+          distCost = Math.round(extraKm * 1.40);
+          totalSingle = 26 + distCost;
+          formulaDesc = `₹26 (20km slab) + ${extraKm} km @ 50% Concession (₹1.40/km)`;
+        }
+        break;
 
-    case "stage-carriage":
-      {
-        const ratePerKm =
-          currentTerrainRegion === "kashmir-plain"
-            ? 1.64
-            : currentTerrainRegion === "kashmir-hill"
-            ? 1.88
-            : currentTerrainRegion === "jammu-plain"
-            ? 1.12
-            : 1.59;
-        base = 10;
-        distCost = Math.round(km * ratePerKm);
-        totalSingle = Math.max(10, distCost);
-        formulaDesc = `${km} km × ₹${ratePerKm}/km`;
-      }
-      break;
+      case "stage-carriage":
+        {
+          const ratePerKm =
+            currentTerrainRegion === "kashmir-plain"
+              ? 1.64
+              : currentTerrainRegion === "kashmir-hill"
+              ? 1.88
+              : currentTerrainRegion === "jammu-plain"
+              ? 1.12
+              : 1.59;
+          base = 10;
+          distCost = Math.round(km * ratePerKm);
+          totalSingle = Math.max(10, distCost);
+          formulaDesc = `${km} km × ₹${ratePerKm}/km`;
+        }
+        break;
 
-    case "stage-carriage-big":
-      {
-        const ratePerKm =
-          currentTerrainRegion === "kashmir-plain"
-            ? 1.40
-            : currentTerrainRegion === "kashmir-hill"
-            ? 1.64
-            : currentTerrainRegion === "jammu-plain"
-            ? 1.12
-            : 1.59;
-        base = 10;
-        distCost = Math.round(km * ratePerKm);
-        totalSingle = Math.max(10, distCost);
-        formulaDesc = `${km} km × ₹${ratePerKm}/km`;
-      }
-      break;
+      case "stage-carriage-big":
+        {
+          const ratePerKm =
+            currentTerrainRegion === "kashmir-plain"
+              ? 1.40
+              : currentTerrainRegion === "kashmir-hill"
+              ? 1.64
+              : currentTerrainRegion === "jammu-plain"
+              ? 1.12
+              : 1.59;
+          base = 10;
+          distCost = Math.round(km * ratePerKm);
+          totalSingle = Math.max(10, distCost);
+          formulaDesc = `${km} km × ₹${ratePerKm}/km`;
+        }
+        break;
 
-    case "metered-auto":
-      base = 45;
-      distCost = km <= 2 ? 0 : Math.round((km - 2) * 7.4);
-      totalSingle = km <= 2 ? 45 : 45 + distCost;
-      formulaDesc = km <= 2 ? "First 2 KM Base (₹45)" : `₹45 (1st 2km) + ${(km - 2)} km × ₹7.4/km`;
-      break;
+      case "metered-auto":
+        base = 45;
+        distCost = km <= 2 ? 0 : Math.round((km - 2) * 7.4);
+        totalSingle = km <= 2 ? 45 : 45 + distCost;
+        formulaDesc = km <= 2 ? "First 2 KM Meter (₹45)" : `₹45 (1st 2km) + ${(km - 2)} km × ₹7.4/km`;
+        break;
 
-    default:
-      base = v.base;
-      distCost = Math.round(km * v.perKm);
-      adj = v.key === "suv-taxi" ? 20 : 0;
-      totalSingle = Math.max(15, base + distCost + adj);
-      formulaDesc = `Base ₹${base} + (${km} km × ₹${v.perKm}/km)`;
-      break;
+      default:
+        base = v.base;
+        distCost = Math.round(km * v.perKm);
+        adj = v.key === "suv-taxi" ? 20 : 0;
+        totalSingle = Math.max(15, base + distCost + adj);
+        formulaDesc = `${km} km × ₹${v.perKm}/km`;
+        break;
+    }
+  } else {
+    formulaDesc = `Official rate: ₹${v.perKm}/km`;
   }
 
   const fullCabCost = v.isPerSeat ? totalSingle * v.seatsMultiplier : totalSingle;
@@ -979,13 +989,15 @@ function calculateAndRender() {
     : totalSingle;
 
   // Update elements
-  if (fareRouteSummary) fareRouteSummary.textContent = `${currentFrom} ➔ ${currentTo}`;
-  if (displayPriceVal) displayPriceVal.textContent = formatRupees(finalFare);
+  if (fareRouteSummary) fareRouteSummary.textContent = hasRoute ? `${currentFrom} ➔ ${currentTo}` : "Choose Boarding & Deboarding Points";
+  if (displayPriceVal) displayPriceVal.textContent = hasRoute && finalFare > 0 ? formatRupees(finalFare) : "₹ —";
   if (specVehicleName) specVehicleName.textContent = v.label;
-  if (specDistanceVal) specDistanceVal.textContent = `${km} KM`;
+  if (specDistanceVal) specDistanceVal.textContent = hasRoute && km > 0 ? `${km} KM` : "—";
 
   if (displayPriceBasis) {
-    if (!v.isPerSeat) {
+    if (!hasRoute) {
+      displayPriceBasis.textContent = "(Choose route to calculate)";
+    } else if (!v.isPerSeat) {
       displayPriceBasis.textContent = `(Entire ${v.label})`;
     } else if (currentPriceMode === "full-cab") {
       displayPriceBasis.textContent = `(Entire Vehicle - ${v.seatsMultiplier} Seats)`;
@@ -997,8 +1009,8 @@ function calculateAndRender() {
   const mathVehicleName = document.getElementById("math-vehicle-name");
   if (mathVehicleName) mathVehicleName.textContent = v.label;
   if (mathDistanceLabel) mathDistanceLabel.textContent = formulaDesc;
-  if (mathDistanceCost) mathDistanceCost.textContent = `${km} KM`;
-  if (mathTotalFare) mathTotalFare.textContent = formatRupees(finalFare);
+  if (mathDistanceCost) mathDistanceCost.textContent = hasRoute && km > 0 ? `${km} KM` : "—";
+  if (mathTotalFare) mathTotalFare.textContent = hasRoute && finalFare > 0 ? formatRupees(finalFare) : "₹ —";
 
   // Update Live Route Distance Card in Step 1
   const routeInfo = resolveRouteInfo(currentFrom, currentTo);
@@ -1006,10 +1018,13 @@ function calculateAndRender() {
   const liveRouteKmPill = document.getElementById("live-route-km-pill");
   const liveRouteMeta = document.getElementById("live-route-meta");
   const liveRouteHighway = document.getElementById("live-route-highway");
-  if (liveRouteName) liveRouteName.textContent = `${currentFrom} ➔ ${currentTo}`;
-  if (liveRouteKmPill) liveRouteKmPill.textContent = `${km} KM`;
-  if (liveRouteMeta) liveRouteMeta.textContent = `⏱️ Approx ${routeInfo.duration} · 🏔️ ${routeInfo.terrain}`;
-  if (liveRouteHighway) liveRouteHighway.textContent = routeInfo.highway;
+  if (liveRouteName) liveRouteName.textContent = hasRoute ? `${currentFrom} ➔ ${currentTo}` : "Choose Boarding & Deboarding Points";
+  if (liveRouteKmPill) {
+    liveRouteKmPill.textContent = `${km} KM`;
+    liveRouteKmPill.style.display = hasRoute && km > 0 ? "inline-block" : "none";
+  }
+  if (liveRouteMeta) liveRouteMeta.textContent = hasRoute ? `⏱️ Approx ${routeInfo.duration} · 🏔️ ${routeInfo.terrain}` : "Select your starting point and destination in J&K";
+  if (liveRouteHighway) liveRouteHighway.textContent = hasRoute ? routeInfo.highway : "J&K Transit Network";
 
   // Toggle Seat Mode Visibility
   if (seatModeContainer) {
@@ -1192,16 +1207,15 @@ function attachListeners() {
 
   if (resetBtn) {
     resetBtn.addEventListener("click", () => {
-      currentFrom = "Srinagar";
-      currentTo = "Gulmarg";
-      currentDistance = 51;
-      currentVehicleKey = "shared-cab";
-      currentTerrainRegion = "kashmir-hill";
-      if (inputFrom) inputFrom.value = currentFrom;
-      if (inputTo) inputTo.value = currentTo;
-      if (inputDistance) inputDistance.value = currentDistance;
+      currentFrom = "";
+      currentTo = "";
+      currentDistance = 0;
+      currentTerrainRegion = "kashmir-plain";
+      if (inputFrom) inputFrom.value = "";
+      if (inputTo) inputTo.value = "";
+      if (inputDistance) inputDistance.value = "";
       calculateAndRender();
-      showToast("Route reset to Srinagar ➔ Gulmarg");
+      showToast("Cleared route inputs. Choose your points!");
     });
   }
 
