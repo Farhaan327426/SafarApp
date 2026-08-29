@@ -1249,18 +1249,181 @@ export default function App() {
 
             {/* Main Interactive Calculation Grid */}
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-              {/* Left Column: Route Builder & Vehicle Selection (7 Cols) */}
+              {/* Left Column: Vehicle Selection First (Step 1) & Route Builder (Step 2) (7 Cols) */}
               <div className="lg:col-span-7 space-y-6">
-                {/* Step 1: Route Builder Box */}
+                
+                {/* Step 1: Vehicle Selection Cards */}
                 <div className="bg-[#fbfcf8] border border-[#dce5dc] rounded-3xl p-5 sm:p-7 shadow-sm">
-                  <div className="flex items-center justify-between pb-4 mb-5 border-b border-[#e5ece3]">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 mb-4 border-b border-[#e5ece3]">
                     <div className="flex items-center gap-2.5">
-                      <div className="w-8 h-8 rounded-xl bg-[#e5eee4] text-[#345657] flex items-center justify-center font-bold text-xs">
+                      <div className="w-8 h-8 rounded-xl bg-[#234b4c] text-[#f2bd70] flex items-center justify-center font-black text-xs shadow-xs">
                         1
                       </div>
                       <div>
-                        <h2 className="text-base font-bold text-[#234b4c]">Where are you going?</h2>
-                        <p className="text-[11px] text-[#78908a]">Enter your start and destination in J&K</p>
+                        <h2 className="text-base font-bold text-[#234b4c]">Choose Your Vehicle Mode</h2>
+                        <p className="text-[11px] text-[#78908a]">
+                          Official government statutory tariffs across Jammu & Kashmir
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Exclusions Notice */}
+                    <span className="text-[10px] font-bold text-[#78908a] bg-[#eef4ed] px-2.5 py-1 rounded-lg border border-[#dce5dc] self-start sm:self-auto">
+                      Non-SRTC & Non-E-Bus
+                    </span>
+                  </div>
+
+                  {/* Category Filter Tabs */}
+                  <div className="flex items-center gap-1.5 overflow-x-auto pb-2 mb-3.5 scrollbar-none">
+                    {vehicleCategories.map((cat) => (
+                      <button
+                        key={cat.key}
+                        onClick={() => setVehicleCategoryFilter(cat.key)}
+                        className={`px-3 py-1 rounded-xl text-xs font-bold shrink-0 transition ${
+                          vehicleCategoryFilter === cat.key
+                            ? "bg-[#234b4c] text-[#f4f6ed] shadow-xs"
+                            : "bg-[#f0f4ee] text-[#557b72] hover:bg-[#e4ece2]"
+                        }`}
+                      >
+                        {cat.label}
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Vehicle Grid */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {filteredVehicles.map((v) => {
+                      const Icon = v.icon;
+                      const selected = vehicle === v.key;
+                      const km = Number(distance) || 0;
+                      let cardFare = 0;
+                      if (km > 0) {
+                        switch (v.calcType) {
+                          case "e-rickshaw":
+                            cardFare = Math.max(15, Math.round(km * 15));
+                            break;
+                          case "e-auto":
+                            cardFare = km <= 1 ? 25 : 25 + Math.round((km - 1) * 20);
+                            break;
+                          case "stage-slab":
+                            if (km <= 3) cardFare = 9;
+                            else if (km <= 5) cardFare = 14;
+                            else if (km <= 10) cardFare = 17;
+                            else if (km <= 15) cardFare = 20;
+                            else if (km <= 20) cardFare = 26;
+                            else cardFare = 26 + Math.round((km - 20) * 1.40);
+                            break;
+                          case "stage-carriage":
+                            {
+                              const rate = terrainRegion === "kashmir-plain" ? 1.64 : terrainRegion === "kashmir-hill" ? 1.88 : terrainRegion === "jammu-plain" ? 1.12 : 1.59;
+                              cardFare = Math.max(10, Math.round(km * rate));
+                            }
+                            break;
+                          case "stage-carriage-big":
+                            {
+                              const rate = terrainRegion === "kashmir-plain" ? 1.40 : terrainRegion === "kashmir-hill" ? 1.64 : terrainRegion === "jammu-plain" ? 1.12 : 1.59;
+                              cardFare = Math.max(10, Math.round(km * rate));
+                            }
+                            break;
+                          case "metered-auto":
+                            cardFare = km <= 2 ? 45 : 45 + Math.round((km - 2) * 7.4);
+                            break;
+                          default:
+                            cardFare = Math.max(15, v.base + Math.round(km * v.perKm) + (v.key === "suv-taxi" ? 20 : 0));
+                            break;
+                        }
+                      }
+
+                      return (
+                        <button
+                          key={v.key}
+                          onClick={() => {
+                            setVehicle(v.key);
+                            showToast(`Selected ${v.label}`);
+                          }}
+                          className={`relative p-3.5 rounded-2xl text-left border-2 transition-all flex flex-col justify-between ${
+                            selected
+                              ? "bg-[#f4f7f2] border-[#234b4c] shadow-md ring-2 ring-[#234b4c]/10"
+                              : "bg-[#fbfcf8] border-[#e2eae0] hover:border-[#adc9b2] hover:bg-[#f8faf6]"
+                          }`}
+                        >
+                          <div className="flex items-start justify-between w-full">
+                            <div
+                              className="w-9 h-9 rounded-xl flex items-center justify-center shadow-xs"
+                              style={{
+                                backgroundColor: selected ? "#234b4c" : "#edf3eb",
+                                color: selected ? "#f2bd70" : v.color,
+                              }}
+                            >
+                              <Icon size={18} />
+                            </div>
+                            <div className="flex items-center gap-1.5">
+                              {hasRoute && cardFare > 0 ? (
+                                <span className="text-[11px] font-black text-[#234b4c] bg-[#eef4ed] px-2 py-0.5 rounded-lg border border-[#d2e4d4]">
+                                  ₹{cardFare}
+                                </span>
+                              ) : (
+                                <span className="text-[10px] font-bold text-[#557b72] bg-[#edf3eb] px-2 py-0.5 rounded-md">
+                                  ₹{v.perKm}/km
+                                </span>
+                              )}
+                              <span
+                                className={`text-[10px] font-bold px-2 py-0.5 rounded-md ${
+                                  selected
+                                    ? "bg-[#234b4c] text-[#f4f6ed]"
+                                    : "bg-[#edf3eb] text-[#557b72]"
+                                }`}
+                              >
+                                {v.badge}
+                              </span>
+                            </div>
+                          </div>
+
+                          <div className="mt-2.5">
+                            <div className="flex items-center gap-1.5">
+                              <h3 className="font-bold text-[13px] text-[#234b4c]">{v.label}</h3>
+                              {selected && <CheckCircle2 size={14} className="text-[#557b72]" />}
+                            </div>
+                            <p className="text-[11px] font-medium text-[#78908a]">{v.sublabel}</p>
+                            <p className="text-[10px] text-[#8a9c95] mt-0.5 leading-snug">{v.detail}</p>
+                          </div>
+
+                          <div className="mt-2.5 pt-2 border-t border-[#e2eae0] flex items-center justify-between text-[11px]">
+                            <span className="text-[#78908a]">
+                              {v.calcType === "stage-slab"
+                                ? "6 to 8 Seats"
+                                : v.calcType === "e-rickshaw"
+                                ? "Up to 4 Persons"
+                                : v.calcType === "e-auto" || v.calcType === "metered-auto"
+                                ? "Up to 3 Persons"
+                                : v.capacity || "Govt Approved"}
+                            </span>
+                            <span className="font-bold text-[#345657]">
+                              {v.calcType === "stage-slab"
+                                ? "Stage Slabs"
+                                : v.calcType === "e-auto"
+                                ? "₹20/km"
+                                : v.calcType === "metered-auto"
+                                ? "₹7.40/km"
+                                : `₹${v.perKm}/km`}
+                            </span>
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Step 2: Route Builder Box */}
+                <div className="bg-[#fbfcf8] border border-[#dce5dc] rounded-3xl p-5 sm:p-7 shadow-sm">
+                  <div className="flex items-center justify-between pb-4 mb-5 border-b border-[#e5ece3]">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-8 h-8 rounded-xl bg-[#234b4c] text-[#f2bd70] flex items-center justify-center font-black text-xs shadow-xs">
+                        2
+                      </div>
+                      <div>
+                        <h2 className="text-base font-bold text-[#234b4c]">Where are you traveling?</h2>
+                        <p className="text-[11px] text-[#78908a]">Enter boarding point & drop-off destination in J&K</p>
                       </div>
                     </div>
 
@@ -1474,168 +1637,6 @@ export default function App() {
                         <option value="jammu-hill">Jammu Hilly (₹1.59/km)</option>
                       </select>
                     </div>
-                  </div>
-                </div>
-
-                {/* Step 2: Vehicle Selection Cards */}
-                <div className="bg-[#fbfcf8] border border-[#dce5dc] rounded-3xl p-5 sm:p-7 shadow-sm">
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 mb-4 border-b border-[#e5ece3]">
-                    <div className="flex items-center gap-2.5">
-                      <div className="w-8 h-8 rounded-xl bg-[#e5eee4] text-[#345657] flex items-center justify-center font-bold text-xs">
-                        2
-                      </div>
-                      <div>
-                        <h2 className="text-base font-bold text-[#234b4c]">Select Vehicle Type</h2>
-                        <p className="text-[11px] text-[#78908a]">
-                          Official government statutory rates across Jammu & Kashmir
-                        </p>
-                      </div>
-                    </div>
-
-                    {/* Exclusions Notice */}
-                    <span className="text-[10px] font-bold text-[#78908a] bg-[#eef4ed] px-2.5 py-1 rounded-lg border border-[#dce5dc] self-start sm:self-auto">
-                      Non-SRTC & Non-E-Bus
-                    </span>
-                  </div>
-
-                  {/* Category Filter Tabs */}
-                  <div className="flex items-center gap-1.5 overflow-x-auto pb-2 mb-3.5 scrollbar-none">
-                    {vehicleCategories.map((cat) => (
-                      <button
-                        key={cat.key}
-                        onClick={() => setVehicleCategoryFilter(cat.key)}
-                        className={`px-3 py-1 rounded-xl text-xs font-bold shrink-0 transition ${
-                          vehicleCategoryFilter === cat.key
-                            ? "bg-[#234b4c] text-[#f4f6ed] shadow-xs"
-                            : "bg-[#f0f4ee] text-[#557b72] hover:bg-[#e4ece2]"
-                        }`}
-                      >
-                        {cat.label}
-                      </button>
-                    ))}
-                  </div>
-
-                  {/* Vehicle Grid */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    {filteredVehicles.map((v) => {
-                      const Icon = v.icon;
-                      const selected = vehicle === v.key;
-                      const km = Number(distance) || 0;
-                      let cardFare = 0;
-                      if (km > 0) {
-                        switch (v.calcType) {
-                          case "e-rickshaw":
-                            cardFare = Math.max(15, Math.round(km * 15));
-                            break;
-                          case "e-auto":
-                            cardFare = km <= 1 ? 25 : 25 + Math.round((km - 1) * 20);
-                            break;
-                          case "stage-slab":
-                            if (km <= 3) cardFare = 9;
-                            else if (km <= 5) cardFare = 14;
-                            else if (km <= 10) cardFare = 17;
-                            else if (km <= 15) cardFare = 20;
-                            else if (km <= 20) cardFare = 26;
-                            else cardFare = 26 + Math.round((km - 20) * 1.40);
-                            break;
-                          case "stage-carriage":
-                            {
-                              const rate = terrainRegion === "kashmir-plain" ? 1.64 : terrainRegion === "kashmir-hill" ? 1.88 : terrainRegion === "jammu-plain" ? 1.12 : 1.59;
-                              cardFare = Math.max(10, Math.round(km * rate));
-                            }
-                            break;
-                          case "stage-carriage-big":
-                            {
-                              const rate = terrainRegion === "kashmir-plain" ? 1.40 : terrainRegion === "kashmir-hill" ? 1.64 : terrainRegion === "jammu-plain" ? 1.12 : 1.59;
-                              cardFare = Math.max(10, Math.round(km * rate));
-                            }
-                            break;
-                          case "metered-auto":
-                            cardFare = km <= 2 ? 45 : 45 + Math.round((km - 2) * 7.4);
-                            break;
-                          default:
-                            cardFare = Math.max(15, v.base + Math.round(km * v.perKm) + (v.key === "suv-taxi" ? 20 : 0));
-                            break;
-                        }
-                      }
-
-                      return (
-                        <button
-                          key={v.key}
-                          onClick={() => {
-                            setVehicle(v.key);
-                            showToast(`Selected ${v.label}`);
-                          }}
-                          className={`relative p-3.5 rounded-2xl text-left border-2 transition-all flex flex-col justify-between ${
-                            selected
-                              ? "bg-[#f4f7f2] border-[#234b4c] shadow-md ring-2 ring-[#234b4c]/10"
-                              : "bg-[#fbfcf8] border-[#e2eae0] hover:border-[#adc9b2] hover:bg-[#f8faf6]"
-                          }`}
-                        >
-                          <div className="flex items-start justify-between w-full">
-                            <div
-                              className="w-9 h-9 rounded-xl flex items-center justify-center shadow-xs"
-                              style={{
-                                backgroundColor: selected ? "#234b4c" : "#edf3eb",
-                                color: selected ? "#f2bd70" : v.color,
-                              }}
-                            >
-                              <Icon size={18} />
-                            </div>
-                            <div className="flex items-center gap-1.5">
-                              {hasRoute && cardFare > 0 ? (
-                                <span className="text-[11px] font-black text-[#234b4c] bg-[#eef4ed] px-2 py-0.5 rounded-lg border border-[#d2e4d4]">
-                                  ₹{cardFare}
-                                </span>
-                              ) : (
-                                <span className="text-[10px] font-bold text-[#557b72] bg-[#edf3eb] px-2 py-0.5 rounded-md">
-                                  ₹{v.perKm}/km
-                                </span>
-                              )}
-                              <span
-                                className={`text-[10px] font-bold px-2 py-0.5 rounded-md ${
-                                  selected
-                                    ? "bg-[#234b4c] text-[#f4f6ed]"
-                                    : "bg-[#edf3eb] text-[#557b72]"
-                                }`}
-                              >
-                                {v.badge}
-                              </span>
-                            </div>
-                          </div>
-
-                          <div className="mt-2.5">
-                            <div className="flex items-center gap-1.5">
-                              <h3 className="font-bold text-[13px] text-[#234b4c]">{v.label}</h3>
-                              {selected && <CheckCircle2 size={14} className="text-[#557b72]" />}
-                            </div>
-                            <p className="text-[11px] font-medium text-[#78908a]">{v.sublabel}</p>
-                            <p className="text-[10px] text-[#8a9c95] mt-0.5 leading-snug">{v.detail}</p>
-                          </div>
-
-                          <div className="mt-2.5 pt-2 border-t border-[#e2eae0] flex items-center justify-between text-[11px]">
-                            <span className="text-[#78908a]">
-                              {v.calcType === "stage-slab"
-                                ? "6 to 8 Seats"
-                                : v.calcType === "e-rickshaw"
-                                ? "Up to 4 Persons"
-                                : v.calcType === "e-auto" || v.calcType === "metered-auto"
-                                ? "Up to 3 Persons"
-                                : v.capacity || "Govt Approved"}
-                            </span>
-                            <span className="font-bold text-[#345657]">
-                              {v.calcType === "stage-slab"
-                                ? "Stage Slabs"
-                                : v.calcType === "e-auto"
-                                ? "₹20/km"
-                                : v.calcType === "metered-auto"
-                                ? "₹7.40/km"
-                                : `₹${v.perKm}/km`}
-                            </span>
-                          </div>
-                        </button>
-                      );
-                    })}
                   </div>
                 </div>
               </div>
