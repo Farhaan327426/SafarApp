@@ -3,6 +3,11 @@
  * Interactive Engine & Official 2026 Revised Fare Gazette Calculations
  */
 
+// Helper to format currency in Indian Rupees
+function formatRupees(amount) {
+  return `₹ ${Number(amount || 0).toLocaleString("en-IN")}`;
+}
+
 // 1. Vehicle Option Definitions (9 Non-SRTC / Non-E-Bus J&K Categories)
 const vehicleOptions = [
   {
