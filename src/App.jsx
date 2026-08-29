@@ -1529,7 +1529,7 @@ export default function App() {
                   before you go.
                 </h1>
                 <p className="mt-2 text-xs sm:text-sm text-[#c7dad0] leading-relaxed">
-                  Verified government statutory rates for Electric Vehicles (EVs), Stage-wise Tata Magic, Matadors & Buses, and 18% revised Contract Taxis across Jammu & Kashmir.
+                  Statutory fare estimates for Shared Cabs, Autos, Matadors, and Private Taxis — every route, every mode, across Jammu & Kashmir.
                 </p>
               </div>
             </section>
