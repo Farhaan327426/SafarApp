@@ -1525,8 +1525,8 @@ export default function App() {
                   <span>Official Transit Fare Guide</span>
                 </div>
                 <h1 className="text-2xl sm:text-4xl font-extrabold tracking-tight leading-tight">
-                  Know the exact fare <br className="hidden sm:block" />
-                  before you board across J&K.
+                  Know what you owe <br className="hidden sm:block" />
+                  before you go.
                 </h1>
                 <p className="mt-2 text-xs sm:text-sm text-[#c7dad0] leading-relaxed">
                   Verified government statutory rates for Electric Vehicles (EVs), Stage-wise Tata Magic, Matadors & Buses, and 18% revised Contract Taxis across Jammu & Kashmir.
