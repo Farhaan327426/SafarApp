@@ -821,17 +821,20 @@ function renderVehicleCards() {
         break;
     }
 
-    let footerBaseText = `Base: ₹${v.base}`;
+    let footerBaseText = v.capacity || "Govt Approved";
     let footerRateText = `₹${v.perKm}/km`;
     if (v.calcType === "stage-slab") {
-      footerBaseText = "₹9 - ₹26 Slabs";
-      footerRateText = "50% Concession >20km";
+      footerBaseText = "6 to 8 Seats";
+      footerRateText = "Stage Slabs (₹9-₹26)";
     } else if (v.calcType === "e-rickshaw") {
-      footerBaseText = "Flat ₹15/km";
-      footerRateText = "Local/Shuttle";
+      footerBaseText = "Up to 4 Persons";
+      footerRateText = "Flat ₹15/km";
     } else if (v.calcType === "e-auto") {
-      footerBaseText = "₹25 (1st km)";
-      footerRateText = "₹20/km next";
+      footerBaseText = "Up to 3 Persons";
+      footerRateText = "₹20/km Rate";
+    } else if (v.calcType === "metered-auto") {
+      footerBaseText = "Up to 3 Persons";
+      footerRateText = "₹7.40/km Meter";
     }
 
     card.innerHTML = `
@@ -991,12 +994,10 @@ function calculateAndRender() {
     }
   }
 
-  if (mathBaseFare) mathBaseFare.textContent = formatRupees(base);
+  const mathVehicleName = document.getElementById("math-vehicle-name");
+  if (mathVehicleName) mathVehicleName.textContent = v.label;
   if (mathDistanceLabel) mathDistanceLabel.textContent = formulaDesc;
-  if (mathDistanceCost) mathDistanceCost.textContent = formatRupees(distCost);
-  if (mathAdjustment) {
-    mathAdjustment.textContent = adj !== 0 ? `+ ${formatRupees(adj)}` : "± ₹ 0";
-  }
+  if (mathDistanceCost) mathDistanceCost.textContent = `${km} KM`;
   if (mathTotalFare) mathTotalFare.textContent = formatRupees(finalFare);
 
   // Update Live Route Distance Card in Step 1

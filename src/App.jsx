@@ -1596,18 +1596,20 @@ export default function App() {
                           <div className="mt-2.5 pt-2 border-t border-[#e2eae0] flex items-center justify-between text-[11px]">
                             <span className="text-[#78908a]">
                               {v.calcType === "stage-slab"
-                                ? "₹9 to ₹26 Slabs"
+                                ? "6 to 8 Seats"
                                 : v.calcType === "e-rickshaw"
-                                ? "Flat ₹15/km"
-                                : v.calcType === "e-auto"
-                                ? "₹25 1st km"
-                                : `Base: ₹${v.base}`}
+                                ? "Up to 4 Persons"
+                                : v.calcType === "e-auto" || v.calcType === "metered-auto"
+                                ? "Up to 3 Persons"
+                                : v.capacity || "Govt Approved"}
                             </span>
                             <span className="font-bold text-[#345657]">
                               {v.calcType === "stage-slab"
-                                ? "50% Concession >20km"
+                                ? "Stage Slabs"
                                 : v.calcType === "e-auto"
-                                ? "₹20/km next"
+                                ? "₹20/km"
+                                : v.calcType === "metered-auto"
+                                ? "₹7.40/km"
                                 : `₹${v.perKm}/km`}
                             </span>
                           </div>
@@ -1717,49 +1719,42 @@ export default function App() {
                   <div className="flex items-center justify-between pb-3 border-b border-[#e5ece3]">
                     <div className="flex items-center gap-2">
                       <ShieldCheck size={18} className="text-[#557b72]" />
-                      <h3 className="font-bold text-sm text-[#234b4c]">Transparent Math</h3>
+                      <h3 className="font-bold text-sm text-[#234b4c]">Fare Breakdown</h3>
                     </div>
-                    <span className="text-[10px] font-bold text-[#78908a] bg-[#edf3eb] px-2 py-0.5 rounded-md">
-                      2026 Revised Formula
+                    <span className="text-[10px] font-bold text-[#557b72] bg-[#edf5ee] px-2 py-0.5 rounded-md">
+                      Official Rate
                     </span>
                   </div>
 
                   <div className="mt-3.5 space-y-2.5 text-xs">
                     <div className="flex items-center justify-between">
-                      <span className="text-[#78908a]">Base Rate / Starting Slab</span>
-                      <span className="font-bold text-[#345657]">₹{fareParts.base}</span>
+                      <span className="text-[#78908a]">Vehicle Category</span>
+                      <span className="font-bold text-[#345657]">{chosenVehicle.label}</span>
                     </div>
 
                     <div className="flex items-center justify-between">
-                      <span className="text-[#78908a]">Calculation Basis</span>
+                      <span className="text-[#78908a]">Rate Basis</span>
                       <span className="font-bold text-[#345657] text-right max-w-[200px] truncate">
                         {fareParts.formulaDesc}
                       </span>
                     </div>
 
                     <div className="flex items-center justify-between">
-                      <span className="text-[#78908a]">Distance Cost ({distance} KM)</span>
-                      <span className="font-bold text-[#345657]">₹{fareParts.distanceCost}</span>
+                      <span className="text-[#78908a]">Total Road Distance</span>
+                      <span className="font-bold text-[#345657]">{distance} KM</span>
                     </div>
 
-                    {fareParts.localAdjustment !== 0 && (
-                      <div className="flex items-center justify-between">
-                        <span className="text-[#78908a] flex items-center gap-1">
-                          Terrain / Tourist Factor
-                          <Info size={12} className="text-[#8a9c95]" />
-                        </span>
-                        <span className="font-bold text-[#bc633a]">
-                          +₹{fareParts.localAdjustment}
-                        </span>
-                      </div>
-                    )}
-
                     <div className="pt-3 border-t border-[#e2eae0] flex items-center justify-between text-sm">
-                      <span className="font-extrabold text-[#234b4c]">Total Fare Estimate</span>
+                      <span className="font-extrabold text-[#234b4c]">Total Payable Fare</span>
                       <span className="font-extrabold text-[#d36b3d] text-base">
                         ₹{displayFare.toLocaleString("en-IN")}
                       </span>
                     </div>
+                  </div>
+
+                  <div className="mt-3 p-2.5 rounded-xl bg-[#edf5ee] border border-[#d2e4d4] flex items-center gap-2 text-[11px] text-[#345657]">
+                    <CheckCircle2 size={14} className="text-[#557b72] shrink-0" />
+                    <span><strong>All-Inclusive:</strong> This is the complete official fare. No extra boarding fee or hidden charges.</span>
                   </div>
                 </div>
 
