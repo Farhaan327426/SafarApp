@@ -820,6 +820,111 @@ function resolveRouteInfo(loc1, loc2) {
   };
 }
 
+// Vehicle Operational Distance & Corridor Viability Matrix
+export function getVehicleRouteViability(vehicleKey, km, from = "", to = "") {
+  const dist = Number(km) || 0;
+  if (!dist || dist <= 0) {
+    return {
+      isViable: true,
+      reason: "",
+      maxKm: Infinity,
+      alternativeKey: "shared-cab",
+      alternativeName: "Shared Maxi-Cab (Sumo/Bolero)",
+    };
+  }
+
+  switch (vehicleKey) {
+    case "e-rickshaw":
+      if (dist > 10) {
+        return {
+          isViable: false,
+          maxKm: 10,
+          vehicleName: "E-Rickshaw (Toto / Cart)",
+          reason: `E-Rickshaws operate exclusively on short municipal feeder hops (up to 10 km). They cannot run on long-distance or inter-district highway corridors (${dist} km).`,
+          alternativeKey: "shared-cab",
+          alternativeName: "Shared Maxi-Cab (Sumo/Bolero)",
+        };
+      }
+      break;
+
+    case "e-auto":
+      if (dist > 15) {
+        return {
+          isViable: false,
+          maxKm: 15,
+          vehicleName: "E-Auto (Smart Metered)",
+          reason: `E-Autos operate strictly within urban municipal limits (up to 15 km) and do not service inter-district highway routes (${dist} km).`,
+          alternativeKey: "shared-cab",
+          alternativeName: "Shared Maxi-Cab (Sumo/Bolero)",
+        };
+      }
+      break;
+
+    case "auto":
+      if (dist > 25) {
+        return {
+          isViable: false,
+          maxKm: 25,
+          vehicleName: "Auto-Rickshaw (Petrol/CNG)",
+          reason: `Auto-Rickshaws operate within municipal and suburban limits (up to 25 km). They do not service long-distance highway corridors (${dist} km).`,
+          alternativeKey: "shared-cab",
+          alternativeName: "Shared Maxi-Cab or Sedan Taxi",
+        };
+      }
+      break;
+
+    case "vikram-tempo":
+      if (dist > 20) {
+        return {
+          isViable: false,
+          maxKm: 20,
+          vehicleName: "Vikram / Safa Tempo",
+          reason: `Vikram Tempos run on designated short urban corridors in Jammu (up to 20 km) and cannot ply long-distance routes (${dist} km).`,
+          alternativeKey: "mini-bus",
+          alternativeName: "Mini Bus (Matador) or Shared Cab",
+        };
+      }
+      break;
+
+    case "tata-magic":
+      if (dist > 35) {
+        return {
+          isViable: false,
+          maxKm: 35,
+          vehicleName: "Tata Magic / Feeder 4-Wheeler",
+          reason: `Tata Magic / Feeder vans operate on short rural-urban feeder stages (up to 35 km) and do not operate across long-distance highways (${dist} km).`,
+          alternativeKey: "mini-bus",
+          alternativeName: "Mini Bus (Matador) or Shared Cab",
+        };
+      }
+      break;
+
+    case "mini-bus":
+      if (dist > 70) {
+        return {
+          isViable: false,
+          maxKm: 70,
+          vehicleName: "Mini Bus / Matador (407)",
+          reason: `Matadors / Mini Buses operate on intra-district stage routes (up to 70 km). Long-distance inter-district transit (${dist} km) is serviced by 2+2 Big Buses or Shared Maxi-Cabs.`,
+          alternativeKey: "private-bus",
+          alternativeName: "Private 2+2 Big Bus or Shared Cab",
+        };
+      }
+      break;
+
+    default:
+      break;
+  }
+
+  return {
+    isViable: true,
+    reason: "",
+    maxKm: Infinity,
+    alternativeKey: "shared-cab",
+    alternativeName: "Shared Maxi-Cab (Sumo/Bolero)",
+  };
+}
+
 export default function App() {
   const [activeNav, setActiveNav] = useState("Fare calculator");
   const [from, setFrom] = useState("");
@@ -869,8 +974,12 @@ export default function App() {
   // Exact Statutory Fare Calculations
   const fareParts = useMemo(() => {
     const km = Number(distance) || 0;
+    const viability = getVehicleRouteViability(chosenVehicle.key, km, from, to);
+
     if (km <= 0) {
       return {
+        isViable: true,
+        viability,
         base: chosenVehicle.base,
         distanceCost: 0,
         localAdjustment: 0,
@@ -878,6 +987,20 @@ export default function App() {
         fullCabCost: 0,
         formulaDesc: `Official rate: ₹${chosenVehicle.perKm}/km`,
         perKmRate: chosenVehicle.perKm,
+      };
+    }
+
+    if (!viability.isViable) {
+      return {
+        isViable: false,
+        viability,
+        base: 0,
+        distanceCost: 0,
+        localAdjustment: 0,
+        totalSingle: 0,
+        fullCabCost: 0,
+        formulaDesc: `Route not serviced (Exceeds ${viability.maxKm} km operational range)`,
+        perKmRate: 0,
       };
     }
 
@@ -1018,6 +1141,8 @@ export default function App() {
       : totalSingle;
 
     return {
+      isViable: true,
+      viability,
       base,
       distanceCost,
       localAdjustment,
@@ -1026,7 +1151,7 @@ export default function App() {
       formulaDesc,
       perKmRate: chosenVehicle.perKm,
     };
-  }, [chosenVehicle, distance, terrainRegion]);
+  }, [chosenVehicle, distance, from, to, terrainRegion]);
 
   const activePresets = useMemo(() => {
     if (vehicle === "tata-magic") {
@@ -1059,7 +1184,7 @@ export default function App() {
     if (vehicle === "e-rickshaw") {
       return [
         { from: "Lal Chowk", to: "Dal Lake (Dalgate)", distance: 4 },
-        { from: "Lal Chowk", to: "Hazratbal", distance: 11 },
+        { from: "Lal Chowk", to: "Hazratbal", distance: 10 },
         { from: "Batamaloo", to: "Parimpora", distance: 6 },
         { from: "Katra", to: "Banganga (Katra)", distance: 4 },
       ];
@@ -1114,7 +1239,8 @@ export default function App() {
       f.includes("nunwan") ||
       t.includes("nunwan");
 
-    const isRangeWarning = (vehicle === "e-rickshaw" || vehicle === "e-auto") && km > 8;
+    const viability = getVehicleRouteViability(vehicle, km, from, to);
+    const isRangeWarning = viability.isViable && (vehicle === "e-rickshaw" || vehicle === "e-auto") && km > 6;
 
     return {
       isBatamalooNorthRedirect,
@@ -1122,10 +1248,14 @@ export default function App() {
       isFrontier,
       isPilgrimage,
       isRangeWarning,
+      viability,
     };
   }, [from, to, distance, vehicle]);
 
   const displayFare = useMemo(() => {
+    if (!fareParts.isViable) {
+      return 0;
+    }
     if (!chosenVehicle.isPerSeat) {
       return fareParts.totalSingle;
     }
@@ -1178,10 +1308,15 @@ export default function App() {
   };
 
   const handleShare = () => {
-    const text = `🚗 Safar Fare Estimate: ${from} to ${to} (${distance} km) via ${chosenVehicle.label} is ₹${displayFare}. Official J&K transit rates on Safar.`;
+    let text = "";
+    if (hasRoute && !fareParts.isViable) {
+      text = `🚗 Safar Advisory: ${chosenVehicle.label} does not service ${from} to ${to} (${distance} km). Recommended: ${fareParts.viability.alternativeName}. Check official J&K transit rates on Safar.`;
+    } else {
+      text = `🚗 Safar Fare Estimate: ${from} to ${to} (${distance} km) via ${chosenVehicle.label} is ₹${displayFare}. Official J&K transit rates on Safar.`;
+    }
     if (navigator.clipboard) {
       navigator.clipboard.writeText(text);
-      showToast("Estimate copied to clipboard!");
+      showToast("Fare & route details copied to clipboard!");
     } else {
       showToast("Ready to share!");
     }
@@ -1463,8 +1598,9 @@ export default function App() {
                       const Icon = v.icon;
                       const selected = vehicle === v.key;
                       const km = Number(distance) || 0;
+                      const cardViability = getVehicleRouteViability(v.key, km, from, to);
                       let cardFare = 0;
-                      if (km > 0) {
+                      if (km > 0 && cardViability.isViable) {
                         switch (v.calcType) {
                           case "e-rickshaw":
                             cardFare = Math.max(15, Math.round(km * 15));
@@ -1520,6 +1656,8 @@ export default function App() {
                           className={`relative p-3.5 rounded-2xl text-left border-2 transition-all flex flex-col justify-between ${
                             selected
                               ? "bg-[#f4f7f2] border-[#234b4c] shadow-md ring-2 ring-[#234b4c]/10"
+                              : !cardViability.isViable && hasRoute
+                              ? "bg-[#fdfaf8] border-[#ebdcd5] hover:border-[#d99f90] opacity-90"
                               : "bg-[#fbfcf8] border-[#e2eae0] hover:border-[#adc9b2] hover:bg-[#f8faf6]"
                           }`}
                         >
@@ -1534,7 +1672,11 @@ export default function App() {
                               <Icon size={18} />
                             </div>
                             <div className="flex items-center gap-1.5">
-                              {hasRoute && cardFare > 0 ? (
+                              {hasRoute && !cardViability.isViable ? (
+                                <span className="text-[10px] font-bold text-[#b91c1c] bg-[#fee2e2] px-2 py-0.5 rounded-md border border-[#fca5a5]">
+                                  Not Available
+                                </span>
+                              ) : hasRoute && cardFare > 0 ? (
                                 <span className="text-[11px] font-black text-[#234b4c] bg-[#eef4ed] px-2 py-0.5 rounded-lg border border-[#d2e4d4]">
                                   ₹{cardFare}
                                 </span>
@@ -1819,6 +1961,35 @@ export default function App() {
                     </div>
                   )}
 
+                  {hasRoute && !contextAlerts.viability.isViable && (
+                    <div className="mt-3.5 p-3.5 rounded-2xl bg-[#fff2f2] border border-[#fca5a5] text-[#991b1b] text-xs flex items-start gap-2.5 shadow-sm">
+                      <ShieldAlert size={18} className="text-[#dc2626] shrink-0 mt-0.5" />
+                      <div className="flex-1">
+                        <div className="flex items-center justify-between gap-2">
+                          <p className="font-bold text-[12px] text-[#991b1b]">
+                            Route Not Serviced by {chosenVehicle.label}
+                          </p>
+                          <span className="text-[10px] font-extrabold bg-[#fee2e2] text-[#b91c1c] px-2 py-0.5 rounded-full border border-[#f87171] shrink-0">
+                            Fare Not Available
+                          </span>
+                        </div>
+                        <p className="text-[11px] mt-1 text-[#7f1d1d] leading-relaxed">
+                          {contextAlerts.viability.reason} For <strong>{from || "Origin"} ➔ {to || "Destination"}</strong> ({distance} km), commuters use <strong>{contextAlerts.viability.alternativeName}</strong>.
+                        </p>
+                        <button
+                          onClick={() => {
+                            setVehicle(contextAlerts.viability.alternativeKey);
+                            showToast(`Switched to ${contextAlerts.viability.alternativeName}`);
+                          }}
+                          className="mt-2 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#dc2626] text-white font-bold text-[11px] hover:bg-[#b91c1c] transition shadow-xs"
+                        >
+                          <ArrowRight size={12} />
+                          Switch to {contextAlerts.viability.alternativeName}
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
                   {contextAlerts.isFrontier && (
                     <div className="mt-3.5 p-3 rounded-2xl bg-[#f0f4ee] border border-[#c3d8c6] text-[#234b4c] text-xs flex items-start gap-2.5">
                       <ShieldCheck size={16} className="text-[#557b72] shrink-0 mt-0.5" />
@@ -1902,13 +2073,17 @@ export default function App() {
                       </p>
                     </div>
 
-                    <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-[#386260] text-[#cbe1d3] border border-[#4d7f7c]">
-                      Verified Rate
+                    <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold border ${
+                      hasRoute && !fareParts.isViable
+                        ? "bg-[#782323] text-[#fca5a5] border-[#a33737]"
+                        : "bg-[#386260] text-[#cbe1d3] border-[#4d7f7c]"
+                    }`}>
+                      {hasRoute && !fareParts.isViable ? "Non-Serviced Route" : "Verified Rate"}
                     </span>
                   </div>
 
                   {/* Price Mode Switcher (Per Seat vs Full Cab) */}
-                  {chosenVehicle.isPerSeat ? (
+                  {chosenVehicle.isPerSeat && fareParts.isViable ? (
                     <div className="relative z-10 mt-4 flex items-center bg-[#183637]/70 p-1 rounded-xl border border-[#386260]">
                       <button
                         onClick={() => setPriceMode("per-seat")}
@@ -1936,13 +2111,23 @@ export default function App() {
                   {/* Big Live Price Display */}
                   <div className="relative z-10 mt-4">
                     <p className="text-[11px] text-[#aac2b3] font-medium">Govt Approved Fare Range</p>
-                    <div className="flex items-baseline gap-2 mt-1">
-                      <span className="text-4xl sm:text-5xl font-black tracking-tight text-[#ffffff]">
-                        {hasRoute && displayFare > 0 ? `₹${displayFare.toLocaleString("en-IN")}` : "₹ —"}
+                    <div className="flex flex-col sm:flex-row sm:items-baseline gap-2 mt-1">
+                      <span className={`tracking-tight font-black ${
+                        !hasRoute || (fareParts.isViable && displayFare > 0)
+                          ? "text-4xl sm:text-5xl text-[#ffffff]"
+                          : "text-2xl sm:text-3xl text-[#ffcaca]"
+                      }`}>
+                        {!hasRoute
+                          ? "₹ —"
+                          : fareParts.isViable && displayFare > 0
+                          ? `₹${displayFare.toLocaleString("en-IN")}`
+                          : "Fare Not Available"}
                       </span>
                       <span className="text-xs text-[#f2bd70] font-semibold">
                         {!hasRoute
                           ? "(Choose route to calculate)"
+                          : !fareParts.isViable
+                          ? `(${chosenVehicle.label} does not operate on ${distance} km route)`
                           : !chosenVehicle.isPerSeat
                           ? `(Entire ${chosenVehicle.label})`
                           : priceMode === "full-cab"
@@ -1990,8 +2175,12 @@ export default function App() {
                       <ShieldCheck size={18} className="text-[#557b72]" />
                       <h3 className="font-bold text-sm text-[#234b4c]">Fare Breakdown</h3>
                     </div>
-                    <span className="text-[10px] font-bold text-[#557b72] bg-[#edf5ee] px-2 py-0.5 rounded-md">
-                      Official Rate
+                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md ${
+                      hasRoute && !fareParts.isViable
+                        ? "bg-[#fee2e2] text-[#991b1b]"
+                        : "bg-[#edf5ee] text-[#557b72]"
+                    }`}>
+                      {hasRoute && !fareParts.isViable ? "Route Limit Exceeded" : "Official Rate"}
                     </span>
                   </div>
 
@@ -2003,28 +2192,58 @@ export default function App() {
 
                     <div className="flex items-center justify-between">
                       <span className="text-[#78908a]">Rate Basis</span>
-                      <span className="font-bold text-[#345657] text-right max-w-[200px] truncate">
+                      <span className={`font-bold text-right max-w-[220px] truncate ${
+                        !fareParts.isViable ? "text-[#b91c1c]" : "text-[#345657]"
+                      }`}>
                         {fareParts.formulaDesc}
                       </span>
                     </div>
 
                     <div className="flex items-center justify-between">
                       <span className="text-[#78908a]">Total Road Distance</span>
-                      <span className="font-bold text-[#345657]">{distance} KM</span>
+                      <span className="font-bold text-[#345657]">{distance ? `${distance} KM` : "—"}</span>
                     </div>
 
                     <div className="pt-3 border-t border-[#e2eae0] flex items-center justify-between text-sm">
                       <span className="font-extrabold text-[#234b4c]">Total Payable Fare</span>
-                      <span className="font-extrabold text-[#d36b3d] text-base">
-                        ₹{displayFare.toLocaleString("en-IN")}
+                      <span className={`font-extrabold text-base ${
+                        fareParts.isViable && displayFare > 0 ? "text-[#d36b3d]" : "text-[#b91c1c]"
+                      }`}>
+                        {hasRoute && fareParts.isViable && displayFare > 0
+                          ? `₹${displayFare.toLocaleString("en-IN")}`
+                          : hasRoute && !fareParts.isViable
+                          ? "Fare Not Available"
+                          : "₹ —"}
                       </span>
                     </div>
                   </div>
 
-                  <div className="mt-3 p-2.5 rounded-xl bg-[#edf5ee] border border-[#d2e4d4] flex items-center gap-2 text-[11px] text-[#345657]">
-                    <CheckCircle2 size={14} className="text-[#557b72] shrink-0" />
-                    <span><strong>All-Inclusive:</strong> This is the complete official fare. No extra boarding fee or hidden charges.</span>
-                  </div>
+                  {hasRoute && !fareParts.isViable ? (
+                    <div className="mt-3 p-3 rounded-xl bg-[#fff2f2] border border-[#fca5a5] text-[11px] text-[#991b1b]">
+                      <p className="font-bold flex items-center gap-1.5">
+                        <ShieldAlert size={14} className="text-[#dc2626]" />
+                        <span>Vehicle Operational Limit Exceeded</span>
+                      </p>
+                      <p className="mt-1 text-[#7f1d1d] leading-relaxed">
+                        {chosenVehicle.label} does not operate on this {distance} km corridor. Commuters take <strong>{fareParts.viability.alternativeName}</strong>.
+                      </p>
+                      <button
+                        onClick={() => {
+                          setVehicle(fareParts.viability.alternativeKey);
+                          showToast(`Switched to ${fareParts.viability.alternativeName}`);
+                        }}
+                        className="mt-2 inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-[#dc2626] text-white font-bold text-[10px] hover:bg-[#b91c1c] transition"
+                      >
+                        <ArrowRight size={11} />
+                        Switch to {fareParts.viability.alternativeName}
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="mt-3 p-2.5 rounded-xl bg-[#edf5ee] border border-[#d2e4d4] flex items-center gap-2 text-[11px] text-[#345657]">
+                      <CheckCircle2 size={14} className="text-[#557b72] shrink-0" />
+                      <span><strong>All-Inclusive:</strong> This is the complete official fare. No extra boarding fee or hidden charges.</span>
+                    </div>
+                  )}
                 </div>
 
                 {/* Corridor Context Card */}

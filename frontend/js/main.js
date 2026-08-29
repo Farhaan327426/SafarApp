@@ -798,6 +798,111 @@ function renderDatalist() {
   });
 }
 
+// Vehicle Operational Distance & Corridor Viability Matrix
+function getVehicleRouteViability(vehicleKey, km, from = "", to = "") {
+  const dist = Number(km) || 0;
+  if (!dist || dist <= 0) {
+    return {
+      isViable: true,
+      reason: "",
+      maxKm: Infinity,
+      alternativeKey: "shared-cab",
+      alternativeName: "Shared Maxi-Cab (Sumo/Bolero)",
+    };
+  }
+
+  switch (vehicleKey) {
+    case "e-rickshaw":
+      if (dist > 10) {
+        return {
+          isViable: false,
+          maxKm: 10,
+          vehicleName: "E-Rickshaw (Toto / Cart)",
+          reason: `E-Rickshaws operate exclusively on short municipal feeder hops (up to 10 km). They cannot run on long-distance or inter-district highway corridors (${dist} km).`,
+          alternativeKey: "shared-cab",
+          alternativeName: "Shared Maxi-Cab (Sumo/Bolero)",
+        };
+      }
+      break;
+
+    case "e-auto":
+      if (dist > 15) {
+        return {
+          isViable: false,
+          maxKm: 15,
+          vehicleName: "E-Auto (Smart Metered)",
+          reason: `E-Autos operate strictly within urban municipal limits (up to 15 km) and do not service inter-district highway routes (${dist} km).`,
+          alternativeKey: "shared-cab",
+          alternativeName: "Shared Maxi-Cab (Sumo/Bolero)",
+        };
+      }
+      break;
+
+    case "auto":
+      if (dist > 25) {
+        return {
+          isViable: false,
+          maxKm: 25,
+          vehicleName: "Auto-Rickshaw (Petrol/CNG)",
+          reason: `Auto-Rickshaws operate within municipal and suburban limits (up to 25 km). They do not service long-distance highway corridors (${dist} km).`,
+          alternativeKey: "shared-cab",
+          alternativeName: "Shared Maxi-Cab or Sedan Taxi",
+        };
+      }
+      break;
+
+    case "vikram-tempo":
+      if (dist > 20) {
+        return {
+          isViable: false,
+          maxKm: 20,
+          vehicleName: "Vikram / Safa Tempo",
+          reason: `Vikram Tempos run on designated short urban corridors in Jammu (up to 20 km) and cannot ply long-distance routes (${dist} km).`,
+          alternativeKey: "mini-bus",
+          alternativeName: "Mini Bus (Matador) or Shared Cab",
+        };
+      }
+      break;
+
+    case "tata-magic":
+      if (dist > 35) {
+        return {
+          isViable: false,
+          maxKm: 35,
+          vehicleName: "Tata Magic / Feeder 4-Wheeler",
+          reason: `Tata Magic / Feeder vans operate on short rural-urban feeder stages (up to 35 km) and do not operate across long-distance highways (${dist} km).`,
+          alternativeKey: "mini-bus",
+          alternativeName: "Mini Bus (Matador) or Shared Cab",
+        };
+      }
+      break;
+
+    case "mini-bus":
+      if (dist > 70) {
+        return {
+          isViable: false,
+          maxKm: 70,
+          vehicleName: "Mini Bus / Matador (407)",
+          reason: `Matadors / Mini Buses operate on intra-district stage routes (up to 70 km). Long-distance inter-district transit (${dist} km) is serviced by 2+2 Big Buses or Shared Maxi-Cabs.`,
+          alternativeKey: "private-bus",
+          alternativeName: "Private 2+2 Big Bus or Shared Cab",
+        };
+      }
+      break;
+
+    default:
+      break;
+  }
+
+  return {
+    isViable: true,
+    reason: "",
+    maxKm: Infinity,
+    alternativeKey: "shared-cab",
+    alternativeName: "Shared Maxi-Cab (Sumo/Bolero)",
+  };
+}
+
 function getActivePresets() {
   if (currentVehicleKey === "tata-magic") {
     return [
@@ -829,7 +934,7 @@ function getActivePresets() {
   if (currentVehicleKey === "e-rickshaw") {
     return [
       { from: "Lal Chowk", to: "Dal Lake (Dalgate)", distance: 4 },
-      { from: "Lal Chowk", to: "Hazratbal", distance: 11 },
+      { from: "Lal Chowk", to: "Hazratbal", distance: 10 },
       { from: "Batamaloo", to: "Parimpora", distance: 6 },
       { from: "Katra", to: "Banganga (Katra)", distance: 4 },
     ];
@@ -867,11 +972,30 @@ function renderContextAlerts() {
   const f = (currentFrom || "").toLowerCase();
   const t = (currentTo || "").toLowerCase();
   const km = Number(currentDistance) || 0;
+  const hasRoute = Boolean(currentFrom.trim() && currentTo.trim() && km > 0);
   const isNorthDest = ["baramulla", "sopore", "kupwara", "handwara", "uri", "bandipora", "pattan"].some(
     (d) => t.includes(d) || f.includes(d)
   );
 
+  const chosenVeh = vehicleOptions.find((opt) => opt.key === currentVehicleKey) || vehicleOptions[0];
+  const viability = getVehicleRouteViability(currentVehicleKey, km, currentFrom, currentTo);
+
   let html = "";
+
+  if (hasRoute && !viability.isViable) {
+    html += `
+      <div style="background: #fff2f2; border: 1px solid #fca5a5; color: #991b1b; padding: 12px 14px; border-radius: 14px; margin-bottom: 10px; font-size: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+          <strong>⚠️ Route Not Serviced by ${chosenVeh.label}</strong>
+          <span style="font-size: 10px; font-weight: 800; background: #fee2e2; color: #b91c1c; padding: 2px 8px; border-radius: 9999px; border: 1px solid #f87171;">Fare Not Available</span>
+        </div>
+        <p style="margin: 4px 0 0; color: #7f1d1d; font-size: 11px; line-height: 1.4;">${viability.reason} For <strong>${currentFrom} ➔ ${currentTo}</strong> (${km} km), commuters use <strong>${viability.alternativeName}</strong>.</p>
+        <button id="switch-viable-vehicle-btn" style="margin-top: 8px; background: #dc2626; color: #ffffff; border: none; padding: 5px 10px; border-radius: 8px; font-size: 11px; font-weight: 700; cursor: pointer;">
+          Switch to ${viability.alternativeName} ➔
+        </button>
+      </div>
+    `;
+  }
 
   if ((f.includes("batamaloo") && isNorthDest && !t.includes("batamaloo")) || (t.includes("batamaloo") && isNorthDest && !f.includes("batamaloo"))) {
     html += `
@@ -915,7 +1039,7 @@ function renderContextAlerts() {
     `;
   }
 
-  if ((currentVehicleKey === "e-rickshaw" || currentVehicleKey === "e-auto") && km > 8) {
+  if (viability.isViable && (currentVehicleKey === "e-rickshaw" || currentVehicleKey === "e-auto") && km > 6) {
     html += `
       <div style="background: #fff8eb; border: 1px solid #f9dca2; color: #8a5314; padding: 10px 14px; border-radius: 12px; margin-bottom: 8px; font-size: 12px;">
         <strong>⚡ Urban Range Notice:</strong>
@@ -926,6 +1050,15 @@ function renderContextAlerts() {
 
   box.innerHTML = html;
   box.style.display = html.trim() ? "block" : "none";
+
+  const switchBtn = document.getElementById("switch-viable-vehicle-btn");
+  if (switchBtn) {
+    switchBtn.addEventListener("click", () => {
+      currentVehicleKey = viability.alternativeKey;
+      calculateAndRender();
+      showToast(`Switched to ${viability.alternativeName}`);
+    });
+  }
 }
 
 // Render Vehicle Selection Cards
@@ -938,55 +1071,59 @@ function renderVehicleCards() {
     : vehicleOptions.filter((v) => v.category === currentCategoryFilter);
 
   const km = Math.max(1, Number(currentDistance) || 1);
+  const hasRoute = Boolean(currentFrom.trim() && currentTo.trim() && Number(currentDistance) > 0);
 
   list.forEach((v) => {
     const isSelected = v.key === currentVehicleKey;
+    const cardViability = getVehicleRouteViability(v.key, currentDistance, currentFrom, currentTo);
     const card = document.createElement("button");
     card.className = `vehicle-card ${isSelected ? "selected" : ""}`;
     
     let cardFare = 0;
-    switch (v.calcType) {
-      case "e-rickshaw":
-        cardFare = Math.max(15, Math.round(km * 15));
-        break;
-      case "e-auto":
-        cardFare = km <= 1 ? 25 : 25 + Math.round((km - 1) * 20);
-        break;
-      case "stage-slab":
-        if (km <= 3) cardFare = 9;
-        else if (km <= 5) cardFare = 14;
-        else if (km <= 10) cardFare = 17;
-        else if (km <= 15) cardFare = 20;
-        else if (km <= 20) cardFare = 26;
-        else cardFare = 26 + Math.round((km - 20) * 1.40);
-        break;
-      case "urban-stage":
-        if (km <= 3) cardFare = 8;
-        else if (km <= 6) cardFare = 12;
-        else if (km <= 10) cardFare = 15;
-        else cardFare = 18;
-        break;
-      case "tourist-group":
-        cardFare = Math.max(25, Math.round(km * 2.25));
-        break;
-      case "stage-carriage":
-        {
-          const rate = currentTerrainRegion === "kashmir-plain" ? 1.64 : currentTerrainRegion === "kashmir-hill" ? 1.88 : currentTerrainRegion === "jammu-plain" ? 1.12 : 1.59;
-          cardFare = Math.max(10, Math.round(km * rate));
-        }
-        break;
-      case "stage-carriage-big":
-        {
-          const rate = currentTerrainRegion === "kashmir-plain" ? 1.40 : currentTerrainRegion === "kashmir-hill" ? 1.64 : currentTerrainRegion === "jammu-plain" ? 1.12 : 1.59;
-          cardFare = Math.max(10, Math.round(km * rate));
-        }
-        break;
-      case "metered-auto":
-        cardFare = km <= 2 ? 45 : 45 + Math.round((km - 2) * 7.4);
-        break;
-      default:
-        cardFare = Math.max(15, v.base + Math.round(km * v.perKm) + (v.key === "suv-taxi" ? 20 : 0));
-        break;
+    if (cardViability.isViable) {
+      switch (v.calcType) {
+        case "e-rickshaw":
+          cardFare = Math.max(15, Math.round(km * 15));
+          break;
+        case "e-auto":
+          cardFare = km <= 1 ? 25 : 25 + Math.round((km - 1) * 20);
+          break;
+        case "stage-slab":
+          if (km <= 3) cardFare = 9;
+          else if (km <= 5) cardFare = 14;
+          else if (km <= 10) cardFare = 17;
+          else if (km <= 15) cardFare = 20;
+          else if (km <= 20) cardFare = 26;
+          else cardFare = 26 + Math.round((km - 20) * 1.40);
+          break;
+        case "urban-stage":
+          if (km <= 3) cardFare = 8;
+          else if (km <= 6) cardFare = 12;
+          else if (km <= 10) cardFare = 15;
+          else cardFare = 18;
+          break;
+        case "tourist-group":
+          cardFare = Math.max(25, Math.round(km * 2.25));
+          break;
+        case "stage-carriage":
+          {
+            const rate = currentTerrainRegion === "kashmir-plain" ? 1.64 : currentTerrainRegion === "kashmir-hill" ? 1.88 : currentTerrainRegion === "jammu-plain" ? 1.12 : 1.59;
+            cardFare = Math.max(10, Math.round(km * rate));
+          }
+          break;
+        case "stage-carriage-big":
+          {
+            const rate = currentTerrainRegion === "kashmir-plain" ? 1.40 : currentTerrainRegion === "kashmir-hill" ? 1.64 : currentTerrainRegion === "jammu-plain" ? 1.12 : 1.59;
+            cardFare = Math.max(10, Math.round(km * rate));
+          }
+          break;
+        case "metered-auto":
+          cardFare = km <= 2 ? 45 : 45 + Math.round((km - 2) * 7.4);
+          break;
+        default:
+          cardFare = Math.max(15, v.base + Math.round(km * v.perKm) + (v.key === "suv-taxi" ? 20 : 0));
+          break;
+      }
     }
 
     let footerBaseText = v.capacity || "Govt Approved";
@@ -1011,8 +1148,9 @@ function renderVehicleCards() {
       footerRateText = "₹7.40/km Meter";
     }
 
-    const hasRoute = Boolean(currentFrom.trim() && currentTo.trim() && km > 0);
-    const fareBadge = hasRoute && cardFare > 0
+    const fareBadge = hasRoute && !cardViability.isViable
+      ? `<span style="font-weight: 700; font-size: 10px; background: #fee2e2; color: #b91c1c; padding: 2px 6px; border-radius: 6px; border: 1px solid #fca5a5;">Not Available</span>`
+      : hasRoute && cardFare > 0
       ? `<span style="font-weight: 800; font-size: 11px; background: #eef4ed; color: #234b4c; padding: 2px 7px; border-radius: 6px; border: 1px solid #d2e4d4;">₹ ${cardFare}</span>`
       : `<span style="font-weight: 700; font-size: 10px; background: #edf3eb; color: #557b72; padding: 2px 6px; border-radius: 6px;">${v.calcType === "urban-stage" ? "₹8-₹18" : v.calcType === "stage-slab" ? "₹9-₹26" : `₹${v.perKm}/km`}</span>`;
 
@@ -1051,13 +1189,14 @@ function calculateAndRender() {
   const v = vehicleOptions.find((opt) => opt.key === currentVehicleKey) || vehicleOptions[0];
   const km = Number(currentDistance) || 0;
   const hasRoute = Boolean(currentFrom.trim() && currentTo.trim() && km > 0);
+  const viability = getVehicleRouteViability(currentVehicleKey, km, currentFrom, currentTo);
   let base = v.base;
   let distCost = 0;
   let adj = 0;
   let totalSingle = 0;
   let formulaDesc = "";
 
-  if (km > 0) {
+  if (km > 0 && viability.isViable) {
     switch (v.calcType) {
       case "e-rickshaw":
         base = 15;
@@ -1180,6 +1319,8 @@ function calculateAndRender() {
         formulaDesc = `${km} km × ₹${v.perKm}/km`;
         break;
     }
+  } else if (!viability.isViable) {
+    formulaDesc = `Route not serviced (Exceeds ${viability.maxKm} km operational range)`;
   } else {
     formulaDesc = `Official rate: ₹${v.perKm}/km`;
   }
@@ -1190,7 +1331,9 @@ function calculateAndRender() {
     ? totalSingle * v.seatsMultiplier
     : totalSingle;
 
-  const finalFare = !v.isPerSeat
+  const finalFare = !viability.isViable
+    ? 0
+    : !v.isPerSeat
     ? totalSingle
     : currentPriceMode === "full-cab"
     ? fullCabCost
@@ -1198,13 +1341,27 @@ function calculateAndRender() {
 
   // Update elements
   if (fareRouteSummary) fareRouteSummary.textContent = hasRoute ? `${currentFrom} ➔ ${currentTo}` : "Choose Boarding & Deboarding Points";
-  if (displayPriceVal) displayPriceVal.textContent = hasRoute && finalFare > 0 ? formatRupees(finalFare) : "₹ —";
+  if (displayPriceVal) {
+    if (!hasRoute) {
+      displayPriceVal.textContent = "₹ —";
+    } else if (!viability.isViable) {
+      displayPriceVal.textContent = "Fare Not Available";
+      displayPriceVal.style.fontSize = "24px";
+      displayPriceVal.style.color = "#ffcaca";
+    } else {
+      displayPriceVal.textContent = formatRupees(finalFare);
+      displayPriceVal.style.fontSize = "";
+      displayPriceVal.style.color = "";
+    }
+  }
   if (specVehicleName) specVehicleName.textContent = v.label;
   if (specDistanceVal) specDistanceVal.textContent = hasRoute && km > 0 ? `${km} KM` : "—";
 
   if (displayPriceBasis) {
     if (!hasRoute) {
       displayPriceBasis.textContent = "(Choose route to calculate)";
+    } else if (!viability.isViable) {
+      displayPriceBasis.textContent = `(${v.label} does not operate on ${km} km route)`;
     } else if (!v.isPerSeat) {
       displayPriceBasis.textContent = `(Entire ${v.label})`;
     } else if (currentPriceMode === "full-cab") {
@@ -1218,7 +1375,17 @@ function calculateAndRender() {
   if (mathVehicleName) mathVehicleName.textContent = v.label;
   if (mathDistanceLabel) mathDistanceLabel.textContent = formulaDesc;
   if (mathDistanceCost) mathDistanceCost.textContent = hasRoute && km > 0 ? `${km} KM` : "—";
-  if (mathTotalFare) mathTotalFare.textContent = hasRoute && finalFare > 0 ? formatRupees(finalFare) : "₹ —";
+  if (mathTotalFare) {
+    if (!hasRoute) {
+      mathTotalFare.textContent = "₹ —";
+    } else if (!viability.isViable) {
+      mathTotalFare.textContent = "Fare Not Available";
+      mathTotalFare.style.color = "#b91c1c";
+    } else {
+      mathTotalFare.textContent = formatRupees(finalFare);
+      mathTotalFare.style.color = "";
+    }
+  }
 
   // Update Live Route Distance Card in Step 1
   const routeInfo = resolveRouteInfo(currentFrom, currentTo);
