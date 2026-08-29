@@ -2436,7 +2436,7 @@ export default function App() {
           <div className="flex items-center gap-2">
             <Navigation size={15} className="text-[#234b4c]" />
             <span className="font-bold text-[#234b4c]">SAFAR</span>
-            <span>— Simple, User-Friendly J&K Transit Fare Guide</span>
+            <span>— Simple, Transparent J&K Transit Fare Guide</span>
           </div>
 
           <div className="flex items-center gap-4 text-[11px]">
