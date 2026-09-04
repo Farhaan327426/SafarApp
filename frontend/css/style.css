@@ -153,10 +153,25 @@ body {
   border: 1px solid #d8e3d8;
 }
 
+.brand-urdu {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--color-sage);
+  line-height: 1;
+}
+
 .brand-tagline {
   font-size: 11px;
   font-weight: 600;
   color: var(--color-text-muted);
+}
+
+.brand-tagline.urdu-tagline {
+  font-size: 13px;
+  font-weight: 700;
+  color: #4a6d65;
+  letter-spacing: 0.01em;
+  display: block;
 }
 
 .desktop-nav {
