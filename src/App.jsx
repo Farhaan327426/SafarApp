@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import {
   ArrowDownUp,
   ArrowRight,
@@ -30,9 +30,14 @@ import {
   Zap,
   X,
 } from "lucide-react";
+import {
+  VEHICLE_OPERATIONAL_ZONES,
+  resolveRouteProfile,
+  filterEligibleVehicles,
+} from "./data/transitZones.js";
 
 const vehicleCategories = [
-  { key: "all", label: "All Vehicles (9)" },
+  { key: "all", label: "All Vehicles (11)" },
   { key: "ev", label: "⚡ EVs (E-Rickshaw / E-Auto)" },
   { key: "shared", label: "Shared Cabs & Magic" },
   { key: "bus", label: "Buses & Matadors" },
@@ -42,6 +47,8 @@ const vehicleCategories = [
 const vehicleOptions = [
   {
     key: "e-rickshaw",
+    id: "e-rickshaw",
+    name: "E-Rickshaw (Toto / Cart)",
     category: "ev",
     label: "E-Rickshaw (Toto / Cart)",
     sublabel: "Local Colony & Market Cart",
@@ -56,9 +63,12 @@ const vehicleOptions = [
     seatsMultiplier: 1,
     color: "#2f855a",
     districtFootprint: "Srinagar SMC, Jammu JMC, Katra, Baramulla, Anantnag (1–6 km)",
+    operationalZone: VEHICLE_OPERATIONAL_ZONES["e-rickshaw"].operationalZone,
   },
   {
     key: "e-auto",
+    id: "e-auto",
+    name: "E-Auto (Smart Metered)",
     category: "ev",
     permitType: "municipal-feeder",
     label: "E-Auto (Smart Metered)",
@@ -74,9 +84,12 @@ const vehicleOptions = [
     seatsMultiplier: 1,
     color: "#237249",
     districtFootprint: "Srinagar & Jammu Municipal Limits (1–12 km)",
+    operationalZone: VEHICLE_OPERATIONAL_ZONES["e-auto"].operationalZone,
   },
   {
     key: "tata-magic",
+    id: "tata-magic",
+    name: "Tata Magic / Feeder",
     category: "shared",
     permitType: "stage-carriage",
     label: "Tata Magic / Feeder 4-Wheeler",
@@ -92,9 +105,12 @@ const vehicleOptions = [
     seatsMultiplier: 7,
     color: "#c27438",
     districtFootprint: "Baramulla, Sopore, Kupwara, Rural South & Outer Jammu",
+    operationalZone: VEHICLE_OPERATIONAL_ZONES["tata-magic"].operationalZone,
   },
   {
     key: "vikram-tempo",
+    id: "vikram",
+    name: "Vikram / Safa Urban",
     category: "shared",
     permitType: "stage-carriage",
     label: "Vikram / Safa Tempo (Jammu Urban)",
@@ -110,9 +126,12 @@ const vehicleOptions = [
     seatsMultiplier: 6,
     color: "#a65c2a",
     districtFootprint: "Jammu Urban (Satwari, Gandhi Nagar, Jewel, Janipur, Canal Rd)",
+    operationalZone: VEHICLE_OPERATIONAL_ZONES["vikram-tempo"].operationalZone,
   },
   {
     key: "mini-bus",
+    id: "mini-bus",
+    name: "Mini Bus / Matador (407)",
     category: "bus",
     permitType: "stage-carriage",
     label: "Mini Bus / Matador (407)",
@@ -128,9 +147,12 @@ const vehicleOptions = [
     seatsMultiplier: 18,
     color: "#557b72",
     districtFootprint: "Universal High-Frequency Stage across all 20 Districts (5–45 km)",
+    operationalZone: VEHICLE_OPERATIONAL_ZONES["mini-bus"].operationalZone,
   },
   {
     key: "private-bus",
+    id: "private-bus",
+    name: "Private 2+2 Bus (Stage Carriage)",
     category: "bus",
     permitType: "stage-carriage",
     label: "Private 2+2 Bus (Stage Carriage)",
@@ -146,9 +168,12 @@ const vehicleOptions = [
     seatsMultiplier: 32,
     color: "#3f6e5b",
     districtFootprint: "Inter-District Trunk Highways (Srinagar-Baramulla, Jammu-Katra-Poonch)",
+    operationalZone: VEHICLE_OPERATIONAL_ZONES["private-bus"].operationalZone,
   },
   {
     key: "shared-cab",
+    id: "shared-cab",
+    name: "Shared Maxi-Cab (Sumo/Tavera)",
     category: "shared",
     permitType: "shared-maxi-cab",
     label: "Shared Maxi-Cab",
@@ -164,9 +189,12 @@ const vehicleOptions = [
     seatsMultiplier: 5,
     color: "#d36b3d",
     districtFootprint: "Universal Inter-District & Mountain Pass Lifeline (All 20 Districts)",
+    operationalZone: VEHICLE_OPERATIONAL_ZONES["shared-cab"].operationalZone,
   },
   {
     key: "force-traveler",
+    id: "force-traveler",
+    name: "Force Traveler (14-Seater)",
     category: "taxi",
     permitType: "contract-tourist",
     label: "Force Traveler (14-Seater)",
@@ -183,9 +211,12 @@ const vehicleOptions = [
     seatsMultiplier: 14,
     color: "#2c5282",
     districtFootprint: "Srinagar-Gulmarg, Pahalgam, Sonamarg, Katra & Tourist Corridors",
+    operationalZone: VEHICLE_OPERATIONAL_ZONES["force-traveler"].operationalZone,
   },
   {
     key: "auto",
+    id: "auto",
+    name: "Auto-Rickshaw (Petrol/CNG)",
     category: "ev",
     permitType: "metered-auto",
     label: "Auto-Rickshaw (Petrol/CNG)",
@@ -201,9 +232,12 @@ const vehicleOptions = [
     seatsMultiplier: 1,
     color: "#bc8a20",
     districtFootprint: "Urban Municipal Stands (Srinagar, Jammu, Katra, Udhampur, Anantnag)",
+    operationalZone: VEHICLE_OPERATIONAL_ZONES["auto"].operationalZone,
   },
   {
     key: "taxi",
+    id: "taxi",
+    name: "Standard Sedan Taxi",
     category: "taxi",
     permitType: "contract-tourist",
     label: "Standard Sedan Taxi (Contract)",
@@ -219,9 +253,12 @@ const vehicleOptions = [
     seatsMultiplier: 1,
     color: "#3e6b8a",
     districtFootprint: "Dedicated Point-to-Point, Airport Transfers & Inter-District",
+    operationalZone: VEHICLE_OPERATIONAL_ZONES["taxi"].operationalZone,
   },
   {
     key: "suv-taxi",
+    id: "suv-taxi",
+    name: "Premium Tourist SUV Taxi",
     category: "taxi",
     permitType: "contract-tourist",
     label: "Premium Tourist SUV Taxi",
@@ -237,6 +274,7 @@ const vehicleOptions = [
     seatsMultiplier: 1,
     color: "#28536b",
     districtFootprint: "All J&K Alpine Circuits, Airport Transfers & Long-Distance",
+    operationalZone: VEHICLE_OPERATIONAL_ZONES["suv-taxi"].operationalZone,
   },
 ];
 
@@ -716,7 +754,7 @@ function findLocationCoord(query) {
 }
 
 // Road Distance & Terrain Resolution Engine
-function resolveRouteInfo(loc1, loc2) {
+function resolveRouteInfo(loc1, loc2, userRegionOverride = null) {
   const s1 = (loc1 || "").trim();
   const s2 = (loc2 || "").trim();
   if (!s1 || !s2) {
@@ -727,38 +765,51 @@ function resolveRouteInfo(loc1, loc2) {
       region: "kashmir-plain",
       highway: "Local Transit Route",
       isPreset: false,
-    };
-  }
-  if (s1.toLowerCase() === s2.toLowerCase()) {
-    return {
-      distance: 3,
-      duration: "8m",
-      terrain: "Local City Hop",
-      region: "kashmir-plain",
-      highway: "Local Street / Link Road",
-      isPreset: false,
+      routeProfile: null,
     };
   }
 
-  // 1. Check exact match in verified route presets
+  // Check exact match in verified route presets
   const presetMatch = routePresets.find(
     (r) =>
       (r.from.toLowerCase() === s1.toLowerCase() && r.to.toLowerCase() === s2.toLowerCase()) ||
       (r.from.toLowerCase() === s2.toLowerCase() && r.to.toLowerCase() === s1.toLowerCase())
   );
+
+  const profile = resolveRouteProfile(
+    s1,
+    s2,
+    Boolean(presetMatch),
+    presetMatch?.routeProfile || null,
+    userRegionOverride
+  );
+
+  if (s1.toLowerCase() === s2.toLowerCase()) {
+    return {
+      distance: 3,
+      duration: "8m",
+      terrain: "Local City Hop",
+      region: profile?.region === "jammu" ? "jammu-plain" : "kashmir-plain",
+      highway: "Local Street / Link Road",
+      isPreset: false,
+      routeProfile: profile,
+    };
+  }
+
   if (presetMatch) {
     return {
       distance: presetMatch.distance,
       duration: presetMatch.duration,
       terrain: presetMatch.terrain,
-      region: presetMatch.region || "kashmir-plain",
+      region: presetMatch.region || (profile?.region === "jammu" ? "jammu-plain" : "kashmir-plain"),
       highway: presetMatch.highway,
       stops: presetMatch.stops,
       isPreset: true,
+      routeProfile: profile,
     };
   }
 
-  // 2. Lookup coordinate table with smart matcher
+  // Lookup coordinate table with smart matcher
   const c1 = findLocationCoord(s1);
   const c2 = findLocationCoord(s2);
 
@@ -800,10 +851,11 @@ function resolveRouteInfo(loc1, loc2) {
       region,
       highway: `${c1.highway || "NH-44"} ➔ ${c2.highway || "State Highway"}`,
       isPreset: false,
+      routeProfile: profile,
     };
   }
 
-  // 3. Fallback for custom or unlisted stops with dynamic variation
+  // Fallback for custom or unlisted stops with dynamic variation
   let hash = 0;
   for (let i = 0; i < s1.length; i++) hash = (hash << 5) - hash + s1.charCodeAt(i);
   for (let i = 0; i < s2.length; i++) hash = (hash << 5) - hash + s2.charCodeAt(i);
@@ -814,9 +866,10 @@ function resolveRouteInfo(loc1, loc2) {
     distance: pseudoDist,
     duration: approxMins >= 60 ? `${Math.floor(approxMins / 60)}h ${approxMins % 60}m` : `${approxMins}m`,
     terrain: "Standard District Corridor",
-    region: s1.toLowerCase().includes("jammu") || s2.toLowerCase().includes("jammu") ? "jammu-plain" : "kashmir-plain",
+    region: profile?.region === "jammu" ? "jammu-plain" : "kashmir-plain",
     highway: "J&K State Highway",
     isPreset: false,
+    routeProfile: profile,
   };
 }
 
@@ -941,31 +994,72 @@ export default function App() {
   const [searchToFocus, setSearchToFocus] = useState(false);
   const [priceMode, setPriceMode] = useState("per-seat");
 
+  const [userRegionOverride, setUserRegionOverride] = useState(null);
+
   const hasRoute = Boolean(from.trim() && to.trim());
 
   // Dynamic Route & Distance Resolver
   const currentRouteMeta = useMemo(() => {
-    return resolveRouteInfo(from, to);
-  }, [from, to]);
+    return resolveRouteInfo(from, to, userRegionOverride);
+  }, [from, to, userRegionOverride]);
 
-  // Selected Vehicle Object Definition
-  const chosenVehicle = useMemo(() => {
-    return vehicleOptions.find((v) => v.key === vehicle) || vehicleOptions[0];
-  }, [vehicle]);
+  const currentRouteProfile = currentRouteMeta?.routeProfile || null;
 
-  // Filtered Vehicles for Active Category
-  const filteredVehicles = useMemo(() => {
-    if (vehicleCategoryFilter === "all") return vehicleOptions;
-    return vehicleOptions.filter((v) => v.category === vehicleCategoryFilter);
-  }, [vehicleCategoryFilter]);
+  // Filtered Eligible Vehicles (Strict Whitelist Filtering)
+  // Non-eligible vehicles are silently excluded — no card, no fare, no placeholder.
+  const eligibleVehicles = useMemo(() => {
+    if (!hasRoute || !currentRouteProfile) return vehicleOptions;
+    return filterEligibleVehicles(vehicleOptions, currentRouteProfile);
+  }, [hasRoute, currentRouteProfile]);
+
+  // Zero-flash Synchronous Active Vehicle Resolution (Gap 5)
+  // Resolves the active vehicle in the exact same render tick
+  const activeVehicle = useMemo(() => {
+    if (!hasRoute || !currentRouteProfile) {
+      return vehicleOptions.find((v) => v.key === vehicle || v.id === vehicle) || vehicleOptions[0];
+    }
+    if (eligibleVehicles.length === 0) {
+      return null;
+    }
+    const found = eligibleVehicles.find((v) => v.key === vehicle || v.id === vehicle);
+    return found || eligibleVehicles[0];
+  }, [hasRoute, currentRouteProfile, vehicle, eligibleVehicles]);
+
+  // Synchronize state if activeVehicle changed
+  useEffect(() => {
+    if (activeVehicle && activeVehicle.key !== vehicle) {
+      setVehicle(activeVehicle.key);
+    }
+  }, [activeVehicle, vehicle]);
+
+  const chosenVehicle = activeVehicle || vehicleOptions[0];
+
+  // Dynamic Category Counts
+  const categoryCounts = useMemo(() => {
+    const pool = hasRoute ? eligibleVehicles : vehicleOptions;
+    const counts = { all: pool.length };
+    pool.forEach((v) => {
+      counts[v.category] = (counts[v.category] || 0) + 1;
+    });
+    return counts;
+  }, [hasRoute, eligibleVehicles]);
+
+  // Filtered Vehicles for Active Category Tab
+  const visibleVehicles = useMemo(() => {
+    const pool = hasRoute ? eligibleVehicles : vehicleOptions;
+    if (vehicleCategoryFilter === "all") return pool;
+    return pool.filter((v) => v.category === vehicleCategoryFilter);
+  }, [hasRoute, eligibleVehicles, vehicleCategoryFilter]);
 
   // Synchronize distance and terrain on route update
   const syncRouteDistance = (nextFrom, nextTo) => {
     if (!nextFrom.trim() || !nextTo.trim()) {
       setDistance("");
+      setUserRegionOverride(null);
       return null;
     }
-    const info = resolveRouteInfo(nextFrom, nextTo);
+    setUserRegionOverride(null);
+    const info = resolveRouteInfo(nextFrom, nextTo, null);
     setDistance(String(info.distance));
     setTerrainRegion(info.region);
     return info;
@@ -974,11 +1068,33 @@ export default function App() {
   // Exact Statutory Fare Calculations
   const fareParts = useMemo(() => {
     const km = Number(distance) || 0;
+
+    // Secondary rule: If zero vehicles are eligible for a selected corridor
+    if (hasRoute && (!activeVehicle || eligibleVehicles.length === 0)) {
+      return {
+        isViable: false,
+        isZeroEligible: true,
+        viability: {
+          isViable: false,
+          reason: "No registered vehicle category operates this route.",
+          maxKm: 0,
+        },
+        base: 0,
+        distanceCost: 0,
+        localAdjustment: 0,
+        totalSingle: 0,
+        fullCabCost: 0,
+        formulaDesc: "No registered vehicle category operates this route.",
+        perKmRate: 0,
+      };
+    }
+
     const viability = getVehicleRouteViability(chosenVehicle.key, km, from, to);
 
     if (km <= 0) {
       return {
         isViable: true,
+        isZeroEligible: false,
         viability,
         base: chosenVehicle.base,
         distanceCost: 0,
@@ -993,6 +1109,7 @@ export default function App() {
     if (!viability.isViable) {
       return {
         isViable: false,
+        isZeroEligible: false,
         viability,
         base: 0,
         distanceCost: 0,
@@ -1573,162 +1690,189 @@ export default function App() {
 
                   {/* Category Filter Tabs */}
                   <div className="flex items-center gap-1.5 overflow-x-auto pb-2 mb-3.5 scrollbar-none">
-                    {vehicleCategories.map((cat) => (
-                      <button
-                        key={cat.key}
-                        onClick={() => setVehicleCategoryFilter(cat.key)}
-                        className={`px-3 py-1 rounded-xl text-xs font-bold shrink-0 transition ${
-                          vehicleCategoryFilter === cat.key
-                            ? "bg-[#234b4c] text-[#f4f6ed] shadow-xs"
-                            : "bg-[#f0f4ee] text-[#557b72] hover:bg-[#e4ece2]"
-                        }`}
-                      >
-                        {cat.label}
-                      </button>
-                    ))}
-                  </div>
-
-                  {/* Vehicle Grid */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    {filteredVehicles.map((v) => {
-                      const Icon = v.icon;
-                      const selected = vehicle === v.key;
-                      const km = Number(distance) || 0;
-                      const cardViability = getVehicleRouteViability(v.key, km, from, to);
-                      let cardFare = 0;
-                      if (km > 0 && cardViability.isViable) {
-                        switch (v.calcType) {
-                          case "e-rickshaw":
-                            cardFare = Math.max(15, Math.round(km * 15));
-                            break;
-                          case "e-auto":
-                            cardFare = km <= 1 ? 25 : 25 + Math.round((km - 1) * 20);
-                            break;
-                          case "stage-slab":
-                            if (km <= 3) cardFare = 9;
-                            else if (km <= 5) cardFare = 14;
-                            else if (km <= 10) cardFare = 17;
-                            else if (km <= 15) cardFare = 20;
-                            else if (km <= 20) cardFare = 26;
-                            else cardFare = 26 + Math.round((km - 20) * 1.40);
-                            break;
-                          case "urban-stage":
-                            if (km <= 3) cardFare = 8;
-                            else if (km <= 6) cardFare = 12;
-                            else if (km <= 10) cardFare = 15;
-                            else cardFare = 18;
-                            break;
-                          case "tourist-group":
-                            cardFare = Math.max(25, Math.round(km * 2.25));
-                            break;
-                          case "stage-carriage":
-                            {
-                              const rate = terrainRegion === "kashmir-plain" ? 1.64 : terrainRegion === "kashmir-hill" ? 1.88 : terrainRegion === "jammu-plain" ? 1.12 : 1.59;
-                              cardFare = Math.max(10, Math.round(km * rate));
-                            }
-                            break;
-                          case "stage-carriage-big":
-                            {
-                              const rate = terrainRegion === "kashmir-plain" ? 1.40 : terrainRegion === "kashmir-hill" ? 1.64 : terrainRegion === "jammu-plain" ? 1.12 : 1.59;
-                              cardFare = Math.max(10, Math.round(km * rate));
-                            }
-                            break;
-                          case "metered-auto":
-                            cardFare = km <= 2 ? 45 : 45 + Math.round((km - 2) * 7.4);
-                            break;
-                          default:
-                            cardFare = Math.max(15, v.base + Math.round(km * v.perKm) + (v.key === "suv-taxi" ? 20 : 0));
-                            break;
-                        }
-                      }
-
+                    {vehicleCategories.map((cat) => {
+                      const count = categoryCounts[cat.key] ?? 0;
                       return (
                         <button
-                          key={v.key}
-                          onClick={() => {
-                            setVehicle(v.key);
-                            showToast(`Selected ${v.label}`);
-                          }}
-                          className={`relative p-3.5 rounded-2xl text-left border-2 transition-all flex flex-col justify-between ${
-                            selected
-                              ? "bg-[#f4f7f2] border-[#234b4c] shadow-md ring-2 ring-[#234b4c]/10"
-                              : !cardViability.isViable && hasRoute
-                              ? "bg-[#fdfaf8] border-[#ebdcd5] hover:border-[#d99f90] opacity-90"
-                              : "bg-[#fbfcf8] border-[#e2eae0] hover:border-[#adc9b2] hover:bg-[#f8faf6]"
+                          key={cat.key}
+                          onClick={() => setVehicleCategoryFilter(cat.key)}
+                          className={`px-3 py-1 rounded-xl text-xs font-bold shrink-0 transition ${
+                            vehicleCategoryFilter === cat.key
+                              ? "bg-[#234b4c] text-[#f4f6ed] shadow-xs"
+                              : "bg-[#f0f4ee] text-[#557b72] hover:bg-[#e4ece2]"
                           }`}
                         >
-                          <div className="flex items-start justify-between w-full">
-                            <div
-                              className="w-9 h-9 rounded-xl flex items-center justify-center shadow-xs"
-                              style={{
-                                backgroundColor: selected ? "#234b4c" : "#edf3eb",
-                                color: selected ? "#f2bd70" : v.color,
-                              }}
-                            >
-                              <Icon size={18} />
-                            </div>
-                            <div className="flex items-center gap-1.5">
-                              {hasRoute && !cardViability.isViable ? (
-                                <span className="text-[10px] font-bold text-[#b91c1c] bg-[#fee2e2] px-2 py-0.5 rounded-md border border-[#fca5a5]">
-                                  Not Available
-                                </span>
-                              ) : hasRoute && cardFare > 0 ? (
-                                <span className="text-[11px] font-black text-[#234b4c] bg-[#eef4ed] px-2 py-0.5 rounded-lg border border-[#d2e4d4]">
-                                  ₹{cardFare}
-                                </span>
-                              ) : (
-                                <span className="text-[10px] font-bold text-[#557b72] bg-[#edf3eb] px-2 py-0.5 rounded-md">
-                                  {v.calcType === "urban-stage" ? "₹8-₹18" : v.calcType === "stage-slab" ? "₹9-₹26" : `₹${v.perKm}/km`}
-                                </span>
-                              )}
-                              <span
-                                className={`text-[10px] font-bold px-2 py-0.5 rounded-md ${
-                                  selected
-                                    ? "bg-[#234b4c] text-[#f4f6ed]"
-                                    : "bg-[#edf3eb] text-[#557b72]"
-                                }`}
-                              >
-                                {v.badge}
-                              </span>
-                            </div>
-                          </div>
-
-                          <div className="mt-2.5">
-                            <div className="flex items-center gap-1.5">
-                              <h3 className="font-bold text-[13px] text-[#234b4c]">{v.label}</h3>
-                              {selected && <CheckCircle2 size={14} className="text-[#557b72]" />}
-                            </div>
-                            <p className="text-[11px] font-medium text-[#78908a]">{v.sublabel}</p>
-                            <p className="text-[10px] text-[#8a9c95] mt-0.5 leading-snug">{v.detail}</p>
-                            {v.districtFootprint && (
-                              <p className="text-[10px] font-medium text-[#4d7f7c] mt-1 bg-[#edf5ee] px-2 py-0.5 rounded-md inline-block">
-                                {v.districtFootprint}
-                              </p>
-                            )}
-                          </div>
-
-                          <div className="mt-2.5 pt-2 border-t border-[#e2eae0] flex items-center justify-between text-[11px]">
-                            <span className="text-[#78908a]">
-                              {v.capacity}
-                            </span>
-                            <span className="font-bold text-[#345657]">
-                              {v.calcType === "stage-slab"
-                                ? "Stage Slabs"
-                                : v.calcType === "urban-stage"
-                                ? "Urban Slabs"
-                                : v.calcType === "tourist-group"
-                                ? "₹2.25/km"
-                                : v.calcType === "e-auto"
-                                ? "₹20/km"
-                                : v.calcType === "metered-auto"
-                                ? "₹7.40/km"
-                                : `₹${v.perKm}/km`}
-                            </span>
-                          </div>
+                          {cat.label.replace(/\(\d+\)/, `(${count})`)}
                         </button>
                       );
                     })}
                   </div>
+
+                  {/* Pre-selection Neutral Route Guidance Banner (Gap 4) */}
+                  {!hasRoute && (
+                    <div className="p-3.5 mb-3.5 rounded-2xl bg-[#eef4ed] border border-[#d2e4d4] flex items-center gap-2.5 text-xs text-[#234b4c]">
+                      <Info size={16} className="text-[#3f6e5b] shrink-0" />
+                      <span>
+                        Select your route in Step 2 to view authorized statutory vehicles for your specific corridor.
+                      </span>
+                    </div>
+                  )}
+
+                  {/* Vehicle Grid & Secondary Rule: Zero-Eligible State */}
+                  {hasRoute && visibleVehicles.length === 0 ? (
+                    <div className="p-8 rounded-2xl bg-[#fdf5f2] border border-[#f3d3c8] text-center my-2">
+                      <div className="w-12 h-12 mx-auto mb-3 rounded-2xl bg-[#fee2e2] flex items-center justify-center text-[#b91c1c] shadow-xs">
+                        <ShieldAlert size={24} />
+                      </div>
+                      <h3 className="font-bold text-base text-[#9a3412]">
+                        No registered vehicle category operates this route.
+                      </h3>
+                      <p className="text-xs text-[#78908a] mt-2 max-w-md mx-auto leading-relaxed">
+                        Under official J&amp;K Transport Department licensing, no registered vehicle category is authorized to service this route corridor ({currentRouteProfile?.region?.toUpperCase()} • {currentRouteProfile?.routeType?.toUpperCase()}). Please adjust your pickup and drop points or choose another route.
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      {visibleVehicles.map((v) => {
+                        const Icon = v.icon;
+                        const selected = vehicle === v.key || vehicle === v.id;
+                        const km = Number(distance) || 0;
+                        const cardViability = getVehicleRouteViability(v.key, km, from, to);
+                        let cardFare = 0;
+                        if (km > 0 && cardViability.isViable) {
+                          switch (v.calcType) {
+                            case "e-rickshaw":
+                              cardFare = Math.max(15, Math.round(km * 15));
+                              break;
+                            case "e-auto":
+                              cardFare = km <= 1 ? 25 : 25 + Math.round((km - 1) * 20);
+                              break;
+                            case "stage-slab":
+                              if (km <= 3) cardFare = 9;
+                              else if (km <= 5) cardFare = 14;
+                              else if (km <= 10) cardFare = 17;
+                              else if (km <= 15) cardFare = 20;
+                              else if (km <= 20) cardFare = 26;
+                              else cardFare = 26 + Math.round((km - 20) * 1.40);
+                              break;
+                            case "urban-stage":
+                              if (km <= 3) cardFare = 8;
+                              else if (km <= 6) cardFare = 12;
+                              else if (km <= 10) cardFare = 15;
+                              else cardFare = 18;
+                              break;
+                            case "tourist-group":
+                              cardFare = Math.max(25, Math.round(km * 2.25));
+                              break;
+                            case "stage-carriage":
+                              {
+                                const rate = terrainRegion === "kashmir-plain" ? 1.64 : terrainRegion === "kashmir-hill" ? 1.88 : terrainRegion === "jammu-plain" ? 1.12 : 1.59;
+                                cardFare = Math.max(10, Math.round(km * rate));
+                              }
+                              break;
+                            case "stage-carriage-big":
+                              {
+                                const rate = terrainRegion === "kashmir-plain" ? 1.40 : terrainRegion === "kashmir-hill" ? 1.64 : terrainRegion === "jammu-plain" ? 1.12 : 1.59;
+                                cardFare = Math.max(10, Math.round(km * rate));
+                              }
+                              break;
+                            case "metered-auto":
+                              cardFare = km <= 2 ? 45 : 45 + Math.round((km - 2) * 7.4);
+                              break;
+                            default:
+                              cardFare = Math.max(15, v.base + Math.round(km * v.perKm) + (v.key === "suv-taxi" ? 20 : 0));
+                              break;
+                          }
+                        }
+
+                        return (
+                          <button
+                            key={v.key}
+                            onClick={() => {
+                              setVehicle(v.key);
+                              showToast(`Selected ${v.label}`);
+                            }}
+                            className={`relative p-3.5 rounded-2xl text-left border-2 transition-all flex flex-col justify-between ${
+                              selected
+                                ? "bg-[#f4f7f2] border-[#234b4c] shadow-md ring-2 ring-[#234b4c]/10"
+                                : !cardViability.isViable && hasRoute
+                                ? "bg-[#fdfaf8] border-[#ebdcd5] hover:border-[#d99f90] opacity-90"
+                                : "bg-[#fbfcf8] border-[#e2eae0] hover:border-[#adc9b2] hover:bg-[#f8faf6]"
+                            }`}
+                          >
+                            <div className="flex items-start justify-between w-full">
+                              <div
+                                className="w-9 h-9 rounded-xl flex items-center justify-center shadow-xs"
+                                style={{
+                                  backgroundColor: selected ? "#234b4c" : "#edf3eb",
+                                  color: selected ? "#f2bd70" : v.color,
+                                }}
+                              >
+                                <Icon size={18} />
+                              </div>
+                              <div className="flex items-center gap-1.5">
+                                {hasRoute && !cardViability.isViable ? (
+                                  <span className="text-[10px] font-bold text-[#b91c1c] bg-[#fee2e2] px-2 py-0.5 rounded-md border border-[#fca5a5]">
+                                    Not Available
+                                  </span>
+                                ) : hasRoute && cardFare > 0 ? (
+                                  <span className="text-[11px] font-black text-[#234b4c] bg-[#eef4ed] px-2 py-0.5 rounded-lg border border-[#d2e4d4]">
+                                    ₹{cardFare}
+                                  </span>
+                                ) : (
+                                  <span className="text-[10px] font-bold text-[#557b72] bg-[#edf3eb] px-2 py-0.5 rounded-md">
+                                    {v.calcType === "urban-stage" ? "₹8-₹18" : v.calcType === "stage-slab" ? "₹9-₹26" : `₹${v.perKm}/km`}
+                                  </span>
+                                )}
+                                <span
+                                  className={`text-[10px] font-bold px-2 py-0.5 rounded-md ${
+                                    selected
+                                      ? "bg-[#234b4c] text-[#f4f6ed]"
+                                      : "bg-[#edf3eb] text-[#557b72]"
+                                  }`}
+                                >
+                                  {v.badge}
+                                </span>
+                              </div>
+                            </div>
+
+                            <div className="mt-2.5">
+                              <div className="flex items-center gap-1.5">
+                                <h3 className="font-bold text-[13px] text-[#234b4c]">{v.label}</h3>
+                                {selected && <CheckCircle2 size={14} className="text-[#557b72]" />}
+                              </div>
+                              <p className="text-[11px] font-medium text-[#78908a]">{v.sublabel}</p>
+                              <p className="text-[10px] text-[#8a9c95] mt-0.5 leading-snug">{v.detail}</p>
+                              {v.districtFootprint && (
+                                <p className="text-[10px] font-medium text-[#4d7f7c] mt-1 bg-[#edf5ee] px-2 py-0.5 rounded-md inline-block">
+                                  {v.districtFootprint}
+                                </p>
+                              )}
+                            </div>
+
+                            <div className="mt-2.5 pt-2 border-t border-[#e2eae0] flex items-center justify-between text-[11px]">
+                              <span className="text-[#78908a]">
+                                {v.capacity}
+                              </span>
+                              <span className="font-bold text-[#345657]">
+                                {v.calcType === "stage-slab"
+                                  ? "Stage Slabs"
+                                  : v.calcType === "urban-stage"
+                                  ? "Urban Slabs"
+                                  : v.calcType === "tourist-group"
+                                  ? "₹2.25/km"
+                                  : v.calcType === "e-auto"
+                                  ? "₹20/km"
+                                  : v.calcType === "metered-auto"
+                                  ? "₹7.40/km"
+                                  : `₹${v.perKm}/km`}
+                              </span>
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
 
                 {/* Step 2: Route Builder Box */}
@@ -1932,6 +2076,53 @@ export default function App() {
                     </div>
                   </div>
 
+                  {/* Border / Mountain Gateway Ambiguity Confirmation Prompt (Risk 3) */}
+                  {hasRoute && currentRouteProfile?.isAmbiguous && (
+                    <div className="mt-3.5 p-3.5 rounded-2xl bg-[#fefce8] border border-[#fef08a] flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-[#854d0e] shadow-xs">
+                      <div className="flex items-start sm:items-center gap-2">
+                        <Info size={16} className="text-[#ca8a04] shrink-0 mt-0.5 sm:mt-0" />
+                        <div>
+                          <p className="font-bold text-[12px] text-[#713f12]">Gateway Waypoint Detected:</p>
+                          <p className="text-[11px] text-[#854d0e] mt-0.5">
+                            {currentRouteProfile.ambiguityNote || "Border / Gateway corridor detected. Confirm travel division:"}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        <button
+                          onClick={() => setUserRegionOverride("jammu")}
+                          className={`px-3 py-1 rounded-xl text-xs font-bold transition ${
+                            userRegionOverride === "jammu"
+                              ? "bg-[#854d0e] text-[#fefce8] shadow-xs"
+                              : "bg-[#fef9c3] hover:bg-[#fef08a] text-[#854d0e] border border-[#fde047]"
+                          }`}
+                        >
+                          Jammu Division
+                        </button>
+                        <button
+                          onClick={() => setUserRegionOverride("kashmir")}
+                          className={`px-3 py-1 rounded-xl text-xs font-bold transition ${
+                            userRegionOverride === "kashmir"
+                              ? "bg-[#854d0e] text-[#fefce8] shadow-xs"
+                              : "bg-[#fef9c3] hover:bg-[#fef08a] text-[#854d0e] border border-[#fde047]"
+                          }`}
+                        >
+                          Kashmir Division
+                        </button>
+                        <button
+                          onClick={() => setUserRegionOverride("both")}
+                          className={`px-3 py-1 rounded-xl text-xs font-bold transition ${
+                            userRegionOverride === "both"
+                              ? "bg-[#854d0e] text-[#fefce8] shadow-xs"
+                              : "bg-[#fef9c3] hover:bg-[#fef08a] text-[#854d0e] border border-[#fde047]"
+                          }`}
+                        >
+                          Cross-Division
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
                   {/* Real-time Contextual Alerts (Batamaloo Redirect, Winter Mountain Closures, Frontier & Pilgrimage) */}
                   {contextAlerts.isBatamalooNorthRedirect && (
                     <div className="mt-3.5 p-3 rounded-2xl bg-[#fdf5eb] border border-[#f0cfa0] text-[#784319] text-xs flex items-start gap-2.5">
@@ -2070,16 +2261,22 @@ export default function App() {
                     </div>
 
                     <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold border ${
-                      hasRoute && !fareParts.isViable
+                      hasRoute && fareParts.isZeroEligible
+                        ? "bg-[#782323] text-[#fca5a5] border-[#a33737]"
+                        : hasRoute && !fareParts.isViable
                         ? "bg-[#782323] text-[#fca5a5] border-[#a33737]"
                         : "bg-[#386260] text-[#cbe1d3] border-[#4d7f7c]"
                     }`}>
-                      {hasRoute && !fareParts.isViable ? "Non-Serviced Route" : "Verified Rate"}
+                      {hasRoute && fareParts.isZeroEligible
+                        ? "No Category"
+                        : hasRoute && !fareParts.isViable
+                        ? "Non-Serviced Route"
+                        : "Verified Rate"}
                     </span>
                   </div>
 
                   {/* Price Mode Switcher (Per Seat vs Full Cab) */}
-                  {chosenVehicle.isPerSeat && fareParts.isViable ? (
+                  {chosenVehicle.isPerSeat && fareParts.isViable && !fareParts.isZeroEligible ? (
                     <div className="relative z-10 mt-4 flex items-center bg-[#183637]/70 p-1 rounded-xl border border-[#386260]">
                       <button
                         onClick={() => setPriceMode("per-seat")}
@@ -2115,6 +2312,8 @@ export default function App() {
                       }`}>
                         {!hasRoute
                           ? "₹ —"
+                          : fareParts.isZeroEligible
+                          ? "No Registered Vehicle"
                           : fareParts.isViable && displayFare > 0
                           ? `₹${displayFare.toLocaleString("en-IN")}`
                           : "Fare Not Available"}
@@ -2122,6 +2321,8 @@ export default function App() {
                       <span className="text-xs text-[#f2bd70] font-semibold">
                         {!hasRoute
                           ? "(Choose route to calculate)"
+                          : fareParts.isZeroEligible
+                          ? "(No registered vehicle category operates this route)"
                           : !fareParts.isViable
                           ? `(${chosenVehicle.label} does not operate on ${distance} km route)`
                           : !chosenVehicle.isPerSeat
@@ -2172,18 +2373,26 @@ export default function App() {
                       <h3 className="font-bold text-sm text-[#234b4c]">Fare Breakdown</h3>
                     </div>
                     <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md ${
-                      hasRoute && !fareParts.isViable
+                      hasRoute && fareParts.isZeroEligible
+                        ? "bg-[#fee2e2] text-[#991b1b]"
+                        : hasRoute && !fareParts.isViable
                         ? "bg-[#fee2e2] text-[#991b1b]"
                         : "bg-[#edf5ee] text-[#557b72]"
                     }`}>
-                      {hasRoute && !fareParts.isViable ? "Route Limit Exceeded" : "Official Rate"}
+                      {hasRoute && fareParts.isZeroEligible
+                        ? "No Category"
+                        : hasRoute && !fareParts.isViable
+                        ? "Route Limit Exceeded"
+                        : "Official Rate"}
                     </span>
                   </div>
 
                   <div className="mt-3.5 space-y-2.5 text-xs">
                     <div className="flex items-center justify-between">
                       <span className="text-[#78908a]">Vehicle Category</span>
-                      <span className="font-bold text-[#345657]">{chosenVehicle.label}</span>
+                      <span className="font-bold text-[#345657]">
+                        {fareParts.isZeroEligible ? "None Authorized" : chosenVehicle.label}
+                      </span>
                     </div>
 
                     <div className="flex items-center justify-between">
@@ -2214,7 +2423,17 @@ export default function App() {
                     </div>
                   </div>
 
-                  {hasRoute && !fareParts.isViable ? (
+                  {hasRoute && fareParts.isZeroEligible ? (
+                    <div className="mt-3 p-3.5 rounded-xl bg-[#fff2f2] border border-[#fca5a5] text-[11px] text-[#991b1b]">
+                      <p className="font-bold flex items-center gap-1.5 text-[12px]">
+                        <ShieldAlert size={15} className="text-[#dc2626]" />
+                        <span>No registered vehicle category operates this route.</span>
+                      </p>
+                      <p className="mt-1 text-[#7f1d1d] leading-relaxed">
+                        Under official J&K Transport Department licensing, no registered public or commercial transit vehicle category is authorized to service this route corridor profile.
+                      </p>
+                    </div>
+                  ) : hasRoute && !fareParts.isViable ? (
                     <div className="mt-3 p-3 rounded-xl bg-[#fff2f2] border border-[#fca5a5] text-[11px] text-[#991b1b]">
                       <p className="font-bold flex items-center gap-1.5">
                         <ShieldAlert size={14} className="text-[#dc2626]" />
@@ -2228,10 +2447,9 @@ export default function App() {
                           setVehicle(fareParts.viability.alternativeKey);
                           showToast(`Switched to ${fareParts.viability.alternativeName}`);
                         }}
-                        className="mt-2 inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-[#dc2626] text-white font-bold text-[10px] hover:bg-[#b91c1c] transition"
+                        className="mt-2 inline-flex items-center gap-1 text-[11px] font-bold text-[#b91c1c] underline hover:text-[#991b1b]"
                       >
-                        <ArrowRight size={11} />
-                        Switch to {fareParts.viability.alternativeName}
+                        Switch to {fareParts.viability.alternativeName} ➔
                       </button>
                     </div>
                   ) : (
