@@ -1154,17 +1154,27 @@ function renderVehicleCards() {
       ? `<span style="font-weight: 800; font-size: 11px; background: #eef4ed; color: #234b4c; padding: 2px 7px; border-radius: 6px; border: 1px solid #d2e4d4;">₹ ${cardFare}</span>`
       : `<span style="font-weight: 700; font-size: 10px; background: #edf3eb; color: #557b72; padding: 2px 6px; border-radius: 6px;">${v.calcType === "urban-stage" ? "₹8-₹18" : v.calcType === "stage-slab" ? "₹9-₹26" : `₹${v.perKm}/km`}</span>`;
 
+    const visualMeta = window.VEHICLE_VISUAL_META ? window.VEHICLE_VISUAL_META[v.key] : null;
+    const illustrationSvg = window.getVehicleIllustrationSvg ? window.getVehicleIllustrationSvg(v.key) : v.icon;
+    const hallmarkText = visualMeta?.name || v.label;
+
     card.innerHTML = `
-      <div class="vehicle-card-top">
-        <div class="vehicle-icon-box">${v.icon}</div>
-        <div style="display: flex; align-items: center; gap: 6px;">
-          ${fareBadge}
+      <div class="vehicle-illustration-showcase">
+        ${illustrationSvg}
+        <div class="showcase-badge-left">
           <span class="vehicle-badge">${v.badge}</span>
+        </div>
+        <div class="showcase-badge-right">
+          ${fareBadge}
+        </div>
+        <div class="showcase-hallmark-tag" title="${hallmarkText}">
+          ${hallmarkText}
         </div>
       </div>
       <div class="vehicle-card-meta">
         <div class="vehicle-title-row">
           <strong>${v.label}</strong>
+          ${isSelected ? `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#234b4c" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>` : ""}
         </div>
         <p>${v.sublabel}</p>
       </div>
@@ -1386,6 +1396,12 @@ function calculateAndRender() {
   }
 
 
+
+  // Update Hero Card Vehicle Illustration Preview
+  const heroVehiclePreview = document.getElementById("hero-vehicle-preview");
+  if (heroVehiclePreview && window.getVehicleIllustrationSvg) {
+    heroVehiclePreview.innerHTML = window.getVehicleIllustrationSvg(v.key);
+  }
 
   // Toggle Seat Mode Visibility
   if (seatModeContainer) {

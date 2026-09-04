@@ -1065,6 +1065,104 @@ body {
   justify-content: space-between;
 }
 
+/* Vehicle Illustration Showcase Container */
+.vehicle-illustration-showcase {
+  width: 100%;
+  height: 96px;
+  border-radius: 12px;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+  margin-bottom: 10px;
+  background: linear-gradient(to bottom, #f5f8f3, #ebf1e9);
+  border: 1px solid #e0eae0;
+  transition: all 0.25s ease;
+}
+
+.vehicle-card:hover .vehicle-illustration-showcase {
+  background: linear-gradient(to bottom, #eef4ec, #e4ece2);
+}
+
+.vehicle-card.selected .vehicle-illustration-showcase {
+  background: linear-gradient(to bottom, #e7f0ea, #d6e7db);
+  border-color: rgba(35, 75, 76, 0.35);
+}
+
+.vehicle-illustration-svg {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.06));
+  transition: transform 0.3s ease;
+  display: block;
+}
+
+.vehicle-card:hover .vehicle-illustration-svg {
+  transform: scale(1.05);
+}
+
+.showcase-badge-left {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  z-index: 2;
+}
+
+.showcase-badge-right {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  z-index: 2;
+}
+
+.showcase-hallmark-tag {
+  position: absolute;
+  bottom: 6px;
+  left: 8px;
+  font-size: 9px;
+  font-weight: 600;
+  color: #557b72;
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(4px);
+  padding: 2px 6px;
+  border-radius: 4px;
+  border: 1px solid rgba(220, 229, 220, 0.6);
+  max-width: 180px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  z-index: 2;
+}
+
+/* Hero Card Vehicle Preview */
+.hero-vehicle-preview {
+  width: 100%;
+  height: 85px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: var(--radius-md);
+  margin-bottom: 12px;
+  padding: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  transition: all 0.25s ease;
+}
+
+.hero-vehicle-preview .vehicle-illustration-svg {
+  filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.3));
+}
+
 .vehicle-icon-box {
   width: 38px;
   height: 38px;

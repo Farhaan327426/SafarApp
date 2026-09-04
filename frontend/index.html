@@ -1,17 +1,21 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>SAFAR — J&K Smart Transit & Legal Fare Guide</title>
-  <meta name="description" content="Know the official transit fare before you go. Statutory government rates for Shared Cabs, Autos, Buses, and Taxis across Jammu & Kashmir.">
+  <meta name="description"
+    content="Know the official transit fare before you go. Statutory government rates for Shared Cabs, Autos, Buses, and Taxis across Jammu & Kashmir.">
   <meta name="theme-color" content="#234b4c">
-  
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet">
   <link rel="stylesheet" href="css/style.css">
 </head>
+
 <body>
   <!-- App Container -->
   <div id="app">
@@ -21,12 +25,20 @@
         <!-- Logo -->
         <div class="brand-wrap">
           <button id="mobile-menu-btn" class="icon-btn mobile-only" aria-label="Open Menu">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <line x1="3" y1="12" x2="21" y2="12"></line>
+              <line x1="3" y1="6" x2="21" y2="6"></line>
+              <line x1="3" y1="18" x2="21" y2="18"></line>
+            </svg>
           </button>
-          
+
           <div class="brand-logo">
             <div class="brand-icon">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 11 22 2 13 21 11 13 3 11"></polygon></svg>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                stroke-linecap="round" stroke-linejoin="round">
+                <polygon points="3 11 22 2 13 21 11 13 3 11"></polygon>
+              </svg>
               <span class="live-dot"></span>
             </div>
             <div class="brand-text">
@@ -42,19 +54,43 @@
         <!-- Desktop Navigation Tabs -->
         <nav class="desktop-nav">
           <button class="nav-tab active" data-tab="calculator">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="2" width="16" height="20" rx="2"></rect><line x1="8" y1="6" x2="16" y2="6"></line><line x1="16" y1="14" x2="16" y2="18"></line><path d="M16 10h.01"></path><path d="M12 10h.01"></path><path d="M8 10h.01"></path><path d="M12 14h.01"></path><path d="M8 14h.01"></path><path d="M12 18h.01"></path><path d="M8 18h.01"></path></svg>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="4" y="2" width="16" height="20" rx="2"></rect>
+              <line x1="8" y1="6" x2="16" y2="6"></line>
+              <line x1="16" y1="14" x2="16" y2="18"></line>
+              <path d="M16 10h.01"></path>
+              <path d="M12 10h.01"></path>
+              <path d="M8 10h.01"></path>
+              <path d="M12 14h.01"></path>
+              <path d="M8 14h.01"></path>
+              <path d="M12 18h.01"></path>
+              <path d="M8 18h.01"></path>
+            </svg>
             <span>Fare Calculator</span>
           </button>
           <button class="nav-tab" data-tab="guide">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="6" cy="19" r="3"></circle><path d="M9 19h8.5a3.5 3.5 0 0 0 0-7h-11a3.5 3.5 0 0 1 0-7H15"></path><circle cx="18" cy="5" r="3"></circle></svg>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="6" cy="19" r="3"></circle>
+              <path d="M9 19h8.5a3.5 3.5 0 0 0 0-7h-11a3.5 3.5 0 0 1 0-7H15"></path>
+              <circle cx="18" cy="5" r="3"></circle>
+            </svg>
             <span>Route Guide</span>
           </button>
           <button class="nav-tab" data-tab="history">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"></circle>
+              <polyline points="12 6 12 12 16 14"></polyline>
+            </svg>
             <span>Recent Estimates</span>
           </button>
           <button class="nav-tab" data-tab="rates">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+              <polyline points="14 2 14 8 20 8"></polyline>
+              <line x1="16" y1="13" x2="8" y2="13"></line>
+              <line x1="16" y1="17" x2="8" y2="17"></line>
+              <polyline points="10 9 9 9 8 9"></polyline>
+            </svg>
             <span>Official Rates</span>
           </button>
         </nav>
@@ -67,13 +103,20 @@
           </div>
 
           <button id="help-modal-trigger" class="help-btn" title="How Safar Works">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"></circle>
+              <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+              <line x1="12" y1="17" x2="12.01" y2="17"></line>
+            </svg>
             <span class="desktop-only">Help</span>
           </button>
 
           <div class="notifications-wrapper">
             <button id="notifications-btn" class="icon-btn" aria-label="Notifications">
-              <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+              <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+              </svg>
               <span class="badge-dot"></span>
             </button>
 
@@ -107,7 +150,11 @@
           <div class="brand-row">
             <span class="brand-title">SAFAR J&K</span>
           </div>
-          <button id="close-drawer-btn" class="icon-btn"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
+          <button id="close-drawer-btn" class="icon-btn"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="2">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg></button>
         </div>
         <div class="drawer-links">
           <button class="drawer-link active" data-tab="calculator">
@@ -146,7 +193,8 @@
         <div class="hero-card">
           <div class="hero-content">
             <h1>Know what you owe before you go.</h1>
-            <p>Statutory fare estimates for Shared Cabs, Autos, Matadors, and Private Taxis — every route, every mode, across Jammu & Kashmir.</p>
+            <p>Statutory fare estimates for Shared Cabs, Autos, Matadors, and Private Taxis — every route, every mode,
+              across Jammu & Kashmir.</p>
           </div>
           <div class="hero-mountain-bg"></div>
         </div>
@@ -196,7 +244,11 @@
                   <h2>Where are you traveling?</h2>
                 </div>
                 <button id="reset-route-btn" class="text-btn">
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"></polyline><polyline points="23 20 23 14 17 14"></polyline><path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"></path></svg>
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="1 4 1 10 7 10"></polyline>
+                    <polyline points="23 20 23 14 17 14"></polyline>
+                    <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"></path>
+                  </svg>
                   <span>Clear</span>
                 </button>
               </div>
@@ -206,22 +258,38 @@
                 <div class="input-field">
                   <label class="field-label origin"><span class="dot-orange"></span> Boarding Point (Pickup)</label>
                   <div class="input-icon-wrap">
-                    <svg class="field-icon icon-orange" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
-                    <input type="text" id="input-from" value="" list="locations-list" placeholder="e.g. Srinagar, Lal Chowk, Katra" autocomplete="off">
+                    <svg class="field-icon icon-orange" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                      stroke="currentColor" stroke-width="2">
+                      <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                      <circle cx="12" cy="10" r="3"></circle>
+                    </svg>
+                    <input type="text" id="input-from" value="" list="locations-list"
+                      placeholder="e.g. Srinagar, Lal Chowk, Katra" autocomplete="off">
                   </div>
                 </div>
 
                 <div class="swap-wrap">
                   <button id="swap-route-btn" class="swap-btn" title="Swap Route Direction">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="17 1 21 5 17 9"></polyline><path d="M3 11V9a4 4 0 0 1 4-4h14"></path><polyline points="7 23 3 19 7 15"></polyline><path d="M21 13v2a4 4 0 0 1-4 4H3"></path></svg>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                      stroke-width="2.5">
+                      <polyline points="17 1 21 5 17 9"></polyline>
+                      <path d="M3 11V9a4 4 0 0 1 4-4h14"></path>
+                      <polyline points="7 23 3 19 7 15"></polyline>
+                      <path d="M21 13v2a4 4 0 0 1-4 4H3"></path>
+                    </svg>
                   </button>
                 </div>
 
                 <div class="input-field">
                   <label class="field-label dest"><span class="dot-green"></span> Deboarding Point (Drop-off)</label>
                   <div class="input-icon-wrap">
-                    <svg class="field-icon icon-green" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
-                    <input type="text" id="input-to" value="" list="locations-list" placeholder="e.g. Gulmarg, Pahalgam, Jammu" autocomplete="off">
+                    <svg class="field-icon icon-green" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                      stroke="currentColor" stroke-width="2">
+                      <circle cx="12" cy="12" r="10"></circle>
+                      <polyline points="12 6 12 12 16 14"></polyline>
+                    </svg>
+                    <input type="text" id="input-to" value="" list="locations-list"
+                      placeholder="e.g. Gulmarg, Pahalgam, Jammu" autocomplete="off">
                   </div>
                 </div>
               </div>
@@ -257,13 +325,21 @@
             <div class="fare-hero-card">
               <div class="fare-hero-header">
                 <div class="guidance-tag">
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 14 10"></polyline></svg>
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <polyline points="12 6 12 12 14 10"></polyline>
+                  </svg>
                   <span>Official Fare Estimate</span>
                 </div>
                 <span class="verified-pill">Official Rate</span>
               </div>
 
               <p class="route-summary-text" id="fare-route-summary">Srinagar ➔ Gulmarg</p>
+
+              <!-- Live Vehicle Illustration Preview -->
+              <div class="hero-vehicle-preview" id="hero-vehicle-preview">
+                <!-- Injected by JavaScript -->
+              </div>
 
               <!-- Per Seat vs Entire Cab Switch -->
               <div class="seat-mode-switch" id="seat-mode-container">
@@ -295,11 +371,21 @@
               <!-- Share Action -->
               <div class="fare-actions-row">
                 <button id="share-fare-btn" class="share-btn">
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="18" cy="5" r="3"></circle>
+                    <circle cx="6" cy="12" r="3"></circle>
+                    <circle cx="18" cy="19" r="3"></circle>
+                    <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+                    <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+                  </svg>
                   <span>Copy / Share Fare</span>
                 </button>
                 <button id="helpline-btn" class="helpline-btn" title="Helpline 1033">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path
+                      d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z">
+                    </path>
+                  </svg>
                 </button>
               </div>
             </div>
@@ -334,8 +420,12 @@
               </div>
 
               <div class="info-alert-box">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="9 12 11 14 15 10"></polyline></svg>
-                <p><strong>All-Inclusive:</strong> This is the total official fare. No extra boarding fees or hidden charges.</p>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <polyline points="9 12 11 14 15 10"></polyline>
+                </svg>
+                <p><strong>All-Inclusive:</strong> This is the total official fare. No extra boarding fees or hidden
+                  charges.</p>
               </div>
             </div>
 
@@ -407,7 +497,8 @@
           <div class="card-header">
             <div class="header-titles">
               <h2>Official J&K Transport Fare Schedules (SRO-97)</h2>
-              <p>Mandatory maximum fare ceiling rates for all 9 non-SRTC commercial passenger vehicles in Jammu & Kashmir.</p>
+              <p>Mandatory maximum fare ceiling rates for all 9 non-SRTC commercial passenger vehicles in Jammu &
+                Kashmir.</p>
             </div>
           </div>
 
@@ -504,11 +595,17 @@
         <div class="modal-header">
           <div class="modal-title">
             <div class="brand-icon-sm">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="3 11 22 2 13 21 11 13 3 11"></polygon></svg>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polygon points="3 11 22 2 13 21 11 13 3 11"></polygon>
+              </svg>
             </div>
             <h3>How Safar Works</h3>
           </div>
-          <button id="close-modal-btn" class="icon-btn"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
+          <button id="close-modal-btn" class="icon-btn"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="2">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg></button>
         </div>
         <div class="modal-body">
           <div class="step-card">
@@ -529,7 +626,8 @@
             <span class="num-badge">3</span>
             <div>
               <strong>Board with Confidence</strong>
-              <p>View the statutory SRO-97 calculated fare. Show the breakdown to drivers to avoid arbitrary overcharging.</p>
+              <p>View the statutory SRO-97 calculated fare. Show the breakdown to drivers to avoid arbitrary
+                overcharging.</p>
             </div>
           </div>
         </div>
@@ -541,11 +639,15 @@
 
     <!-- Floating Toast Notification -->
     <div id="toast" class="toast-notification" hidden>
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f2bd70" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f2bd70" stroke-width="2.5">
+        <polyline points="20 6 9 17 4 12"></polyline>
+      </svg>
       <span id="toast-text">Route updated</span>
     </div>
   </div>
 
+  <script src="js/vehicle-illustrations.js"></script>
   <script src="js/main.js"></script>
 </body>
+
 </html>
