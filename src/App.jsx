@@ -1475,7 +1475,6 @@ export default function App() {
               <div>
                 <div className="flex items-center gap-1.5">
                   <span className="text-xl font-extrabold tracking-tight text-[#234b4c]">SAFAR</span>
-                  <span className="text-base font-bold text-[#557b72] ml-0.5" dir="rtl" lang="ur">سفر</span>
                   <span className="px-1.5 py-0.5 text-[10px] font-bold uppercase rounded-md bg-[#eaf0e9] text-[#557b72] border border-[#d8e3d8]">
                     J&K
                   </span>
@@ -2888,7 +2887,7 @@ export default function App() {
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
             <Navigation size={15} className="text-[#234b4c]" />
-            <span className="font-bold text-[#234b4c]">SAFAR • سفر</span>
+            <span className="font-bold text-[#234b4c]">SAFAR</span>
             <span dir="rtl" lang="ur" className="font-semibold text-[#4a6d65]">منزل سے بہتر ہے سفر</span>
             <span>— Simple, Transparent J&K Transit Fare Guide</span>
           </div>
