@@ -1348,7 +1348,15 @@ function calculateAndRender() {
     : totalSingle;
 
   // Update elements
-  if (fareRouteSummary) fareRouteSummary.textContent = hasRoute ? `${currentFrom} ➔ ${currentTo}` : "Choose Boarding & Deboarding Points";
+  if (fareRouteSummary) {
+    if (hasRoute) {
+      fareRouteSummary.textContent = `${currentFrom} ➔ ${currentTo}`;
+      fareRouteSummary.style.display = "block";
+    } else {
+      fareRouteSummary.textContent = "";
+      fareRouteSummary.style.display = "none";
+    }
+  }
   if (displayPriceVal) {
     if (!hasRoute) {
       displayPriceVal.textContent = "₹ —";
@@ -1393,14 +1401,6 @@ function calculateAndRender() {
       mathTotalFare.textContent = formatRupees(finalFare);
       mathTotalFare.style.color = "";
     }
-  }
-
-
-
-  // Update Hero Card Vehicle Illustration Preview
-  const heroVehiclePreview = document.getElementById("hero-vehicle-preview");
-  if (heroVehiclePreview && window.getVehicleIllustrationSvg) {
-    heroVehiclePreview.innerHTML = window.getVehicleIllustrationSvg(v.key);
   }
 
   // Toggle Seat Mode Visibility

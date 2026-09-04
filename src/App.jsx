@@ -2443,15 +2443,11 @@ export default function App() {
                         <CircleGauge size={13} />
                         <span>Official Fare Estimate</span>
                       </div>
-                      <p className="text-xs text-[#c4d6cb] mt-2 font-medium">
-                        {hasRoute ? (
-                          <>
-                            {from} <ArrowRight size={12} className="inline mx-1" /> {to}
-                          </>
-                        ) : (
-                          "Choose Boarding & Deboarding Points"
-                        )}
-                      </p>
+                      {hasRoute && (
+                        <p className="text-xs text-[#c4d6cb] mt-2 font-medium">
+                          {from} <ArrowRight size={12} className="inline mx-1" /> {to}
+                        </p>
+                      )}
                     </div>
 
                     <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold border ${
