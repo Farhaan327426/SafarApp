@@ -1385,19 +1385,7 @@ function calculateAndRender() {
     }
   }
 
-  // Update Live Route Distance Card in Step 1
-  const routeInfo = resolveRouteInfo(currentFrom, currentTo);
-  const liveRouteName = document.getElementById("live-route-name");
-  const liveRouteKmPill = document.getElementById("live-route-km-pill");
-  const liveRouteMeta = document.getElementById("live-route-meta");
-  const liveRouteHighway = document.getElementById("live-route-highway");
-  if (liveRouteName) liveRouteName.textContent = hasRoute ? `${currentFrom} ➔ ${currentTo}` : "Choose Boarding & Deboarding Points";
-  if (liveRouteKmPill) {
-    liveRouteKmPill.textContent = `${km} KM`;
-    liveRouteKmPill.style.display = hasRoute && km > 0 ? "inline-block" : "none";
-  }
-  if (liveRouteMeta) liveRouteMeta.textContent = hasRoute ? `⏱️ Approx ${routeInfo.duration} · 🏔️ ${routeInfo.terrain}` : "Select your starting point and destination in J&K";
-  if (liveRouteHighway) liveRouteHighway.textContent = hasRoute ? routeInfo.highway : "J&K Transit Network";
+
 
   // Toggle Seat Mode Visibility
   if (seatModeContainer) {
@@ -1409,6 +1397,7 @@ function calculateAndRender() {
   }
 
   // Update Corridor Context details
+  const routeInfo = resolveRouteInfo(currentFrom, currentTo);
   const contextCard = document.getElementById("corridor-context-card");
   if (contextCard) {
     if (routeInfo.isPreset) {
