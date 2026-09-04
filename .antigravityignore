@@ -1,0 +1,27 @@
+# Antigravity Workspace Ignore Configuration
+# Prevents heavy indexing of build outputs, dependency trees, and binary caches
+
+node_modules/
+.pnpm-store/
+.git/
+dist/
+build/
+.next/
+out/
+coverage/
+.turbo/
+*.log
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+**/*.min.js
+**/*.min.css
+**/*.map
+public/images/
+**/*.mp4
+**/*.zip
+__pycache__/
+*.pyc
+.pytest_cache/
+.tmp/
+logs/
