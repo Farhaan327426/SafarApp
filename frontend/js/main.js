@@ -1167,8 +1167,6 @@ function renderVehicleCards() {
           <strong>${v.label}</strong>
         </div>
         <p>${v.sublabel}</p>
-        <span class="vehicle-desc">${v.detail}</span>
-        ${v.districtFootprint ? `<p style="font-size: 10px; color: #4d7f7c; margin-top: 4px; background: #edf5ee; padding: 2px 6px; border-radius: 4px; display: inline-block;">${v.districtFootprint}</p>` : ""}
       </div>
       <div class="vehicle-card-footer">
         <span>${footerBaseText}</span>

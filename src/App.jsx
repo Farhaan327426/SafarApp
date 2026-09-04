@@ -1842,12 +1842,6 @@ export default function App() {
                                 {selected && <CheckCircle2 size={14} className="text-[#557b72]" />}
                               </div>
                               <p className="text-[11px] font-medium text-[#78908a]">{v.sublabel}</p>
-                              <p className="text-[10px] text-[#8a9c95] mt-0.5 leading-snug">{v.detail}</p>
-                              {v.districtFootprint && (
-                                <p className="text-[10px] font-medium text-[#4d7f7c] mt-1 bg-[#edf5ee] px-2 py-0.5 rounded-md inline-block">
-                                  {v.districtFootprint}
-                                </p>
-                              )}
                             </div>
 
                             <div className="mt-2.5 pt-2 border-t border-[#e2eae0] flex items-center justify-between text-[11px]">
