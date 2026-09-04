@@ -7,7 +7,7 @@
 export const VEHICLE_OPERATIONAL_ZONES = {
   "vikram-tempo": {
     id: "vikram",
-    name: "Vikram / Safa Urban",
+    name: "Vikram Tempo",
     operationalZone: {
       region: ["jammu"],
       routeType: ["intracity"],
@@ -16,7 +16,7 @@ export const VEHICLE_OPERATIONAL_ZONES = {
   },
   "auto": {
     id: "auto",
-    name: "Auto-Rickshaw (Petrol/CNG)",
+    name: "Auto Rickshaw",
     operationalZone: {
       region: ["jammu", "kashmir", "srinagar"],
       routeType: ["intracity"],
@@ -25,7 +25,7 @@ export const VEHICLE_OPERATIONAL_ZONES = {
   },
   "e-auto": {
     id: "e-auto",
-    name: "E-Auto (Smart Metered)",
+    name: "E-Auto",
     operationalZone: {
       region: ["jammu", "kashmir", "srinagar"],
       routeType: ["intracity"],
@@ -34,7 +34,7 @@ export const VEHICLE_OPERATIONAL_ZONES = {
   },
   "e-rickshaw": {
     id: "e-rickshaw",
-    name: "E-Rickshaw (Toto / Cart)",
+    name: "E-Rickshaw",
     operationalZone: {
       region: ["jammu", "kashmir", "srinagar"],
       routeType: ["intracity"],
@@ -43,7 +43,7 @@ export const VEHICLE_OPERATIONAL_ZONES = {
   },
   "tata-magic": {
     id: "tata-magic",
-    name: "Tata Magic / Feeder",
+    name: "Tata Magic",
     operationalZone: {
       region: ["jammu", "kashmir", "both"],
       routeType: ["intercity"],
@@ -52,7 +52,7 @@ export const VEHICLE_OPERATIONAL_ZONES = {
   },
   "shared-cab": {
     id: "shared-cab",
-    name: "Shared Maxi-Cab (Sumo/Tavera)",
+    name: "Sumo (Shared Cab)",
     operationalZone: {
       region: ["jammu", "kashmir", "both"],
       routeType: ["intercity"],
@@ -61,7 +61,7 @@ export const VEHICLE_OPERATIONAL_ZONES = {
   },
   "mini-bus": {
     id: "mini-bus",
-    name: "Mini Bus / Matador (407)",
+    name: "Matador (Mini Bus)",
     operationalZone: {
       region: ["jammu", "kashmir", "both"],
       routeType: ["intercity"],
@@ -70,7 +70,7 @@ export const VEHICLE_OPERATIONAL_ZONES = {
   },
   "private-bus": {
     id: "private-bus",
-    name: "Private 2+2 Bus (Stage Carriage)",
+    name: "Private Bus",
     operationalZone: {
       region: ["jammu", "kashmir", "both"],
       routeType: ["intercity"],
@@ -79,7 +79,7 @@ export const VEHICLE_OPERATIONAL_ZONES = {
   },
   "force-traveler": {
     id: "force-traveler",
-    name: "Force Traveler (14-Seater)",
+    name: "Tempo Traveler",
     operationalZone: {
       region: ["jammu", "kashmir", "both"],
       routeType: ["intercity", "intracity", "both"],
@@ -88,7 +88,7 @@ export const VEHICLE_OPERATIONAL_ZONES = {
   },
   "taxi": {
     id: "taxi",
-    name: "Standard Sedan Taxi",
+    name: "Sedan Taxi",
     operationalZone: {
       region: ["jammu", "kashmir", "both"],
       routeType: ["intercity", "intracity", "both"],
@@ -97,7 +97,7 @@ export const VEHICLE_OPERATIONAL_ZONES = {
   },
   "suv-taxi": {
     id: "suv-taxi",
-    name: "Premium Tourist SUV Taxi",
+    name: "SUV Taxi",
     operationalZone: {
       region: ["jammu", "kashmir", "both"],
       routeType: ["intercity", "intracity", "both"],
