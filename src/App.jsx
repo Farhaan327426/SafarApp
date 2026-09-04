@@ -29,7 +29,14 @@ import {
   Sparkles,
   Zap,
   X,
+  Eye,
+  LayoutGrid,
+  List,
+  Luggage,
 } from "lucide-react";
+import VehicleIllustration, {
+  VEHICLE_VISUAL_META,
+} from "./components/VehicleIllustration.jsx";
 import {
   VEHICLE_OPERATIONAL_ZONES,
   resolveRouteProfile,
@@ -993,6 +1000,9 @@ export default function App() {
   const [searchFromFocus, setSearchFromFocus] = useState(false);
   const [searchToFocus, setSearchToFocus] = useState(false);
   const [priceMode, setPriceMode] = useState("per-seat");
+  const [vehicleViewMode, setVehicleViewMode] = useState("visual"); // 'visual' | 'compact'
+  const [showFleetGuide, setShowFleetGuide] = useState(false);
+  const [inspectedVehicleKey, setInspectedVehicleKey] = useState(null);
 
   const [userRegionOverride, setUserRegionOverride] = useState(null);
 
@@ -1680,11 +1690,59 @@ export default function App() {
                         1
                       </div>
                       <div>
-                        <h2 className="text-base font-bold text-[#234b4c]">Choose Your Vehicle Mode</h2>
+                        <div className="flex items-center gap-2">
+                          <h2 className="text-base font-bold text-[#234b4c]">Choose Your Vehicle Mode</h2>
+                          <span className="hidden sm:inline-block text-[10px] font-bold bg-[#eef4ed] text-[#3f6e5b] border border-[#d2e4d4] px-2 py-0.5 rounded-full">
+                            Visual Setup
+                          </span>
+                        </div>
                         <p className="text-[11px] text-[#78908a]">
-                          Official government statutory tariffs across Jammu & Kashmir (11 Categories)
+                          Official statutory tariffs & authentic visual models across Jammu & Kashmir (11 Categories)
                         </p>
                       </div>
+                    </div>
+
+                    <div className="flex items-center gap-2 self-start sm:self-auto">
+                      {/* View Mode Toggle */}
+                      <div className="flex items-center p-1 bg-[#edf3eb] rounded-xl border border-[#dce5dc]">
+                        <button
+                          onClick={() => setVehicleViewMode("visual")}
+                          className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold transition ${
+                            vehicleViewMode === "visual"
+                              ? "bg-[#234b4c] text-[#f4f6ed] shadow-xs"
+                              : "text-[#557b72] hover:text-[#234b4c]"
+                          }`}
+                          title="Visual Vehicle Cards with Renders"
+                        >
+                          <LayoutGrid size={13} />
+                          <span className="hidden xs:inline">Visual</span>
+                        </button>
+                        <button
+                          onClick={() => setVehicleViewMode("compact")}
+                          className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold transition ${
+                            vehicleViewMode === "compact"
+                              ? "bg-[#234b4c] text-[#f4f6ed] shadow-xs"
+                              : "text-[#557b72] hover:text-[#234b4c]"
+                          }`}
+                          title="Compact List View"
+                        >
+                          <List size={13} />
+                          <span className="hidden xs:inline">Compact</span>
+                        </button>
+                      </div>
+
+                      {/* Fleet Guide Modal Button */}
+                      <button
+                        onClick={() => {
+                          setInspectedVehicleKey(vehicle);
+                          setShowFleetGuide(true);
+                        }}
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#eef4ed] text-[#234b4c] hover:bg-[#dfebe0] border border-[#d2e4d4] text-xs font-bold transition shadow-xs"
+                        title="Open Vehicle Identification & Recognition Guide"
+                      >
+                        <Eye size={13} className="text-[#3f6e5b]" />
+                        <span>Fleet Guide</span>
+                      </button>
                     </div>
                   </div>
 
@@ -1731,10 +1789,187 @@ export default function App() {
                         Under official J&amp;K Transport Department licensing, no registered vehicle category is authorized to service this route corridor ({currentRouteProfile?.region?.toUpperCase()} • {currentRouteProfile?.routeType?.toUpperCase()}). Please adjust your pickup and drop points or choose another route.
                       </p>
                     </div>
-                  ) : (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  ) : vehicleViewMode === "visual" ? (
+                    /* Visual Rich Cards View (Uber / Chalo Style) */
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                       {visibleVehicles.map((v) => {
-                        const Icon = v.icon;
+                        const selected = vehicle === v.key || vehicle === v.id;
+                        const km = Number(distance) || 0;
+                        const cardViability = getVehicleRouteViability(v.key, km, from, to);
+                        const visualMeta = VEHICLE_VISUAL_META[v.key];
+                        let cardFare = 0;
+                        if (km > 0 && cardViability.isViable) {
+                          switch (v.calcType) {
+                            case "e-rickshaw":
+                              cardFare = Math.max(15, Math.round(km * 15));
+                              break;
+                            case "e-auto":
+                              cardFare = km <= 1 ? 25 : 25 + Math.round((km - 1) * 20);
+                              break;
+                            case "stage-slab":
+                              if (km <= 3) cardFare = 9;
+                              else if (km <= 5) cardFare = 14;
+                              else if (km <= 10) cardFare = 17;
+                              else if (km <= 15) cardFare = 20;
+                              else if (km <= 20) cardFare = 26;
+                              else cardFare = 26 + Math.round((km - 20) * 1.40);
+                              break;
+                            case "urban-stage":
+                              if (km <= 3) cardFare = 8;
+                              else if (km <= 6) cardFare = 12;
+                              else if (km <= 10) cardFare = 15;
+                              else cardFare = 18;
+                              break;
+                            case "tourist-group":
+                              cardFare = Math.max(25, Math.round(km * 2.25));
+                              break;
+                            case "stage-carriage":
+                              {
+                                const rate = terrainRegion === "kashmir-plain" ? 1.64 : terrainRegion === "kashmir-hill" ? 1.88 : terrainRegion === "jammu-plain" ? 1.12 : 1.59;
+                                cardFare = Math.max(10, Math.round(km * rate));
+                              }
+                              break;
+                            case "stage-carriage-big":
+                              {
+                                const rate = terrainRegion === "kashmir-plain" ? 1.40 : terrainRegion === "kashmir-hill" ? 1.64 : terrainRegion === "jammu-plain" ? 1.12 : 1.59;
+                                cardFare = Math.max(10, Math.round(km * rate));
+                              }
+                              break;
+                            case "metered-auto":
+                              cardFare = km <= 2 ? 45 : 45 + Math.round((km - 2) * 7.4);
+                              break;
+                            default:
+                              cardFare = Math.max(15, v.base + Math.round(km * v.perKm) + (v.key === "suv-taxi" ? 20 : 0));
+                              break;
+                          }
+                        }
+
+                        return (
+                          <button
+                            key={v.key}
+                            onClick={() => {
+                              setVehicle(v.key);
+                              showToast(`Selected ${v.label}`);
+                            }}
+                            className={`group relative p-3 rounded-2xl text-left border-2 transition-all flex flex-col justify-between ${
+                              selected
+                                ? "bg-[#f4f7f2] border-[#234b4c] shadow-md ring-2 ring-[#234b4c]/10"
+                                : !cardViability.isViable && hasRoute
+                                ? "bg-[#fdfaf8] border-[#ebdcd5] hover:border-[#d99f90] opacity-90"
+                                : "bg-[#fbfcf8] border-[#e2eae0] hover:border-[#adc9b2] hover:bg-[#f8faf6]"
+                            }`}
+                          >
+                            {/* Vehicle Illustration Showcase Container */}
+                            <div
+                              className={`w-full h-24 rounded-xl relative overflow-hidden flex items-center justify-center p-2 mb-2.5 transition-colors border ${
+                                selected
+                                  ? "bg-gradient-to-b from-[#e7f0ea] to-[#d6e7db] border-[#234b4c]/30"
+                                  : "bg-gradient-to-b from-[#f5f8f3] to-[#ebf1e9] border-[#e0eae0] group-hover:from-[#eef4ec] group-hover:to-[#e4ece2]"
+                              }`}
+                            >
+                              <VehicleIllustration
+                                vehicleKey={v.key}
+                                className="w-full h-full object-contain filter drop-shadow-xs transform group-hover:scale-105 transition-transform duration-300"
+                              />
+
+                              {/* Top-Left Badge: Vehicle Badge */}
+                              <div className="absolute top-2 left-2 flex items-center gap-1">
+                                <span
+                                  className={`text-[9.5px] font-bold px-2 py-0.5 rounded-md shadow-xs ${
+                                    selected
+                                      ? "bg-[#234b4c] text-[#f4f6ed]"
+                                      : "bg-[#234b4c]/80 text-[#f4f6ed] backdrop-blur-xs"
+                                  }`}
+                                >
+                                  {v.badge}
+                                </span>
+                              </div>
+
+                              {/* Top-Right Badge: Calculated Fare or Status */}
+                              <div className="absolute top-2 right-2">
+                                {hasRoute && !cardViability.isViable ? (
+                                  <span className="text-[10px] font-bold text-[#b91c1c] bg-[#fee2e2] px-2 py-0.5 rounded-md border border-[#fca5a5] shadow-xs">
+                                    Not Available
+                                  </span>
+                                ) : hasRoute && cardFare > 0 ? (
+                                  <span className="text-[11px] font-black text-[#234b4c] bg-[#ffffff] px-2 py-0.5 rounded-lg border border-[#d2e4d4] shadow-xs">
+                                    ₹{cardFare}
+                                  </span>
+                                ) : (
+                                  <span className="text-[10px] font-bold text-[#557b72] bg-[#ffffff]/90 px-2 py-0.5 rounded-md border border-[#e2eae0] shadow-xs">
+                                    {v.calcType === "urban-stage" ? "₹8-₹18" : v.calcType === "stage-slab" ? "₹9-₹26" : `₹${v.perKm}/km`}
+                                  </span>
+                                )}
+                              </div>
+
+                              {/* Bottom-Left Hallmark Tag */}
+                              <div className="absolute bottom-1.5 left-2">
+                                <span className="text-[9px] font-semibold text-[#557b72] bg-white/85 px-1.5 py-0.5 rounded border border-[#dce5dc]/60 truncate max-w-[170px] inline-block">
+                                  {visualMeta?.name || v.label}
+                                </span>
+                              </div>
+                            </div>
+
+                            {/* Card Content */}
+                            <div>
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-1.5">
+                                  <h3 className="font-bold text-[13px] text-[#234b4c]">{v.label}</h3>
+                                  {selected && <CheckCircle2 size={14} className="text-[#557b72]" />}
+                                </div>
+                                <span className="text-[10px] font-bold text-[#3f6e5b] bg-[#edf3eb] px-1.5 py-0.5 rounded">
+                                  {v.capacity}
+                                </span>
+                              </div>
+                              <p className="text-[11px] font-medium text-[#78908a] mt-0.5">{v.sublabel}</p>
+                              
+                              {/* Real-World Spotting Hallmark */}
+                              <p className="text-[10px] text-[#5c7a73] line-clamp-1 mt-1 font-medium">
+                                <strong className="text-[#234b4c]">Spot:</strong> {visualMeta?.hallmark}
+                              </p>
+                            </div>
+
+                            {/* Card Footer */}
+                            <div className="mt-2.5 pt-2 border-t border-[#e2eae0] flex items-center justify-between text-[11px]">
+                              <span className="text-[#78908a] text-[10.5px]">
+                                {v.isPerSeat ? "Per Seat" : "Full Cab"}
+                              </span>
+                              <div className="flex items-center gap-1.5">
+                                <span className="font-bold text-[#234b4c]">
+                                  {v.calcType === "stage-slab"
+                                    ? "Stage Slabs"
+                                    : v.calcType === "urban-stage"
+                                    ? "Urban Slabs"
+                                    : v.calcType === "tourist-group"
+                                    ? "₹2.25/km"
+                                    : v.calcType === "e-auto"
+                                    ? "₹20/km"
+                                    : v.calcType === "metered-auto"
+                                    ? "₹7.40/km"
+                                    : `₹${v.perKm}/km`}
+                                </span>
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setInspectedVehicleKey(v.key);
+                                    setShowFleetGuide(true);
+                                  }}
+                                  className="text-[10px] text-[#78908a] hover:text-[#234b4c] p-0.5 rounded hover:bg-[#edf3eb]"
+                                  title="View Identification Specs"
+                                >
+                                  <Eye size={12} />
+                                </button>
+                              </div>
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    /* Compact List View */
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                      {visibleVehicles.map((v) => {
                         const selected = vehicle === v.key || vehicle === v.id;
                         const km = Number(distance) || 0;
                         const cardViability = getVehicleRouteViability(v.key, km, from, to);
@@ -1792,7 +2027,7 @@ export default function App() {
                               setVehicle(v.key);
                               showToast(`Selected ${v.label}`);
                             }}
-                            className={`relative p-3.5 rounded-2xl text-left border-2 transition-all flex flex-col justify-between ${
+                            className={`p-3 rounded-2xl text-left border-2 transition-all flex items-center gap-3 ${
                               selected
                                 ? "bg-[#f4f7f2] border-[#234b4c] shadow-md ring-2 ring-[#234b4c]/10"
                                 : !cardViability.isViable && hasRoute
@@ -1800,67 +2035,32 @@ export default function App() {
                                 : "bg-[#fbfcf8] border-[#e2eae0] hover:border-[#adc9b2] hover:bg-[#f8faf6]"
                             }`}
                           >
-                            <div className="flex items-start justify-between w-full">
-                              <div
-                                className="w-9 h-9 rounded-xl flex items-center justify-center shadow-xs"
-                                style={{
-                                  backgroundColor: selected ? "#234b4c" : "#edf3eb",
-                                  color: selected ? "#f2bd70" : v.color,
-                                }}
-                              >
-                                <Icon size={18} />
-                              </div>
-                              <div className="flex items-center gap-1.5">
+                            <div className="w-16 h-12 shrink-0 rounded-xl bg-[#edf3eb] p-1 flex items-center justify-center border border-[#dce5dc] overflow-hidden">
+                              <VehicleIllustration vehicleKey={v.key} className="w-full h-full object-contain" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center justify-between gap-1">
+                                <h3 className="font-bold text-xs text-[#234b4c] truncate">{v.label}</h3>
                                 {hasRoute && !cardViability.isViable ? (
-                                  <span className="text-[10px] font-bold text-[#b91c1c] bg-[#fee2e2] px-2 py-0.5 rounded-md border border-[#fca5a5]">
-                                    Not Available
+                                  <span className="text-[9px] font-bold text-[#b91c1c] bg-[#fee2e2] px-1.5 py-0.5 rounded border border-[#fca5a5]">
+                                    NA
                                   </span>
                                 ) : hasRoute && cardFare > 0 ? (
-                                  <span className="text-[11px] font-black text-[#234b4c] bg-[#eef4ed] px-2 py-0.5 rounded-lg border border-[#d2e4d4]">
+                                  <span className="text-[11px] font-black text-[#234b4c]">
                                     ₹{cardFare}
                                   </span>
                                 ) : (
-                                  <span className="text-[10px] font-bold text-[#557b72] bg-[#edf3eb] px-2 py-0.5 rounded-md">
+                                  <span className="text-[9.5px] font-bold text-[#557b72]">
                                     {v.calcType === "urban-stage" ? "₹8-₹18" : v.calcType === "stage-slab" ? "₹9-₹26" : `₹${v.perKm}/km`}
                                   </span>
                                 )}
-                                <span
-                                  className={`text-[10px] font-bold px-2 py-0.5 rounded-md ${
-                                    selected
-                                      ? "bg-[#234b4c] text-[#f4f6ed]"
-                                      : "bg-[#edf3eb] text-[#557b72]"
-                                  }`}
-                                >
-                                  {v.badge}
-                                </span>
                               </div>
-                            </div>
-
-                            <div className="mt-2.5">
-                              <div className="flex items-center gap-1.5">
-                                <h3 className="font-bold text-[13px] text-[#234b4c]">{v.label}</h3>
-                                {selected && <CheckCircle2 size={14} className="text-[#557b72]" />}
+                              <p className="text-[10px] text-[#78908a] truncate">{v.sublabel}</p>
+                              <div className="flex items-center gap-1 mt-1 text-[9.5px] text-[#557b72]">
+                                <span>{v.capacity}</span>
+                                <span>•</span>
+                                <span className="font-semibold">{v.badge}</span>
                               </div>
-                              <p className="text-[11px] font-medium text-[#78908a]">{v.sublabel}</p>
-                            </div>
-
-                            <div className="mt-2.5 pt-2 border-t border-[#e2eae0] flex items-center justify-between text-[11px]">
-                              <span className="text-[#78908a]">
-                                {v.capacity}
-                              </span>
-                              <span className="font-bold text-[#345657]">
-                                {v.calcType === "stage-slab"
-                                  ? "Stage Slabs"
-                                  : v.calcType === "urban-stage"
-                                  ? "Urban Slabs"
-                                  : v.calcType === "tourist-group"
-                                  ? "₹2.25/km"
-                                  : v.calcType === "e-auto"
-                                  ? "₹20/km"
-                                  : v.calcType === "metered-auto"
-                                  ? "₹7.40/km"
-                                  : `₹${v.perKm}/km`}
-                              </span>
                             </div>
                           </button>
                         );
@@ -2328,8 +2528,52 @@ export default function App() {
                     </div>
                   </div>
 
+                  {/* Selected Vehicle Visual Showcase & Road Recognition */}
+                  <div className="relative z-10 mt-4 pt-3.5 border-t border-[#3c6b69]/70">
+                    <div className="p-3 rounded-2xl bg-[#142e2f]/90 border border-[#386260]/80 flex flex-col sm:flex-row items-center gap-3 shadow-inner">
+                      <div className="w-full sm:w-36 h-20 shrink-0 bg-gradient-to-b from-[#193a3c] to-[#102728] rounded-xl p-1.5 flex items-center justify-center border border-[#3c6b69]/60 overflow-hidden relative group">
+                        <VehicleIllustration
+                          vehicleKey={chosenVehicle.key}
+                          className="w-full h-full object-contain filter drop-shadow-xs transform group-hover:scale-105 transition-transform duration-300"
+                        />
+                        <span className="absolute bottom-1 right-1 text-[8.5px] font-black px-1.5 py-0.5 rounded bg-[#234b4c] text-[#f2bd70] border border-[#386260]/60">
+                          {chosenVehicle.badge}
+                        </span>
+                      </div>
+                      <div className="flex-1 min-w-0 text-left w-full">
+                        <div className="flex items-center justify-between gap-1">
+                          <h4 className="text-xs font-black text-[#ffffff] truncate">
+                            {VEHICLE_VISUAL_META[chosenVehicle.key]?.name || chosenVehicle.label}
+                          </h4>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setInspectedVehicleKey(chosenVehicle.key);
+                              setShowFleetGuide(true);
+                            }}
+                            className="text-[10px] font-bold text-[#f2bd70] hover:underline flex items-center gap-0.5 shrink-0"
+                          >
+                            <span>Spotting Tip</span>
+                            <ChevronRight size={11} />
+                          </button>
+                        </div>
+                        <p className="text-[10.5px] text-[#b4d2c2] line-clamp-1 mt-0.5 font-medium">
+                          <strong className="text-[#ffffff]">Hallmark:</strong> {VEHICLE_VISUAL_META[chosenVehicle.key]?.hallmark}
+                        </p>
+                        <div className="mt-1.5 flex flex-wrap items-center gap-1.5 text-[10px]">
+                          <span className="bg-[#1b3d3f] text-[#cde2d6] px-2 py-0.5 rounded-md border border-[#386260]/70 font-semibold">
+                            👥 {chosenVehicle.capacity}
+                          </span>
+                          <span className="bg-[#1b3d3f] text-[#cde2d6] px-2 py-0.5 rounded-md border border-[#386260]/70 font-semibold truncate max-w-[190px]" title={VEHICLE_VISUAL_META[chosenVehicle.key]?.luggage}>
+                            🧳 {VEHICLE_VISUAL_META[chosenVehicle.key]?.luggage?.split("(")[0]}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
                   {/* Quick Specs Pill Row */}
-                  <div className="relative z-10 grid grid-cols-2 gap-2 mt-5 pt-4 border-t border-[#3c6b69]/70 text-xs">
+                  <div className="relative z-10 grid grid-cols-2 gap-2 mt-3 pt-3 border-t border-[#3c6b69]/70 text-xs">
                     <div className="bg-[#183637]/50 p-2.5 rounded-xl border border-[#386260]/60">
                       <p className="text-[10px] text-[#aac2b3]">Vehicle Type</p>
                       <p className="font-bold text-[#ffffff] truncate mt-0.5">{chosenVehicle.label}</p>
@@ -2656,6 +2900,155 @@ export default function App() {
           </div>
         </div>
       </footer>
+
+      {/* Vehicle Fleet & Recognition Guide Modal */}
+      {showFleetGuide && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200">
+          <div className="bg-[#fbfcf8] border border-[#dce5dc] rounded-3xl max-w-4xl w-full max-h-[90vh] shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
+            {/* Modal Header */}
+            <div className="p-5 sm:p-6 border-b border-[#e2eae0] flex items-center justify-between bg-gradient-to-r from-[#edf3eb] to-[#f6f9f5]">
+              <div className="flex items-center gap-3">
+                <div className="w-11 h-11 rounded-2xl bg-[#234b4c] text-[#f2bd70] flex items-center justify-center shadow-xs">
+                  <BusFront size={22} />
+                </div>
+                <div>
+                  <h3 className="font-bold text-lg text-[#234b4c] flex items-center gap-2">
+                    <span>J&K Vehicle Fleet & Recognition Guide</span>
+                    <span className="text-[10px] font-extrabold bg-[#234b4c] text-[#f4f6ed] px-2 py-0.5 rounded-full">
+                      11 Categories
+                    </span>
+                  </h3>
+                  <p className="text-xs text-[#557b72] mt-0.5">
+                    Visual hallmarks, seating limits, luggage guidelines, and official stands across J&K
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowFleetGuide(false)}
+                className="p-2 rounded-xl text-[#78908a] hover:bg-[#e4ece2] hover:text-[#234b4c] transition"
+                aria-label="Close Fleet Guide"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            {/* Modal Scrollable Body */}
+            <div className="p-5 sm:p-6 overflow-y-auto space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {vehicleOptions.map((v) => {
+                  const meta = VEHICLE_VISUAL_META[v.key];
+                  const isSelected = vehicle === v.key;
+                  const isInspected = inspectedVehicleKey === v.key;
+
+                  return (
+                    <div
+                      key={v.key}
+                      className={`p-4 rounded-2xl border-2 transition flex flex-col justify-between ${
+                        isInspected
+                          ? "bg-[#f4f8f4] border-[#234b4c] shadow-md ring-2 ring-[#234b4c]/15"
+                          : isSelected
+                          ? "bg-[#f9faf7] border-[#74a181] shadow-xs"
+                          : "bg-[#ffffff] border-[#e2eae0] hover:border-[#adc9b2]"
+                      }`}
+                    >
+                      {/* Vehicle Header & Render Showcase */}
+                      <div>
+                        <div className="w-full h-32 rounded-xl bg-gradient-to-b from-[#f3f7f1] to-[#e4ece2] border border-[#d8e4d8] flex items-center justify-center p-3 relative overflow-hidden group">
+                          <VehicleIllustration vehicleKey={v.key} className="w-full h-full object-contain filter drop-shadow-sm transform group-hover:scale-105 transition-transform duration-300" />
+                          <div className="absolute top-2 left-2 flex items-center gap-1">
+                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-[#234b4c] text-[#f4f6ed] shadow-xs">
+                              {v.badge}
+                            </span>
+                            <span className="text-[10px] font-medium px-2 py-0.5 rounded-md bg-white/90 text-[#3f6e5b] border border-[#d2e4d4]">
+                              {meta?.categoryLabel || v.category}
+                            </span>
+                          </div>
+                          <div className="absolute top-2 right-2">
+                            <span className="text-[10.5px] font-black px-2 py-0.5 rounded-md bg-white text-[#234b4c] border border-[#dce5dc] shadow-xs">
+                              {v.calcType === "urban-stage" ? "₹8-₹18" : v.calcType === "stage-slab" ? "₹9-₹26" : `₹${v.perKm}/km`}
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Title & Sublabel */}
+                        <div className="mt-3">
+                          <div className="flex items-center justify-between">
+                            <h4 className="text-sm font-black text-[#234b4c]">{meta?.name || v.label}</h4>
+                            <span className="text-[11px] font-bold text-[#345657] bg-[#edf3eb] px-2 py-0.5 rounded-md">
+                              👥 {v.capacity}
+                            </span>
+                          </div>
+                          <p className="text-xs font-semibold text-[#78908a] mt-0.5">{v.sublabel}</p>
+                          <p className="text-[11px] italic text-[#557b72] mt-1">"{meta?.tagline}"</p>
+                        </div>
+
+                        {/* Hallmarks & Recognition Features */}
+                        <div className="mt-3 pt-3 border-t border-[#edf3eb] space-y-2 text-xs">
+                          <div>
+                            <span className="font-bold text-[#234b4c] block text-[11px]">👀 How to Spot on Road:</span>
+                            <p className="text-[11px] text-[#557b72] leading-snug mt-0.5">{meta?.hallmark}</p>
+                          </div>
+                          <div>
+                            <span className="font-bold text-[#234b4c] block text-[11px]">📍 Designated Stands & Boarding:</span>
+                            <p className="text-[11px] text-[#557b72] leading-snug mt-0.5">{meta?.howToSpot}</p>
+                          </div>
+                          <div>
+                            <span className="font-bold text-[#234b4c] block text-[11px]">🧳 Baggage Allowance:</span>
+                            <p className="text-[11px] text-[#557b72] leading-snug mt-0.5">{meta?.luggage}</p>
+                          </div>
+                          <div>
+                            <span className="font-bold text-[#234b4c] block text-[11px]">🏔️ Ideal Route Corridors:</span>
+                            <p className="text-[11px] text-[#557b72] leading-snug mt-0.5">{meta?.idealFor}</p>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Select Action */}
+                      <div className="mt-4 pt-3 border-t border-[#edf3eb] flex items-center justify-between">
+                        <span className="text-[11px] font-semibold text-[#78908a]">
+                          {v.isPerSeat ? "Per Seat Shared" : "Full Vehicle Hire"}
+                        </span>
+                        <button
+                          onClick={() => {
+                            setVehicle(v.key);
+                            setShowFleetGuide(false);
+                            showToast(`Selected ${v.label} for calculation`);
+                          }}
+                          className={`px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1 ${
+                            isSelected
+                              ? "bg-[#234b4c] text-[#f4f6ed] shadow-xs"
+                              : "bg-[#edf3eb] text-[#234b4c] hover:bg-[#dfebe0]"
+                          }`}
+                        >
+                          {isSelected ? (
+                            <>
+                              <CheckCircle2 size={13} className="text-[#f2bd70]" />
+                              <span>Active Vehicle</span>
+                            </>
+                          ) : (
+                            <span>Select this Vehicle</span>
+                          )}
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="p-4 border-t border-[#e2eae0] bg-[#f9faf7] flex items-center justify-between text-xs text-[#78908a]">
+              <span>Tariff source: J&K Transport Department Statutory Fare Revisions</span>
+              <button
+                onClick={() => setShowFleetGuide(false)}
+                className="px-4 py-2 rounded-xl bg-[#234b4c] text-[#f4f6ed] font-bold hover:bg-[#1a3839] transition"
+              >
+                Close Guide
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* "How Safar Works" Help Modal */}
       {showHelpModal && (
