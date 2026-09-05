@@ -866,12 +866,11 @@ const SafarDriverMode = (() => {
         <circle cx="12" cy="12" r="10"></circle>
         <polyline points="12 6 12 12 16 14"></polyline>
       </svg>
-      <span>SRO-97 Verified · J&amp;K Driver &amp; Conductor Console</span>
+      <span>Driver &amp; Conductor Console</span>
     </div>
-    <h1>Kashmir Transit Driver Console</h1>
-    <p>Statutory J&amp;K SRTA tariffs, live conductor seat tally, cargo tracking &amp; net in-pocket shift ledger.</p>
+    <h1>Driver Console</h1>
+    <p>Statutory J&amp;K SRTA tariffs, live conductor seat tally, and cargo tracking.</p>
     <div class="hero-subchip-row">
-      <span class="hero-subchip gold" dir="rtl" lang="ur" style="font-weight:700">منزل سے بہتر ہے سفر</span>
       <span class="hero-subchip">100% Offline PWA</span>
       <span class="hero-subchip">MVA Sec 194A Advisory</span>
     </div>
@@ -934,7 +933,7 @@ const SafarDriverMode = (() => {
       </div>
 
       <div class="input-field" style="margin-top: 14px;">
-        <label class="field-label dest"><span class="dot-green"></span> Route Corridor (اڈہ / Adda)</label>
+        <label class="field-label dest"><span class="dot-green"></span> Route Corridor (Adda)</label>
         <div class="input-icon-wrap">
           <select class="driver-select" id="driver-route-sel" aria-label="Select route corridor">
             ${buildRouteOptions()}
@@ -958,7 +957,7 @@ const SafarDriverMode = (() => {
         <div class="step-badge">2</div>
         <div class="header-titles">
           <h2>Passenger Seat Tally &amp; Cargo</h2>
-          <p>Tap seats to cycle status: Empty → Due → Paid (سواری)</p>
+          <p>Tap seats to cycle status: Empty → Due → Paid</p>
         </div>
         <button class="lock-toggle-pill${state.driveLock ? ' active' : ''}" id="driver-lock-toggle-btn" type="button">
           ${state.driveLock ? '🔒 Drive Locked' : '🔓 Tap to Lock'}
@@ -984,9 +983,9 @@ const SafarDriverMode = (() => {
         <div class="driver-seat-header">
           <span class="driver-seat-title">Conductor Tally</span>
           <div class="driver-seat-legend" aria-hidden="true">
-            <span class="driver-legend-item"><span class="driver-legend-dot paid"></span>Paid (وصول)</span>
-            <span class="driver-legend-item"><span class="driver-legend-dot unpaid"></span>Due (بقایا)</span>
-            <span class="driver-legend-item"><span class="driver-legend-dot vacant"></span>Empty (خالی)</span>
+            <span class="driver-legend-item"><span class="driver-legend-dot paid"></span>Paid</span>
+            <span class="driver-legend-item"><span class="driver-legend-dot unpaid"></span>Due</span>
+            <span class="driver-legend-item"><span class="driver-legend-dot vacant"></span>Empty</span>
           </div>
         </div>
 
@@ -1049,123 +1048,11 @@ const SafarDriverMode = (() => {
   <!-- Right Column: Statutory Tariff & Net Profit Ledger (5 cols) -->
   <div class="calc-results-col">
 
-    <!-- Evergreen Fare Hero Card (Styled exactly like Page 1) -->
-    <div class="fare-hero-card">
-      <div class="fare-hero-header">
-        <div class="guidance-tag">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="12" cy="12" r="10"></circle>
-            <polyline points="12 6 12 12 14 10"></polyline>
-          </svg>
-          <span>SRO-97 Statutory Tariff</span>
-        </div>
-        <span class="verified-pill">Official Rate</span>
-      </div>
-
-      <p class="route-summary-text" id="fare-route-summary" style="display: block;">${routeName}</p>
-
-      <div class="big-price-wrap">
-        <small class="price-caption">Official Statutory Fare</small>
-        <div class="price-num-row">
-          <span class="main-price-val" id="tariff-fare-number">${fareStr}</span>
-          <span class="price-basis-label">(Per Passenger)</span>
-        </div>
-      </div>
-
-      <div class="specs-grid">
-        <div class="spec-box">
-          <span class="spec-lbl">Vehicle</span>
-          <strong class="spec-val" id="tariff-vehicle-name">${vehicle.label}</strong>
-        </div>
-        <div class="spec-box">
-          <span class="spec-lbl">Route Corridor</span>
-          <strong class="spec-val" id="tariff-route-name">${routeName}</strong>
-        </div>
-      </div>
-
-      <div class="fare-actions-row">
-        <button id="driver-show-tariff-btn" class="share-btn" type="button">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
-            <polyline points="15 3 21 3 21 9"></polyline>
-            <line x1="10" y1="14" x2="21" y2="3"></line>
-          </svg>
-          <span>Show Passenger ↗</span>
-        </button>
-        <button id="driver-open-emergency-btn" class="helpline-btn" type="button" title="Emergency Contacts">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
-          </svg>
-        </button>
-      </div>
-    </div>
-
-    <!-- Step 3: Shift Cash & Net Profit Ledger -->
-    <div class="card-box">
-      <div class="card-header">
-        <div class="step-badge">3</div>
-        <div class="header-titles">
-          <h3>Shift Cash &amp; Net Profit</h3>
-          <p>Real-time outgoings &amp; net earnings (منافع)</p>
-        </div>
-        <button class="privacy-toggle-btn" id="driver-privacy-toggle-btn" type="button" title="Toggle privacy mask">
-          ${state.privacyMode ? '👁️ Show' : '👁️ Mask'}
-        </button>
-      </div>
-
-      <div class="driver-cash-top-row">
-        <div class="driver-cash-stat">
-          <span class="driver-cash-label">Fares Collected</span>
-          <span class="driver-cash-value collected" id="dc-collected">${inr(t.cashCollected)}</span>
-        </div>
-        <div class="driver-cash-stat">
-          <span class="driver-cash-label">Pending Fare</span>
-          <span class="driver-cash-value due" id="dc-due">${inr(t.cashDue)}</span>
-        </div>
-        <div class="driver-cash-stat">
-          <span class="driver-cash-label">Full Load</span>
-          <span class="driver-cash-value potential" id="dc-potential">${inr(t.tripPotential)}</span>
-        </div>
-      </div>
-
-      <div class="driver-net-profit-bar">
-        <div class="net-left">
-          <span class="net-label">Net In-Pocket Profit:</span>
-          <span class="net-value" id="dc-net-profit">${inr(t.netProfit)}</span>
-          <span class="net-sub">(Gross: ${inr(t.grossCollection)} − Expenses: ${inr(t.totalExpenses)})</span>
-        </div>
-      </div>
-
-      <div class="driver-action-toolbar" style="margin-top: 14px;">
-        <button class="toolbar-btn primary" id="driver-all-paid-btn" type="button" title="Mark all passengers as paid">
-          ✓ All Paid
-        </button>
-        <button class="toolbar-btn secondary" id="driver-undo-btn" type="button" title="Undo last seat tap" ${state.undoStack.length === 0 ? 'disabled style="opacity:0.45"' : ''}>
-          ↺ Undo
-        </button>
-        <button class="toolbar-btn outline" id="driver-open-expenses-btn" type="button">
-          ⛽ Expenses
-        </button>
-        <button class="toolbar-btn outline" id="driver-open-shift-btn" type="button">
-          📋 Shift Log
-        </button>
-      </div>
-
-      <div class="driver-trip-actions-row" style="margin-top: 12px;">
-        <button class="driver-save-trip-btn" id="driver-save-trip-btn" type="button">
-          💾 End Trip &amp; Save
-        </button>
-        <button class="driver-new-trip-btn" id="driver-new-trip-btn" type="button">
-          ↺ Reset Seats
-        </button>
-      </div>
-    </div>
-
     <!-- Stage Fare Slab Reference -->
     <div class="card-box">
       <div class="card-header">
         <div class="header-titles">
-          <h3>Stage Fare Reference — SRO-97</h3>
+          <h3>Stage Fare Reference</h3>
           <p>Official per-kilometer rate slabs for non-corridor drops</p>
         </div>
         <span class="chip-sm">J&amp;K SRTA</span>
