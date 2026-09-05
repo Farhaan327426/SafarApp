@@ -93,6 +93,16 @@
             </svg>
             <span>Official Rates</span>
           </button>
+          <button class="nav-tab" data-tab="driver">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"></circle>
+              <circle cx="12" cy="12" r="3"></circle>
+              <line x1="12" y1="2" x2="12" y2="9"></line>
+              <line x1="4.93" y1="19.07" x2="9.88" y2="14.12"></line>
+              <line x1="19.07" y1="19.07" x2="14.12" y2="14.12"></line>
+            </svg>
+            <span>Driver Mode</span>
+          </button>
         </nav>
 
         <!-- Right Tools -->
@@ -173,6 +183,10 @@
           <button class="drawer-link" data-tab="rates">
             <strong>Official Rate Card</strong>
             <span>SRO-97 rules & legal rights</span>
+          </button>
+          <button class="drawer-link" data-tab="driver">
+            <strong>Driver Mode</strong>
+            <span>Conductor tally, tariff & cash tracker</span>
           </button>
         </div>
         <div class="drawer-footer">
@@ -568,6 +582,11 @@
           </div>
         </div>
       </section>
+
+      <!-- Driver & Conductor Mode View -->
+      <section id="tab-driver" class="tab-view" hidden>
+        <div id="tab-content-driver"></div>
+      </section>
     </main>
 
     <!-- Footer -->
@@ -644,6 +663,7 @@
   </div>
 
   <script src="js/vehicle-illustrations.js"></script>
+  <script src="js/driver-mode.js"></script>
   <script src="js/main.js"></script>
 </body>
 

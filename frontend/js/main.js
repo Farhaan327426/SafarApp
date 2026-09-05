@@ -1527,6 +1527,11 @@ function switchTab(tabId) {
     view.classList.toggle("active", view.id === `tab-${tabId}`);
     view.hidden = view.id !== `tab-${tabId}`;
   });
+
+  // Initialize Driver Mode when its tab becomes visible
+  if (tabId === 'driver' && typeof SafarDriverMode !== 'undefined') {
+    SafarDriverMode.init();
+  }
 }
 
 function updateRouteDistance(fromLoc, toLoc) {

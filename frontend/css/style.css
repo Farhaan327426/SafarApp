@@ -1937,3 +1937,697 @@ body {
 .toast-notification:not([hidden]) {
   display: flex !important;
 }
+
+/* ================================================================
+   SAFAR PRO — Driver & Conductor Mode Styles
+   Append to: frontend/css/style.css
+   ================================================================
+   Design intent: dark utilitarian — outdoor readability,
+   large touch targets (≥66px), Kashmir palette (pine green,
+   saffron, copper) on deep navy base.
+   ================================================================ */
+
+/* ── Tab content container ───────────────────────────────────────── */
+#tab-content-driver {
+  background: #0A1118;
+  min-height: 100%;
+  color: #E8F0F8;
+  /* safe-area padding for iOS home indicator */
+  padding-bottom: max(env(safe-area-inset-bottom, 0px), 24px);
+}
+
+/* ── Dashboard wrapper ───────────────────────────────────────────── */
+.driver-dashboard {
+  display: flex;
+  flex-direction: column;
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   CONTROLS — Vehicle / Route / Fare header
+───────────────────────────────────────────────────────────────── */
+.driver-header {
+  background: #101C24;
+  border-bottom: 1px solid #1E2F3E;
+  padding: 14px 16px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  position: sticky;
+  top: 0;
+  z-index: 20;
+}
+
+.driver-header-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.driver-field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.driver-field-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  color: #4D6980;
+  text-transform: uppercase;
+}
+
+.driver-select,
+.driver-input {
+  background: #172230;
+  border: 1.5px solid #1E2F3E;
+  border-radius: 9px;
+  color: #E8F0F8;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 11px 13px;
+  width: 100%;
+  appearance: none;
+  -webkit-appearance: none;
+  transition: border-color 0.15s;
+}
+
+.driver-select:focus,
+.driver-input:focus {
+  outline: none;
+  border-color: #F59E0B;
+  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.2);
+}
+
+/* Chevron affordance for selects */
+.driver-select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' fill='none'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%234D6980' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 13px center;
+  padding-right: 34px;
+}
+
+.driver-input[type="number"] {
+  font-size: 18px;
+}
+
+.driver-custom-fare-row {
+  display: none;
+  align-items: center;
+  gap: 10px;
+}
+
+.driver-custom-fare-row.visible {
+  display: flex;
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   SRO-97 TARIFF SLIP
+───────────────────────────────────────────────────────────────── */
+.driver-tariff-slip {
+  margin: 16px 16px 0;
+  border-radius: 14px;
+  overflow: hidden;
+  border: 2px solid #B45309;
+  box-shadow:
+    0 0 0 3px rgba(180, 83, 9, 0.18),
+    0 10px 30px rgba(0, 0, 0, 0.5);
+}
+
+/* Header band — pine green official colour */
+.tariff-header {
+  background: #14532D;
+  padding: 13px 15px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.tariff-emblem {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+}
+
+.tariff-govt-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.tariff-govt-name {
+  font-size: 12px;
+  font-weight: 800;
+  color: #FDE68A;
+  line-height: 1.3;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tariff-govt-dept {
+  font-size: 10px;
+  color: rgba(253, 230, 138, 0.6);
+  margin-top: 2px;
+}
+
+.tariff-sro-chip {
+  background: #D97706;
+  color: #1A0F00;
+  font-size: 10px;
+  font-weight: 900;
+  padding: 5px 9px;
+  border-radius: 5px;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* Fare body */
+.tariff-body {
+  background: #061510;
+  padding: 22px 20px 18px;
+  text-align: center;
+}
+
+.tariff-fare-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  color: rgba(253, 230, 138, 0.55);
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+.tariff-fare-number {
+  font-size: 64px;
+  font-weight: 900;
+  color: #FFFFFF;
+  line-height: 0.95;
+  letter-spacing: -0.025em;
+  font-variant-numeric: tabular-nums;
+}
+
+.tariff-fare-suffix {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.38);
+  margin-top: 7px;
+  font-weight: 400;
+}
+
+.tariff-route-name {
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+  font-size: 15px;
+  font-weight: 700;
+  color: #86EFAC;
+  line-height: 1.3;
+}
+
+.tariff-vehicle-name {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.35);
+  margin-top: 3px;
+}
+
+/* Footer */
+.tariff-footer {
+  background: #040C07;
+  padding: 11px 15px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.tariff-footer-legal {
+  font-size: 9.5px;
+  line-height: 1.55;
+  color: rgba(255, 255, 255, 0.28);
+  flex: 1;
+}
+
+.tariff-show-btn {
+  background: #D97706;
+  color: #1A0F00;
+  font-size: 12px;
+  font-weight: 800;
+  padding: 10px 14px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  letter-spacing: 0.02em;
+  -webkit-tap-highlight-color: transparent;
+  transition: opacity 0.1s;
+}
+
+.tariff-show-btn:active {
+  opacity: 0.8;
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   CONDUCTOR SEAT TALLY GRID
+───────────────────────────────────────────────────────────────── */
+.driver-seat-section {
+  margin: 14px 16px 0;
+  background: #101C24;
+  border: 1px solid #1E2F3E;
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+.driver-seat-header {
+  padding: 12px 15px 11px;
+  border-bottom: 1px solid #1E2F3E;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.driver-seat-title {
+  font-size: 11px;
+  font-weight: 700;
+  color: #4D6980;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.driver-seat-legend {
+  display: flex;
+  gap: 10px;
+}
+
+.driver-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10px;
+  color: #4D6980;
+}
+
+.driver-legend-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.driver-legend-dot.paid   { background: #22C55E; }
+.driver-legend-dot.unpaid { background: #F59E0B; }
+.driver-legend-dot.vacant { background: #1E2F3E; border: 1px solid #2E4558; }
+
+/* Seat grid — base layout */
+.driver-seat-grid {
+  padding: 14px 12px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(66px, 1fr));
+  gap: 9px;
+}
+
+/* Vehicle-specific column counts for cleaner visual grouping */
+.driver-seat-grid[data-capacity="2"],
+.driver-seat-grid[data-capacity="3"]  { grid-template-columns: repeat(3, 1fr); }
+
+.driver-seat-grid[data-capacity="5"],
+.driver-seat-grid[data-capacity="6"],
+.driver-seat-grid[data-capacity="7"],
+.driver-seat-grid[data-capacity="8"]  { grid-template-columns: repeat(4, 1fr); }
+
+.driver-seat-grid[data-capacity="16"],
+.driver-seat-grid[data-capacity="18"],
+.driver-seat-grid[data-capacity="20"],
+.driver-seat-grid[data-capacity="22"],
+.driver-seat-grid[data-capacity="24"] { grid-template-columns: repeat(4, 1fr); }
+
+.driver-seat-grid[data-capacity="32"],
+.driver-seat-grid[data-capacity="36"],
+.driver-seat-grid[data-capacity="40"],
+.driver-seat-grid[data-capacity="44"],
+.driver-seat-grid[data-capacity="48"],
+.driver-seat-grid[data-capacity="52"] { grid-template-columns: repeat(5, 1fr); }
+
+/* Seat buttons — large tap targets for in-vehicle use */
+.driver-seat-btn {
+  aspect-ratio: 1;
+  min-height: 66px;
+  border-radius: 10px;
+  border: 1.5px solid transparent;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  transition: transform 0.08s ease;
+  padding: 0;
+}
+
+.driver-seat-btn:active {
+  transform: scale(0.88);
+}
+
+/* Status states */
+.driver-seat-btn.vacant {
+  background: #172230;
+  border-color: #1E2F3E;
+}
+
+.driver-seat-btn.unpaid {
+  background: rgba(245, 158, 11, 0.07);
+  border-color: #B45309;
+}
+
+.driver-seat-btn.paid {
+  background: rgba(34, 197, 94, 0.07);
+  border-color: #15803D;
+}
+
+.seat-num {
+  font-size: 17px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.seat-icon {
+  font-size: 11px;
+  line-height: 1;
+}
+
+.driver-seat-btn.vacant .seat-num,
+.driver-seat-btn.vacant .seat-icon  { color: #2E4558; }
+
+.driver-seat-btn.unpaid .seat-num   { color: #FDE68A; }
+.driver-seat-btn.unpaid .seat-icon  { color: #F59E0B; }
+
+.driver-seat-btn.paid .seat-num     { color: #86EFAC; }
+.driver-seat-btn.paid .seat-icon    { color: #22C55E; }
+
+/* Totals bar below grid */
+.driver-totals-bar {
+  padding: 12px 14px;
+  border-top: 1px solid #1E2F3E;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.driver-total-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  background: #172230;
+  border-radius: 9px;
+  padding: 10px 6px;
+}
+
+.driver-total-value {
+  font-size: 21px;
+  font-weight: 900;
+  line-height: 1;
+  color: #E8F0F8;
+  font-variant-numeric: tabular-nums;
+}
+
+.driver-total-value.green { color: #22C55E; }
+.driver-total-value.amber { color: #F59E0B; }
+
+.driver-total-label {
+  font-size: 9px;
+  font-weight: 700;
+  color: #4D6980;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  text-align: center;
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   CASH SUMMARY BAR
+───────────────────────────────────────────────────────────────── */
+.driver-cash-summary {
+  margin: 12px 16px 0;
+  background: #101C24;
+  border: 1px solid #1E2F3E;
+  border-radius: 14px;
+  padding: 15px 16px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.driver-cash-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.driver-cash-label {
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  color: #4D6980;
+}
+
+.driver-cash-value {
+  font-size: 22px;
+  font-weight: 900;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.driver-cash-value.collected { color: #22C55E; }
+.driver-cash-value.due       { color: #F59E0B; }
+.driver-cash-value.potential { color: #2E4558; }
+
+/* ─────────────────────────────────────────────────────────────────
+   STAGE SLAB REFERENCE TABLE
+───────────────────────────────────────────────────────────────── */
+.driver-slab-section {
+  margin: 12px 16px 0;
+  background: #101C24;
+  border: 1px solid #1E2F3E;
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+.driver-slab-header {
+  padding: 11px 15px;
+  border-bottom: 1px solid #1E2F3E;
+  font-size: 11px;
+  font-weight: 700;
+  color: #4D6980;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.driver-slab-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.driver-slab-table thead th {
+  font-size: 10px;
+  font-weight: 700;
+  color: #4D6980;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  padding: 9px 15px;
+  background: #0D1920;
+  text-align: left;
+}
+
+.driver-slab-table tbody td {
+  padding: 10px 15px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #7E9DB5;
+  border-top: 1px solid #1A2B39;
+}
+
+.driver-slab-table tbody td.slab-fare {
+  font-size: 15px;
+  font-weight: 800;
+  color: #86EFAC;
+}
+
+.driver-slab-table tbody tr:nth-child(even) td {
+  background: rgba(23, 34, 48, 0.45);
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   NEW TRIP BUTTON
+───────────────────────────────────────────────────────────────── */
+.driver-new-trip-btn {
+  display: block;
+  width: calc(100% - 32px);
+  margin: 14px 16px 24px;
+  padding: 17px;
+  background: #040C07;
+  border: 2px solid #15803D;
+  border-radius: 13px;
+  color: #22C55E;
+  font-size: 15px;
+  font-weight: 800;
+  cursor: pointer;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  -webkit-tap-highlight-color: transparent;
+  transition: background 0.12s;
+}
+
+.driver-new-trip-btn:active {
+  background: #020804;
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   FULLSCREEN TARIFF OVERLAY ("Show Passenger")
+───────────────────────────────────────────────────────────────── */
+#driver-tariff-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: #061510;
+  z-index: 9999;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 44px 36px;
+  text-align: center;
+  /* Safe area for notched devices */
+  padding-top: max(44px, env(safe-area-inset-top, 44px));
+  padding-bottom: max(44px, env(safe-area-inset-bottom, 44px));
+}
+
+#driver-tariff-overlay.active {
+  display: flex;
+}
+
+/* Prevents interaction with content behind when overlay is open */
+#driver-tariff-overlay:not(.active) {
+  pointer-events: none;
+}
+
+.driver-overlay-close {
+  position: absolute;
+  top: max(20px, env(safe-area-inset-top, 20px));
+  right: 20px;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.09);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.65);
+  font-size: 20px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  -webkit-tap-highlight-color: transparent;
+  transition: background 0.1s;
+}
+
+.driver-overlay-close:active {
+  background: rgba(255, 255, 255, 0.18);
+}
+
+.driver-overlay-header {
+  margin-bottom: 28px;
+}
+
+.driver-overlay-govt {
+  font-size: 15px;
+  font-weight: 700;
+  color: #FDE68A;
+  line-height: 1.4;
+}
+
+.driver-overlay-dept {
+  font-size: 12px;
+  color: rgba(253, 230, 138, 0.5);
+  margin-top: 3px;
+}
+
+.driver-overlay-fare-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  color: rgba(253, 230, 138, 0.55);
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+
+.driver-overlay-fare-amount {
+  /* Large enough to read from across a vehicle */
+  font-size: clamp(80px, 22vw, 120px);
+  font-weight: 900;
+  color: #FFFFFF;
+  line-height: 0.9;
+  letter-spacing: -0.04em;
+  font-variant-numeric: tabular-nums;
+}
+
+.driver-overlay-per-seat {
+  font-size: 17px;
+  color: rgba(255, 255, 255, 0.38);
+  margin-top: 12px;
+  font-weight: 400;
+}
+
+.driver-overlay-route {
+  margin-top: 28px;
+  font-size: 21px;
+  font-weight: 700;
+  color: #86EFAC;
+  line-height: 1.3;
+}
+
+.driver-overlay-vehicle {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.3);
+  margin-top: 5px;
+}
+
+.driver-overlay-stamp {
+  margin-top: 36px;
+  padding: 13px 26px;
+  border: 1.5px solid rgba(253, 230, 138, 0.25);
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 700;
+  color: rgba(253, 230, 138, 0.55);
+  letter-spacing: 0.08em;
+  line-height: 1.8;
+  text-transform: uppercase;
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   NAV TAB — Driver Mode tab button
+   Add or modify this selector to match your existing .tab-btn style
+───────────────────────────────────────────────────────────────── */
+.tab-btn[data-tab="driver"] {
+  /* Inherits your existing tab-btn styles */
+  /* No overrides needed unless you want distinct driver-tab colouring */
+}
+
+.tab-btn[data-tab="driver"].active,
+.tab-btn[data-tab="driver"][aria-selected="true"] {
+  /* Match your existing active-tab indicator */
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   REDUCED MOTION
+───────────────────────────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .driver-seat-btn,
+  .driver-new-trip-btn,
+  .tariff-show-btn {
+    transition: none;
+  }
+}
