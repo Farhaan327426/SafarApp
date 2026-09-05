@@ -3,6 +3,14 @@
  * Interactive Engine & Official 2026 Revised Fare Gazette Calculations
  */
 
+// Safe DOM event binder
+function safeBind(selector, event, handler) {
+  const el = typeof selector === "string" ? document.querySelector(selector) : selector;
+  if (el && typeof handler === "function") {
+    el.addEventListener(event, handler);
+  }
+}
+
 // Helper to format currency in Indian Rupees
 function formatRupees(amount) {
   return `₹ ${Number(amount || 0).toLocaleString("en-IN")}`;
@@ -1523,6 +1531,343 @@ function renderHistory() {
   });
 }
 
+// JK Transit Corridors Dataset
+const JK_CORRIDORS = [
+  {
+    id: 'JK-SRI-01',
+    name: 'Lal Chowk ⇄ Hazratbal via Dalgate',
+    vehicleTypes: ['Matador', 'E-Bus'],
+    frequencyText: 'Every 10 min',
+    firstTrip: '06:00',
+    lastTrip: '21:00',
+    occupancyTier: 'low',
+    stages: [
+      { stopId: 's1', stopName: 'Lal Chowk', kmFromSource: 0, statutoryFare: 0 },
+      { stopId: 's2', stopName: 'Dalgate', kmFromSource: 3.2, statutoryFare: 10 },
+      { stopId: 's3', stopName: 'Hazratbal', kmFromSource: 11.5, statutoryFare: 20 }
+    ]
+  },
+  {
+    id: 'JK-SRI-02',
+    name: 'Batamaloo ⇄ Baramulla NH-1',
+    vehicleTypes: ['Sumo', 'Mini-Bus'],
+    frequencyText: 'Every 15 min',
+    firstTrip: '06:30',
+    lastTrip: '19:30',
+    occupancyTier: 'high',
+    stages: [
+      { stopId: 's1', stopName: 'Batamaloo', kmFromSource: 0, statutoryFare: 0 },
+      { stopId: 's2', stopName: 'Pattan', kmFromSource: 27.0, statutoryFare: 45 },
+      { stopId: 's3', stopName: 'Baramulla', kmFromSource: 54.0, statutoryFare: 85 }
+    ]
+  },
+  {
+    id: 'JK-SRI-03',
+    name: 'Lal Chowk ⇄ Anantnag NH-44',
+    vehicleTypes: ['Bus', 'Cab', 'Sumo'],
+    frequencyText: 'Every 12 min',
+    firstTrip: '06:00',
+    lastTrip: '20:00',
+    occupancyTier: 'moderate',
+    stages: [
+      { stopId: 's1', stopName: 'Lal Chowk', kmFromSource: 0, statutoryFare: 0 },
+      { stopId: 's2', stopName: 'Pampore', kmFromSource: 14.0, statutoryFare: 25 },
+      { stopId: 's3', stopName: 'Anantnag', kmFromSource: 52.0, statutoryFare: 80 }
+    ]
+  },
+  {
+    id: 'JK-JAM-01',
+    name: 'General Bus Stand ⇄ Katra',
+    vehicleTypes: ['Deluxe Bus', 'Cab'],
+    frequencyText: 'Every 8 min',
+    firstTrip: '05:00',
+    lastTrip: '22:00',
+    occupancyTier: 'high',
+    stages: [
+      { stopId: 's1', stopName: 'General Bus Stand', kmFromSource: 0, statutoryFare: 0 },
+      { stopId: 's2', stopName: 'Jhajjar Kotli', kmFromSource: 30.0, statutoryFare: 50 },
+      { stopId: 's3', stopName: 'Katra', kmFromSource: 48.0, statutoryFare: 90 }
+    ]
+  },
+  {
+    id: 'JK-JAM-02',
+    name: 'Jammu ⇄ Udhampur NH-44',
+    vehicleTypes: ['Bus', 'Sumo'],
+    frequencyText: 'Every 20 min',
+    firstTrip: '06:00',
+    lastTrip: '20:30',
+    occupancyTier: 'moderate',
+    stages: [
+      { stopId: 's1', stopName: 'Jammu', kmFromSource: 0, statutoryFare: 0 },
+      { stopId: 's2', stopName: 'Nagrota', kmFromSource: 15.0, statutoryFare: 25 },
+      { stopId: 's3', stopName: 'Udhampur', kmFromSource: 65.0, statutoryFare: 110 }
+    ]
+  },
+  {
+    id: 'JK-KMR-01',
+    name: 'Pantha Chowk ⇄ Anantnag NH-44',
+    vehicleTypes: ['Bus', 'Cab', 'Sumo'],
+    frequencyText: 'Every 15 min',
+    firstTrip: '06:30',
+    lastTrip: '19:00',
+    occupancyTier: 'low',
+    stages: [
+      { stopId: 's1', stopName: 'Pantha Chowk', kmFromSource: 0, statutoryFare: 0 },
+      { stopId: 's2', stopName: 'Awantipora', kmFromSource: 30.0, statutoryFare: 45 },
+      { stopId: 's3', stopName: 'Anantnag', kmFromSource: 45.0, statutoryFare: 70 }
+    ]
+  },
+  {
+    id: 'JK-NKA-01',
+    name: 'Srinagar ⇄ Baramulla',
+    vehicleTypes: ['Bus', 'Sumo'],
+    frequencyText: 'Every 10 min',
+    firstTrip: '06:00',
+    lastTrip: '20:00',
+    occupancyTier: 'moderate',
+    stages: [
+      { stopId: 's1', stopName: 'Srinagar', kmFromSource: 0, statutoryFare: 0 },
+      { stopId: 's2', stopName: 'Sangrama', kmFromSource: 42.0, statutoryFare: 65 },
+      { stopId: 's3', stopName: 'Baramulla', kmFromSource: 54.0, statutoryFare: 85 }
+    ]
+  },
+  {
+    id: 'JK-NKA-02',
+    name: 'Srinagar ⇄ Sonmarg',
+    vehicleTypes: ['Tourist Bus', 'Cab'],
+    frequencyText: 'Every 30 min',
+    firstTrip: '07:00',
+    lastTrip: '18:00',
+    occupancyTier: 'high',
+    stages: [
+      { stopId: 's1', stopName: 'Srinagar', kmFromSource: 0, statutoryFare: 0 },
+      { stopId: 's2', stopName: 'Ganderbal', kmFromSource: 21.0, statutoryFare: 35 },
+      { stopId: 's3', stopName: 'Sonmarg', kmFromSource: 80.0, statutoryFare: 180 }
+    ]
+  }
+];
+
+let selectedCorridorId = JK_CORRIDORS[0]?.id || 'JK-SRI-01';
+let stageSearchQuery = '';
+
+function renderStageExplorer() {
+  const container = document.getElementById('stageExplorerSection');
+  if (!container) return;
+
+  const filtered = JK_CORRIDORS.filter(c => 
+    c.name.toLowerCase().includes(stageSearchQuery.toLowerCase()) ||
+    c.id.toLowerCase().includes(stageSearchQuery.toLowerCase())
+  );
+  const active = JK_CORRIDORS.find(c => c.id === selectedCorridorId) || filtered[0];
+
+  container.innerHTML = `
+    <div style="display: flex; flex-direction: column; gap: 20px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+        <div>
+          <h2 style="font-size: 1.3rem; font-weight: 800; color: var(--color-primary); margin: 0;">Corridor &amp; Stage Explorer</h2>
+          <p style="font-size: 0.8rem; color: var(--color-text-muted); margin: 2px 0 0;">Hierarchical transit routes &amp; stage-by-stage statutory fares</p>
+        </div>
+        <input
+          type="text"
+          id="stageSearchInput"
+          placeholder="Search corridors..."
+          value="${stageSearchQuery}"
+          style="padding: 8px 14px; border: 1px solid var(--color-border); border-radius: 10px; font-size: 0.85rem; width: 220px; outline: none; background: var(--color-card); color: var(--color-text-main);"
+        />
+      </div>
+
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px;">
+        <div style="border-right: 1px solid var(--color-border); padding-right: 16px;">
+          <span style="font-size: 0.7rem; font-weight: 700; text-transform: uppercase; color: var(--color-text-muted);">Corridors (${filtered.length})</span>
+          <div style="margin-top: 8px; display: flex; flex-direction: column; gap: 6px;">
+            ${filtered.map(c => `
+              <button class="corridor-select-btn" data-id="${c.id}" style="text-align: left; padding: 10px 12px; border-radius: 10px; border: 1px solid ${c.id === active?.id ? 'var(--color-primary)' : 'var(--color-border)'}; background: ${c.id === active?.id ? 'var(--color-primary)' : 'var(--color-card)'}; color: ${c.id === active?.id ? '#ffffff' : 'var(--color-text-main)'}; cursor: pointer; transition: all 0.15s;">
+                <div style="font-weight: 700; font-size: 0.85rem;">${c.id}</div>
+                <div style="font-size: 0.75rem; opacity: 0.85; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${c.name}</div>
+              </button>
+            `).join('')}
+          </div>
+        </div>
+
+        ${active ? `
+          <div style="display: flex; flex-direction: column; gap: 16px;">
+            <div style="padding: 16px; border-radius: 14px; background: var(--color-card); border: 1px solid var(--color-border);">
+              <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
+                <div>
+                  <h3 style="font-size: 1.1rem; font-weight: 800; color: var(--color-primary); margin: 0;">${active.name}</h3>
+                  <p style="font-size: 0.75rem; color: var(--color-text-muted); margin: 2px 0 0;">ID: ${active.id} • Frequency: ${active.frequencyText}</p>
+                </div>
+                <span class="badge-tier-${active.occupancyTier}" style="padding: 3px 10px; border-radius: 20px; font-size: 0.7rem; font-weight: 700; text-transform: uppercase;">
+                  ${active.occupancyTier} Rush
+                </span>
+              </div>
+              <div style="display: flex; flex-wrap: wrap; gap: 12px; font-size: 0.75rem; color: var(--color-text-muted);">
+                <div><strong>First:</strong> ${active.firstTrip}</div>
+                <div><strong>Last:</strong> ${active.lastTrip}</div>
+                <div><strong>Vehicles:</strong> ${active.vehicleTypes.join(', ')}</div>
+              </div>
+              <div style="margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--color-border);">
+                <button id="calcOnCorridorBtn" style="padding: 6px 12px; border-radius: 8px; background: var(--color-primary); color: #ffffff; border: none; font-size: 0.75rem; font-weight: 700; cursor: pointer;">
+                  Calculate Fare on this Route ➔
+                </button>
+              </div>
+            </div>
+
+            <div style="position: relative; padding-left: 20px; display: flex; flex-direction: column; gap: 12px;">
+              ${active.stages.map((stage, idx) => `
+                <div class="timeline-stop" style="position: relative; display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; border-radius: 10px; border: 1px solid var(--color-border); background: var(--color-card);">
+                  <div>
+                    <span style="font-size: 0.65rem; font-family: monospace; color: var(--color-text-muted);">Stage ${idx + 1}</span>
+                    <div style="font-weight: 600; font-size: 0.85rem; color: var(--color-text-main);">${stage.stopName}</div>
+                  </div>
+                  <div style="text-align: right;">
+                    <div style="font-size: 0.7rem; color: var(--color-text-muted);">${stage.kmFromSource} km</div>
+                    <div style="font-size: 0.9rem; font-weight: 800; color: var(--color-primary);">₹${stage.statutoryFare}</div>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        ` : ''}
+      </div>
+    </div>
+  `;
+
+  // Bind stage search
+  const searchInput = document.getElementById('stageSearchInput');
+  if (searchInput) {
+    searchInput.addEventListener('input', (e) => {
+      stageSearchQuery = e.target.value;
+      renderStageExplorer();
+      const updatedInput = document.getElementById('stageSearchInput');
+      if (updatedInput) {
+        updatedInput.focus();
+        updatedInput.selectionStart = updatedInput.selectionEnd = updatedInput.value.length;
+      }
+    });
+  }
+
+  // Bind corridor selection
+  container.querySelectorAll('.corridor-select-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      selectedCorridorId = btn.getAttribute('data-id');
+      renderStageExplorer();
+    });
+  });
+
+  // Bind calc on corridor
+  const calcBtn = document.getElementById('calcOnCorridorBtn');
+  if (calcBtn && active) {
+    calcBtn.addEventListener('click', () => {
+      const first = active.stages[0]?.stopName || '';
+      const last = active.stages[active.stages.length - 1]?.stopName || '';
+      const dist = active.stages[active.stages.length - 1]?.kmFromSource || 0;
+      currentFrom = first;
+      currentTo = last;
+      currentDistance = dist;
+      if (inputFrom) inputFrom.value = currentFrom;
+      if (inputTo) inputTo.value = currentTo;
+      if (inputDistance) inputDistance.value = currentDistance;
+      switchTab('calculator');
+      calculateAndRender();
+      showToast(`Loaded ${first} ➔ ${last}`);
+    });
+  }
+}
+
+// Conductor Digital Fare Pass
+let currentPassPassengers = 1;
+
+function drawQrToCanvas(canvas, payloadText) {
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return;
+  const size = canvas.width || 180;
+
+  if (typeof window.qrcode === 'function') {
+    try {
+      const qr = window.qrcode(0, 'M');
+      qr.addData(payloadText);
+      qr.make();
+      const count = qr.getModuleCount();
+      const cell = size / count;
+      ctx.clearRect(0, 0, size, size);
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, size, size);
+      ctx.fillStyle = '#0f172a';
+      for (let r = 0; r < count; r++) {
+        for (let c = 0; c < count; c++) {
+          if (qr.isDark(r, c)) {
+            ctx.fillRect(c * cell, r * cell, cell, cell);
+          }
+        }
+      }
+      return;
+    } catch (err) {
+      console.warn('qrcode render fallback', err);
+    }
+  }
+
+  // Fallback visual
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, size, size);
+  ctx.fillStyle = '#0f172a';
+  ctx.font = '12px monospace';
+  ctx.textAlign = 'center';
+  ctx.fillText('SRO-97 PASS', size / 2, size / 2);
+}
+
+function updateConductorPassModal() {
+  const modal = document.getElementById('conductorPassModal');
+  if (!modal) return;
+
+  const veh = vehicleOptions.find(v => v.key === currentVehicleKey) || vehicleOptions[0];
+  const routeEl = document.getElementById('passModalRoute');
+  const vehEl = document.getElementById('passModalVehicle');
+  const countEl = document.getElementById('passCountVal');
+  const totalEl = document.getElementById('passTotalFare');
+  const canvas = document.getElementById('passQrCanvas');
+
+  const origin = currentFrom.trim() || 'Lal Chowk';
+  const dest = currentTo.trim() || 'Hazratbal';
+  const vehName = veh.label;
+  const baseFare = currentSingleFare || 15;
+  const total = baseFare * currentPassPassengers;
+
+  if (routeEl) routeEl.textContent = `${origin} ➔ ${dest}`;
+  if (vehEl) vehEl.textContent = vehName;
+  if (countEl) countEl.textContent = currentPassPassengers;
+  if (totalEl) totalEl.textContent = `₹${total}`;
+
+  const qrPayload = JSON.stringify({
+    v: 1,
+    org: origin,
+    dst: dest,
+    vh: vehName,
+    p: currentPassPassengers,
+    tf: total,
+    ts: new Date().toISOString(),
+    sro: 'J&K SRO-97'
+  });
+
+  drawQrToCanvas(canvas, qrPayload);
+}
+
+function openConductorPass() {
+  const modal = document.getElementById('conductorPassModal');
+  if (!modal) return;
+  modal.hidden = false;
+  modal.classList.remove('hidden');
+  updateConductorPassModal();
+}
+
+function closeConductorPass() {
+  const modal = document.getElementById('conductorPassModal');
+  if (!modal) return;
+  modal.hidden = true;
+  modal.classList.add('hidden');
+}
+
 // Switch Navigation Tabs
 function switchTab(tabId) {
   document.querySelectorAll(".nav-tab").forEach((btn) => {
@@ -1535,6 +1880,10 @@ function switchTab(tabId) {
     view.classList.toggle("active", view.id === `tab-${tabId}`);
     view.hidden = view.id !== `tab-${tabId}`;
   });
+
+  if (tabId === 'stages') {
+    renderStageExplorer();
+  }
 
   // Initialize Driver Mode when its tab becomes visible
   if (tabId === 'driver' && typeof SafarDriverMode !== 'undefined') {
@@ -1715,6 +2064,21 @@ function attachListeners() {
     drawerBackdrop.addEventListener("click", () => (mobileDrawer.hidden = true));
   }
 
+  // Conductor Pass Modal bindings
+  safeBind('#openPassModalBtn', 'click', openConductorPass);
+  safeBind('#closePassModal', 'click', closeConductorPass);
+  safeBind('#closePassBtn', 'click', closeConductorPass);
+  safeBind('#passengerRightsBtn', 'click', showModal);
+
+  safeBind('#passIncBtn', 'click', () => {
+    currentPassPassengers = Math.min(10, currentPassPassengers + 1);
+    updateConductorPassModal();
+  });
+  safeBind('#passDecBtn', 'click', () => {
+    currentPassPassengers = Math.max(1, currentPassPassengers - 1);
+    updateConductorPassModal();
+  });
+
   // Share button
   if (shareFareBtn) {
     shareFareBtn.addEventListener("click", () => {
@@ -1742,6 +2106,7 @@ function initSafar() {
   renderQuickPresets();
   renderVehicleCards();
   renderRouteGuide();
+  renderStageExplorer();
   renderHistory();
   calculateAndRender();
   if (window.SafarHelpAssistant && typeof window.SafarHelpAssistant.init === "function") {
@@ -1754,3 +2119,4 @@ if (document.readyState === "loading") {
 } else {
   initSafar();
 }
+

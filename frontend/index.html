@@ -71,6 +71,12 @@
             </svg>
             <span>Fare Calculator</span>
           </button>
+          <button class="nav-tab" data-tab="stages">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+            <span>Routes &amp; Stages</span>
+          </button>
           <button class="nav-tab" data-tab="driver">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <circle cx="12" cy="12" r="10"></circle>
@@ -95,10 +101,10 @@
 
         <!-- Right Tools -->
         <div class="header-tools">
-          <a href="transit-defense.html" class="defense-link-btn" title="Open J&K Transit Defense & Evidence Locker" style="display:inline-flex;align-items:center;gap:6px;background:rgba(212,43,43,0.15);border:1px solid #d42b2b;color:#fca5a5;padding:4px 10px;border-radius:20px;font-size:0.75rem;font-weight:700;text-decoration:none;">
-            <span style="font-size:0.85rem">🛡️</span>
-            <span>Defense Suite</span>
-          </a>
+          <button id="passengerRightsBtn" class="passenger-rights-pill" title="Passenger Rights &amp; SRO-97 Regulations" style="display:inline-flex;align-items:center;gap:6px;background:rgba(35,75,76,0.08);border:1px solid #dce5dc;color:#234b4c;padding:5px 12px;border-radius:20px;font-size:0.75rem;font-weight:700;cursor:pointer;">
+            <span>⚖️</span>
+            <span class="desktop-only">Passenger Rights</span>
+          </button>
 
           <div class="status-chip desktop-only">
             <span class="pulse-dot"></span>
@@ -113,34 +119,6 @@
             </svg>
             <span class="desktop-only">Help</span>
           </button>
-
-          <div class="notifications-wrapper">
-            <button id="notifications-btn" class="icon-btn" aria-label="Notifications">
-              <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
-                <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
-              </svg>
-              <span class="badge-dot"></span>
-            </button>
-
-            <!-- Notifications Dropdown -->
-            <div id="notifications-dropdown" class="dropdown-panel" hidden>
-              <div class="dropdown-header">
-                <h4>J&K Transit Updates</h4>
-                <span class="chip-sm">Live</span>
-              </div>
-              <div class="dropdown-list">
-                <div class="notif-item">
-                  <p class="notif-title">Srinagar ➔ Gulmarg (Tangmarg Rd)</p>
-                  <p class="notif-desc">Road completely clear. Regular vehicle rates active.</p>
-                </div>
-                <div class="notif-item">
-                  <p class="notif-title">NH-44 Jammu ➔ Srinagar</p>
-                  <p class="notif-desc">Navyug Tunnel open for 2-way passenger traffic.</p>
-                </div>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
     </header>
@@ -165,13 +143,17 @@
             <strong>Fare Calculator</strong>
             <span>Instant trip price estimate</span>
           </button>
+          <button class="drawer-link" data-tab="stages">
+            <strong>Routes &amp; Stages</strong>
+            <span>Corridor search &amp; stage stops</span>
+          </button>
           <button class="drawer-link" data-tab="driver">
             <strong>Driver Mode</strong>
-            <span>Conductor seat tally & stage fare guide</span>
+            <span>Conductor seat tally &amp; stage fare guide</span>
           </button>
           <button class="drawer-link" data-tab="rates">
             <strong>Official Fare</strong>
-            <span>SRO-97 statutory rates & legal rules</span>
+            <span>SRO-97 statutory rates &amp; legal rules</span>
           </button>
         </div>
         <div class="drawer-footer">
@@ -379,7 +361,16 @@
                     <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
                     <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
                   </svg>
-                  <span>Copy / Share Fare</span>
+                  <span>Copy Fare</span>
+                </button>
+                <button id="openPassModalBtn" class="share-btn pass-trigger-btn" title="Generate Offline Digital Pass" style="background:#234b4c;color:#f4f6ed;border-color:#345657;">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="3" width="7" height="7"></rect>
+                    <rect x="14" y="3" width="7" height="7"></rect>
+                    <rect x="14" y="14" width="7" height="7"></rect>
+                    <rect x="3" y="14" width="7" height="7"></rect>
+                  </svg>
+                  <span>Fare Pass</span>
                 </button>
                 <button id="helpline-btn" class="helpline-btn" title="Helpline 1033">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -461,6 +452,16 @@
           </div>
         </div>
       </section>
+
+      <!-- ============================================================= -->
+      <!-- TAB 2: CORRIDOR & STAGE EXPLORER                              -->
+      <!-- ============================================================= -->
+      <section id="tab-stages" class="tab-view" hidden>
+        <div id="stageExplorerSection">
+          <!-- Populated by JavaScript -->
+        </div>
+      </section>
+
       <!-- TAB 3: OFFICIAL FARE (SRO-97) -->
       <section id="tab-rates" class="tab-view" hidden>
         <div class="card-box large-card">
@@ -676,6 +677,51 @@
             ✉️ Send to RTO (Formal Notice)
           </button>
         </div>
+      </div>
+    </div>
+
+    <!-- Conductor Digital Fare Pass Modal -->
+    <div id="conductorPassModal" class="modal-backdrop hidden" hidden>
+      <div class="modal-card conductor-pass-card" style="max-width: 380px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--color-border); padding-bottom: 12px; margin-bottom: 16px;">
+          <div>
+            <h3 style="font-size: 1rem; font-weight: 800; color: var(--color-primary); margin: 0;">Digital Transit Pass</h3>
+            <span style="font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--color-text-muted);">Offline Slip</span>
+          </div>
+          <button class="close-btn" id="closePassModal" aria-label="Close Pass" style="position: static; font-size: 1.25rem;">&times;</button>
+        </div>
+
+        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 12px; border-radius: 12px; background: #f8faf6; border: 1px dashed var(--color-border); margin-bottom: 16px;">
+          <canvas id="passQrCanvas" width="180" height="180" style="display: block; border-radius: 8px;"></canvas>
+          <span style="margin-top: 8px; font-size: 0.65rem; font-family: monospace; color: var(--color-text-muted); text-transform: uppercase; letter-spacing: 0.1em;">Verified under J&amp;K SRO-97</span>
+        </div>
+
+        <div style="font-size: 0.8rem; display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px;">
+          <div style="display: flex; justify-content: space-between;">
+            <span style="color: var(--color-text-muted);">Route:</span>
+            <strong id="passModalRoute" style="color: var(--color-text-main);">Lal Chowk ➔ Hazratbal</strong>
+          </div>
+          <div style="display: flex; justify-content: space-between;">
+            <span style="color: var(--color-text-muted);">Vehicle:</span>
+            <strong id="passModalVehicle" style="color: var(--color-text-main);">Matador</strong>
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span style="color: var(--color-text-muted);">Passengers:</span>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <button id="passDecBtn" type="button" style="width: 24px; height: 24px; border-radius: 6px; border: 1px solid var(--color-border); background: #e5ece3; font-weight: 800; cursor: pointer;">-</button>
+              <strong id="passCountVal" style="min-width: 20px; text-align: center;">1</strong>
+              <button id="passIncBtn" type="button" style="width: 24px; height: 24px; border-radius: 6px; border: 1px solid var(--color-border); background: #e5ece3; font-weight: 800; cursor: pointer;">+</button>
+            </div>
+          </div>
+          <div style="display: flex; justify-content: space-between; border-top: 1px solid var(--color-border); padding-top: 8px; font-size: 0.95rem; font-weight: 800;">
+            <span style="color: var(--color-primary);">Total Fare:</span>
+            <span id="passTotalFare" style="color: var(--color-primary);">₹15</span>
+          </div>
+        </div>
+
+        <button id="closePassBtn" type="button" style="width: 100%; padding: 10px; border-radius: 10px; background: var(--color-primary); color: #ffffff; border: none; font-weight: 700; cursor: pointer;">
+          Done
+        </button>
       </div>
     </div>
 
