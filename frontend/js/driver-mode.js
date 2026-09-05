@@ -35,21 +35,105 @@ const SafarDriverMode = (() => {
     { id: 'custom',       name: '— Custom Route —',        km: 0,   fares: null },
   ];
 
-  const STAGE_SLABS = [
-    { min: 0,   max: 3,   fare: 9  },
-    { min: 3,   max: 5,   fare: 14 },
-    { min: 5,   max: 10,  fare: 17 },
-    { min: 10,  max: 15,  fare: 20 },
-    { min: 15,  max: 20,  fare: 26 },
-    { min: 20,  max: 30,  fare: 32 },
-    { min: 30,  max: 40,  fare: 40 },
-    { min: 40,  max: 50,  fare: 48 },
-    { min: 50,  max: 60,  fare: 56 },
-    { min: 60,  max: 70,  fare: 64 },
-    { min: 70,  max: 80,  fare: 72 },
-    { min: 80,  max: 90,  fare: 80 },
-    { min: 90,  max: 100, fare: 88 },
-  ];
+  const VEHICLE_STAGE_CONFIG = {
+    sumo: {
+      title: 'Sumo / Maxi-Cab Stage Fares',
+      rule: 'Inter-district stage tariff & way-drop rates (per passenger seat)',
+      chip: 'Per Seat Drop',
+      basis: 'Per Passenger',
+      slabs: [
+        { min: 0,   max: 5,   fare: 30 },
+        { min: 5,   max: 10,  fare: 40 },
+        { min: 10,  max: 15,  fare: 50 },
+        { min: 15,  max: 20,  fare: 60 },
+        { min: 20,  max: 25,  fare: 70 },
+        { min: 25,  max: 30,  fare: 80 },
+        { min: 30,  max: 40,  fare: 100 },
+        { min: 40,  max: 50,  fare: 120 },
+        { min: 50,  max: 60,  fare: 140 },
+        { min: 60,  max: 75,  fare: 170 },
+        { min: 75,  max: 90,  fare: 200 },
+        { min: 90,  max: 110, fare: 240 },
+      ]
+    },
+    matador: {
+      title: 'Matador (407) Stage Fares',
+      rule: '₹1.64/km per passenger (SRO-97 high-frequency stage route)',
+      chip: 'Per Seat Rate',
+      basis: 'Per Passenger',
+      slabs: [
+        { min: 0,   max: 3,   fare: 10 },
+        { min: 3,   max: 5,   fare: 12 },
+        { min: 5,   max: 8,   fare: 15 },
+        { min: 8,   max: 12,  fare: 20 },
+        { min: 12,  max: 16,  fare: 26 },
+        { min: 16,  max: 20,  fare: 33 },
+        { min: 20,  max: 25,  fare: 41 },
+        { min: 25,  max: 30,  fare: 49 },
+        { min: 30,  max: 35,  fare: 57 },
+        { min: 35,  max: 40,  fare: 66 },
+        { min: 40,  max: 50,  fare: 82 },
+        { min: 50,  max: 60,  fare: 98 },
+      ]
+    },
+    magic: {
+      title: 'Tata Magic Stage Fares',
+      rule: 'Fixed stage carriage slabs: ₹9 (3km), ₹14 (5km), ₹17 (10km)...',
+      chip: 'Fixed Slabs',
+      basis: 'Per Passenger',
+      slabs: [
+        { min: 0,   max: 3,   fare: 9 },
+        { min: 3,   max: 5,   fare: 14 },
+        { min: 5,   max: 10,  fare: 17 },
+        { min: 10,  max: 15,  fare: 20 },
+        { min: 15,  max: 20,  fare: 26 },
+        { min: 20,  max: 25,  fare: 32 },
+        { min: 25,  max: 30,  fare: 38 },
+        { min: 30,  max: 40,  fare: 48 },
+        { min: 40,  max: 50,  fare: 58 },
+        { min: 50,  max: 60,  fare: 68 },
+      ]
+    },
+    auto: {
+      title: 'Auto Rickshaw Metered Fares',
+      rule: '₹45 for first 2 km, then ₹7.40/km (Metered / entire auto up to 3 pax)',
+      chip: 'Per Vehicle Metered',
+      basis: 'Entire Auto (Up to 3)',
+      slabs: [
+        { min: 0,   max: 2,   fare: 45 },
+        { min: 2,   max: 4,   fare: 60 },
+        { min: 4,   max: 6,   fare: 75 },
+        { min: 6,   max: 8,   fare: 90 },
+        { min: 8,   max: 10,  fare: 104 },
+        { min: 10,  max: 12,  fare: 119 },
+        { min: 12,  max: 15,  fare: 141 },
+        { min: 15,  max: 18,  fare: 163 },
+        { min: 18,  max: 20,  fare: 178 },
+        { min: 20,  max: 25,  fare: 215 },
+        { min: 25,  max: 30,  fare: 252 },
+      ]
+    },
+    bus: {
+      title: 'Private Bus Stage Fares',
+      rule: '₹1.40/km per passenger (Long-distance trunk stage carriage)',
+      chip: 'Per Seat Trunk',
+      basis: 'Per Passenger',
+      slabs: [
+        { min: 0,   max: 5,   fare: 8 },
+        { min: 5,   max: 10,  fare: 14 },
+        { min: 10,  max: 15,  fare: 21 },
+        { min: 15,  max: 20,  fare: 28 },
+        { min: 20,  max: 25,  fare: 35 },
+        { min: 25,  max: 30,  fare: 42 },
+        { min: 30,  max: 40,  fare: 56 },
+        { min: 40,  max: 50,  fare: 70 },
+        { min: 50,  max: 60,  fare: 84 },
+        { min: 60,  max: 75,  fare: 105 },
+        { min: 75,  max: 90,  fare: 126 },
+        { min: 90,  max: 110, fare: 154 },
+      ]
+    }
+  };
 
   const EMERGENCY_CONTACTS = [
     { name: 'National Highway Helpline', number: '1033', badge: 'NHAI / NH-44', icon: '🚨' },
@@ -670,11 +754,16 @@ const SafarDriverMode = (() => {
     ).join('');
   }
 
-  function buildSlabRows() {
-    return STAGE_SLABS.map(sl =>
+  function getStageConfig(vId = state.vehicleId) {
+    return VEHICLE_STAGE_CONFIG[vId] || VEHICLE_STAGE_CONFIG.sumo;
+  }
+
+  function buildSlabRows(vId = state.vehicleId) {
+    const cfg = getStageConfig(vId);
+    return cfg.slabs.map(sl =>
       `<tr>
         <td>${sl.min}–${sl.max} km</td>
-        <td class="slab-fare">${inr(sl.fare)}</td>
+        <td class="slab-fare">${inr(sl.fare)} <span class="slab-basis">${cfg.basis === 'Per Passenger' ? '(Seat)' : '(Auto)'}</span></td>
       </tr>`
     ).join('');
   }
@@ -1045,19 +1134,19 @@ const SafarDriverMode = (() => {
 
   </div>
 
-  <!-- Right Column: Statutory Tariff & Net Profit Ledger (5 cols) -->
+  <!-- Right Column: Stage Fare Reference (5 cols) -->
   <div class="calc-results-col">
 
     <!-- Stage Fare Slab Reference -->
-    <div class="card-box">
+    <div class="card-box" id="driver-slab-card">
       <div class="card-header">
         <div class="header-titles">
-          <h3>Stage Fare Reference</h3>
-          <p>Official per-kilometer rate slabs for non-corridor drops</p>
+          <h3 id="driver-slab-title">${getStageConfig(state.vehicleId).title}</h3>
+          <p id="driver-slab-desc">${getStageConfig(state.vehicleId).rule}</p>
         </div>
-        <span class="chip-sm">J&amp;K SRTA</span>
+        <span class="chip-sm" id="driver-slab-chip">${getStageConfig(state.vehicleId).chip}</span>
       </div>
-      <div style="max-height: 200px; overflow-y: auto;">
+      <div style="max-height: 280px; overflow-y: auto;">
         <table class="driver-slab-table">
           <thead>
             <tr>
@@ -1065,7 +1154,7 @@ const SafarDriverMode = (() => {
               <th scope="col">Fare</th>
             </tr>
           </thead>
-          <tbody>${buildSlabRows()}</tbody>
+          <tbody id="driver-slab-tbody">${buildSlabRows(state.vehicleId)}</tbody>
         </table>
       </div>
     </div>
@@ -1109,6 +1198,17 @@ const SafarDriverMode = (() => {
         strongEl.textContent = `Permit Capacity Exceeded (+${overloadDiff} seats above RTO rating)`;
       }
     }
+  }
+
+  function patchStageSlabs() {
+    const cfg = getStageConfig(state.vehicleId);
+    const tbody = document.getElementById('driver-slab-tbody');
+    if (tbody) {
+      tbody.innerHTML = buildSlabRows(state.vehicleId);
+    }
+    setText('driver-slab-title', cfg.title);
+    setText('driver-slab-desc', cfg.rule);
+    setText('driver-slab-chip', cfg.chip);
   }
 
   function patchSeatGrid() {
@@ -1598,6 +1698,7 @@ const SafarDriverMode = (() => {
       patchSeatGrid();
       patchTariffCard();
       patchTotals();
+      patchStageSlabs();
       persistActiveTrip();
       return;
     }
@@ -1665,6 +1766,7 @@ const SafarDriverMode = (() => {
       restoreActiveTrip();
       patchSeatGrid();
       patchTariffCard();
+      patchStageSlabs();
       patchTotals();
       patchCargo();
     }

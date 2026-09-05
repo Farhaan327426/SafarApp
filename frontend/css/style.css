@@ -2653,6 +2653,14 @@ body {
   text-align: right;
 }
 
+.driver-slab-table .slab-basis {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  opacity: 0.85;
+  margin-left: 3px;
+}
+
 .driver-slab-table th:last-child {
   text-align: right;
 }
