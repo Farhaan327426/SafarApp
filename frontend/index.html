@@ -162,7 +162,7 @@
           </button>
           <button class="drawer-link" data-tab="driver">
             <strong>Driver Mode</strong>
-            <span>Conductor tally, tariff & cash tracker</span>
+            <span>Conductor seat tally & stage fare guide</span>
           </button>
           <button class="drawer-link" data-tab="rates">
             <strong>Official Fare</strong>
@@ -613,12 +613,12 @@
 
   <script src="js/vehicle-illustrations.js"></script>
   <script src="js/qrcode.js"></script>
-  <script src="js/driver-mode.js"></script>
-  <script src="js/main.js"></script>
+  <script src="js/driver-mode.js?v=1.0.2"></script>
+  <script src="js/main.js?v=1.0.2"></script>
   <script>
     if ('serviceWorker' in navigator && (window.location.protocol === 'http:' || window.location.protocol === 'https:')) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js').catch((err) => {
+        navigator.serviceWorker.register('./sw.js?v=1.0.2').catch((err) => {
           console.warn('[SW] Registration note:', err);
         });
       });
