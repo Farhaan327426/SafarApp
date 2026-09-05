@@ -95,6 +95,10 @@
 
         <!-- Right Tools -->
         <div class="header-tools">
+          <div id="radarBadge" class="radar-status-pill hidden" hidden>
+            🌙 Evening Transit Radar Active
+          </div>
+
           <div class="status-chip desktop-only">
             <span class="pulse-dot"></span>
             <span>SRO-97 Verified</span>
@@ -201,6 +205,82 @@
             <!-- Injected by JavaScript -->
           </div>
         </div>
+
+        <!-- ============================================================= -->
+        <!-- COMMUTER DEFENSE LAYER (VOICE, CROWD TELEMETRY & RADAR)       -->
+        <!-- ============================================================= -->
+        <section class="commuter-defense-strip">
+          <!-- Quick Voice & Fast Dispute Prompt -->
+          <div class="card voice-box">
+            <div class="voice-header">
+              <div class="voice-title-wrap">
+                <span class="voice-icon">🎙️</span>
+                <div>
+                  <h3>Instant Voice Fare Check &amp; Dispute</h3>
+                  <p class="subtitle">Tap the mic and state route or fare (e.g. <em>"Driver charging 30 from Lal Chowk to Batamaloo"</em>)</p>
+                </div>
+              </div>
+              <span class="lang-tag">Urdu / Dogri / Kashmiri / Hindi</span>
+            </div>
+            
+            <div class="voice-input-row">
+              <input type="text" id="voiceQueryInput" placeholder="Type or speak fare issue (e.g. Driver charging 30 from Lal Chowk to Batamaloo)..." />
+              <button id="micBtn" class="btn btn-mic" aria-label="Start Voice Recording" title="Speak in Urdu/Hindi/English">🎙️</button>
+              <button id="checkDisputeBtn" class="btn btn-primary">Check Fare</button>
+            </div>
+          </div>
+
+          <!-- Real-Time Crowd Telemetry & Evidence Quick Row -->
+          <div class="defense-dual-grid">
+            <!-- Crowdsourced Occupancy Telemetry -->
+            <div class="card occupancy-card">
+              <div class="section-title-row">
+                <div class="sec-title-wrap">
+                  <span class="sec-icon">👥</span>
+                  <h3>1-Tap Vehicle Crowd Status</h3>
+                </div>
+                <small>Real-time passenger safety reports</small>
+              </div>
+              <div class="occupancy-buttons">
+                <button class="occ-btn occ-green" data-level="SEATS_AVAILABLE">🟢 Seating Available</button>
+                <button class="occ-btn occ-yellow" data-level="STANDING_ONLY">🟡 Standing Room</button>
+                <button class="occ-btn occ-red" data-level="SEVERE_OVERLOAD">🔴 Severe Overload</button>
+              </div>
+            </div>
+
+            <!-- Evidence Locker Quick Box -->
+            <div class="card grievance-quick-box">
+              <div class="section-title-row">
+                <div class="sec-title-wrap">
+                  <span class="sec-icon">⚖️</span>
+                  <h3>Evidence Locker &amp; Action</h3>
+                </div>
+                <small>Report under MVA Sec 194A / 192A</small>
+              </div>
+              <div class="grid-2col">
+                <input type="text" id="quickPlateInput" placeholder="Vehicle No (e.g. JK01 AB 1234)" />
+                <button id="openEvidenceModalBtn" class="btn btn-danger">File 1-Tap Report</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Post-7 PM Evening Stand Radar -->
+          <div id="eveningRadarSection" class="card evening-radar-card">
+            <div class="section-title-row">
+              <div class="radar-title-wrap">
+                <span class="radar-moon-icon">🌙</span>
+                <div>
+                  <h3>Evening Stand Radar (Post-7 PM)</h3>
+                  <small>Live active shared cabs &amp; safe carpool hubs</small>
+                </div>
+              </div>
+              <span class="live-tag">LIVE STANDS</span>
+            </div>
+            <div id="eveningHubsList" class="hubs-grid">
+              <!-- Injected via JavaScript -->
+            </div>
+          </div>
+        </section>
 
         <!-- Main Interactive Layout Grid -->
         <div class="calculator-grid">
@@ -587,6 +667,80 @@
       </div>
     </div>
 
+    <!-- MODAL: Show Conductor Digital Dispute Card -->
+    <div id="disputeModal" class="modal-backdrop hidden" hidden>
+      <div class="modal-card conductor-card">
+        <button class="close-btn" id="closeDisputeModal" aria-label="Close Dispute Modal">&times;</button>
+        <div class="dispute-badge-strip">
+          <span class="statutory-tag">OFFICIAL RTO SRO-97 TARIFF</span>
+        </div>
+
+        <div class="fare-comparison-block">
+          <div class="fare-cell legal-box">
+            <label>LEGAL TARIFF</label>
+            <div class="amount" id="cardLegalFare">₹10</div>
+          </div>
+          <div class="fare-cell vs-divider">vs</div>
+          <div class="fare-cell charged-box">
+            <label>DEMANDED</label>
+            <div class="amount" id="cardDemandedFare">₹30</div>
+          </div>
+        </div>
+
+        <div class="discrepancy-banner" id="cardDiscrepancyBanner">
+          ⚠️ Overcharging by ₹20 — Illegal under Section 192A MVA
+        </div>
+
+        <div class="route-meta">
+          <strong id="cardRouteDesc">Lal Chowk ⇄ Batamaloo</strong>
+          <p id="cardTariffBreakdown">Minibus Stage Tariff: Base ₹10 for first 3 km.</p>
+        </div>
+
+        <div class="conductor-actions">
+          <button id="speakToConductorBtn" class="btn btn-speaker" type="button">
+            🔊 Speak to Conductor (Urdu / اردو)
+          </button>
+          <button id="escalateToLockerBtn" class="btn btn-secondary" type="button">
+            Transfer to Evidence Locker
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL: Formal Grievance Dispatch -->
+    <div id="evidenceModal" class="modal-backdrop hidden" hidden>
+      <div class="modal-card">
+        <button class="close-btn" id="closeEvidenceModal" aria-label="Close Evidence Modal">&times;</button>
+        <h3>Formal RTO &amp; Traffic Police Grievance</h3>
+        <p class="subtitle">Direct legal notice under Motor Vehicles Act 1988</p>
+        <div class="form-group">
+          <label for="dossierPlate">Vehicle Plate Number</label>
+          <input type="text" id="dossierPlate" placeholder="JK01 AB 1234" />
+        </div>
+        <div class="form-group">
+          <label for="dossierViolationType">Violation Category</label>
+          <select id="dossierViolationType">
+            <option value="OVERCHARGING">Overcharging (Sec 192A / SRO-97)</option>
+            <option value="OVERCROWDING">Severe Overcrowding / Footboard (Sec 194A)</option>
+            <option value="REFUSAL_TO_PLY">Route Refusal / Late Night Abandonment (Sec 179)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="dossierLocation">Stand / Boarding Location</label>
+          <input type="text" id="dossierLocation" value="Jahangir Chowk / Lal Chowk" />
+        </div>
+
+        <div class="dispatch-action-grid">
+          <button id="dispatchWhatsAppBtn" class="btn btn-whatsapp" type="button">
+            📲 Dispatch to Traffic WhatsApp (9419035000)
+          </button>
+          <button id="dispatchEmailBtn" class="btn btn-email" type="button">
+            ✉️ Send to RTO (Formal Notice)
+          </button>
+        </div>
+      </div>
+    </div>
+
     <!-- Floating Toast Notification -->
     <div id="toast" class="toast-notification" hidden>
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f2bd70" stroke-width="2.5">
@@ -598,13 +752,208 @@
 
   <script src="js/vehicle-illustrations.js"></script>
   <script src="js/qrcode.js"></script>
-  <script src="js/help-assistant.js?v=1.0.5"></script>
-  <script src="js/driver-mode.js?v=1.0.5"></script>
-  <script src="js/main.js?v=1.0.5"></script>
+  <script src="js/dispute-engine.js"></script>
+  <script src="js/crowd-radar.js"></script>
+  <script src="js/evidence-locker.js"></script>
+  <script src="js/help-assistant.js?v=1.0.6"></script>
+  <script src="js/driver-mode.js?v=1.0.6"></script>
+  <script src="js/main.js?v=1.0.6"></script>
   <script>
+    // Commuter Defense Layer DOM Bindings & Radar Initialization
+    document.addEventListener("DOMContentLoaded", () => {
+      // 1. Radar Initialization
+      try {
+        if (window.SafarCrowdRadar) {
+          const radarActive = SafarCrowdRadar.isEveningRadarActive();
+          const badge = document.getElementById("radarBadge");
+          if (badge && radarActive) {
+            badge.hidden = false;
+            badge.classList.remove("hidden");
+          }
+
+          const hubsContainer = document.getElementById("eveningHubsList");
+          if (hubsContainer) {
+            const hubs = SafarCrowdRadar.getActiveEveningPools();
+            hubsContainer.innerHTML = hubs.map(h => `
+              <div class="hub-pill">
+                <strong>${h.name} (${h.city})</strong>
+                <span>${h.activeVehiclesRemaining} shared cabs active</span>
+                <small>Routes: ${h.routes.join(", ")}</small>
+              </div>
+            `).join("");
+          }
+        }
+      } catch (err) {
+        console.warn("[Radar Init]", err);
+      }
+
+      // 2. Dispute Evaluation Trigger
+      const checkBtn = document.getElementById("checkDisputeBtn");
+      const queryInput = document.getElementById("voiceQueryInput");
+      const disputeModal = document.getElementById("disputeModal");
+
+      if (checkBtn && queryInput && disputeModal) {
+        checkBtn.addEventListener("click", () => {
+          const query = queryInput.value.trim() || "Driver charging 30 from Lal Chowk to Batamaloo";
+          const parsed = window.SafarDisputeEngine.parseDisputeQuery(query);
+          const result = window.SafarDisputeEngine.verifyFare(parsed.origin, parsed.destination, parsed.demandedFare);
+
+          const cardLegalFare = document.getElementById("cardLegalFare");
+          const cardDemandedFare = document.getElementById("cardDemandedFare");
+          const cardRouteDesc = document.getElementById("cardRouteDesc");
+          const cardTariffBreakdown = document.getElementById("cardTariffBreakdown");
+          const banner = document.getElementById("cardDiscrepancyBanner");
+
+          if (cardLegalFare) cardLegalFare.textContent = `₹${result.legalFare}`;
+          if (cardDemandedFare) cardDemandedFare.textContent = `₹${result.demandedFare}`;
+          if (cardRouteDesc) cardRouteDesc.textContent = `${result.origin} ⇄ ${result.destination} (~${result.distanceKm} km)`;
+          if (cardTariffBreakdown) cardTariffBreakdown.textContent = result.breakdown;
+
+          if (banner) {
+            if (result.isViolation) {
+              banner.textContent = `⚠️ Overcharging by ₹${result.overcharge} — Illegal under ${result.mvaSection}`;
+              banner.className = "discrepancy-banner alert";
+            } else {
+              banner.textContent = `✅ Fare is compliant with SRO-97 statutory ceiling.`;
+              banner.className = "discrepancy-banner safe";
+            }
+          }
+
+          disputeModal.hidden = false;
+          disputeModal.classList.remove("hidden");
+
+          // Bind verbal negotiation button
+          const speakBtn = document.getElementById("speakToConductorBtn");
+          if (speakBtn) {
+            speakBtn.onclick = () => {
+              window.SafarDisputeEngine.verbalNegotiationTTS(result.legalFare, result.origin, result.destination);
+            };
+          }
+
+          // Bind escalate button
+          const escalateBtn = document.getElementById("escalateToLockerBtn");
+          if (escalateBtn) {
+            escalateBtn.onclick = () => {
+              disputeModal.hidden = true;
+              disputeModal.classList.add("hidden");
+              const evidenceModal = document.getElementById("evidenceModal");
+              if (evidenceModal) {
+                const locInput = document.getElementById("dossierLocation");
+                if (locInput) locInput.value = `${result.origin} to ${result.destination}`;
+                evidenceModal.hidden = false;
+                evidenceModal.classList.remove("hidden");
+              }
+            };
+          }
+        });
+      }
+
+      // 3. Web Speech API Speech-to-Text
+      const micBtn = document.getElementById("micBtn");
+      if (micBtn && ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
+        const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+        const recognition = new SpeechRec();
+        recognition.lang = "en-IN";
+
+        micBtn.addEventListener("click", () => {
+          micBtn.textContent = "🔴";
+          try {
+            recognition.start();
+          } catch (e) {
+            console.warn(e);
+          }
+        });
+
+        recognition.onresult = (evt) => {
+          if (queryInput && evt.results && evt.results[0]) {
+            queryInput.value = evt.results[0][0].transcript;
+            micBtn.textContent = "🎙️";
+            if (checkBtn) checkBtn.click();
+          }
+        };
+
+        recognition.onerror = () => { micBtn.textContent = "🎙️"; };
+        recognition.onend = () => { micBtn.textContent = "🎙️"; };
+      }
+
+      // Modal Close Handlers
+      const closeDisputeModal = document.getElementById("closeDisputeModal");
+      if (closeDisputeModal && disputeModal) {
+        closeDisputeModal.onclick = () => {
+          disputeModal.hidden = true;
+          disputeModal.classList.add("hidden");
+        };
+      }
+
+      // 4. Evidence Locker Trigger
+      const evidenceModal = document.getElementById("evidenceModal");
+      const openEvidenceModalBtn = document.getElementById("openEvidenceModalBtn");
+      const closeEvidenceModal = document.getElementById("closeEvidenceModal");
+
+      if (openEvidenceModalBtn && evidenceModal) {
+        openEvidenceModalBtn.onclick = () => {
+          const quickPlate = document.getElementById("quickPlateInput");
+          const dossierPlate = document.getElementById("dossierPlate");
+          if (quickPlate && dossierPlate && quickPlate.value.trim()) {
+            dossierPlate.value = quickPlate.value.trim();
+          }
+          evidenceModal.hidden = false;
+          evidenceModal.classList.remove("hidden");
+        };
+      }
+
+      if (closeEvidenceModal && evidenceModal) {
+        closeEvidenceModal.onclick = () => {
+          evidenceModal.hidden = true;
+          evidenceModal.classList.add("hidden");
+        };
+      }
+
+      const dispatchWhatsAppBtn = document.getElementById("dispatchWhatsAppBtn");
+      if (dispatchWhatsAppBtn && window.SafarEvidenceLocker) {
+        dispatchWhatsAppBtn.onclick = () => {
+          const dossier = window.SafarEvidenceLocker.buildGrievanceDossier({
+            vehiclePlate: (document.getElementById("dossierPlate")?.value || "JK01AA0000"),
+            violationType: (document.getElementById("dossierViolationType")?.value || "OVERCHARGING"),
+            location: (document.getElementById("dossierLocation")?.value || "J&K Transit Route"),
+            demandedAmount: 30,
+            legalAmount: 10
+          });
+          window.SafarEvidenceLocker.dispatchWhatsApp(dossier);
+        };
+      }
+
+      const dispatchEmailBtn = document.getElementById("dispatchEmailBtn");
+      if (dispatchEmailBtn && window.SafarEvidenceLocker) {
+        dispatchEmailBtn.onclick = () => {
+          const dossier = window.SafarEvidenceLocker.buildGrievanceDossier({
+            vehiclePlate: (document.getElementById("dossierPlate")?.value || "JK01AA0000"),
+            violationType: (document.getElementById("dossierViolationType")?.value || "OVERCHARGING"),
+            location: (document.getElementById("dossierLocation")?.value || "J&K Transit Route")
+          });
+          window.SafarEvidenceLocker.dispatchEmail(dossier, "kashmir");
+        };
+      }
+
+      // 5. 1-Click Occupancy Telemetry
+      document.querySelectorAll(".occ-btn").forEach(btn => {
+        btn.addEventListener("click", (e) => {
+          const level = e.currentTarget.dataset.level;
+          if (window.SafarCrowdRadar) {
+            window.SafarCrowdRadar.recordOccupancy("JK-ACTIVE", "Lal Chowk-Route", level);
+          }
+          if (typeof window.showToast === "function") {
+            window.showToast(`Recorded: ${e.currentTarget.textContent}. Telemetry broadcasted.`);
+          } else {
+            alert(`Recorded: ${e.currentTarget.textContent}. Telemetry broadcasted to route commuters.`);
+          }
+        });
+      });
+    });
+
     if ('serviceWorker' in navigator && (window.location.protocol === 'http:' || window.location.protocol === 'https:')) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js?v=1.0.5').catch((err) => {
+        navigator.serviceWorker.register('./sw.js?v=1.0.6').catch((err) => {
           console.warn('[SW] Registration note:', err);
         });
       });
