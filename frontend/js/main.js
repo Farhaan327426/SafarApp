@@ -1637,7 +1637,12 @@ function attachListeners() {
     if (helpModal) helpModal.hidden = true;
   };
   const showModal = () => {
-    if (helpModal) helpModal.hidden = false;
+    if (helpModal) {
+      helpModal.hidden = false;
+      if (window.SafarHelpAssistant && typeof window.SafarHelpAssistant.init === "function") {
+        window.SafarHelpAssistant.init();
+      }
+    }
   };
 
   if (helpModalTrigger) helpModalTrigger.addEventListener("click", showModal);
@@ -1698,6 +1703,9 @@ function initSafar() {
   renderRouteGuide();
   renderHistory();
   calculateAndRender();
+  if (window.SafarHelpAssistant && typeof window.SafarHelpAssistant.init === "function") {
+    window.SafarHelpAssistant.init();
+  }
 }
 
 if (document.readyState === "loading") {
