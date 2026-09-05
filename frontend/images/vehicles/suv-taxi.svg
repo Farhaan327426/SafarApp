@@ -1,0 +1,39 @@
+<svg viewBox="0 0 200 90" fill="none" xmlns="http://www.w3.org/2000/svg" class="vehicle-illustration-svg">
+  <defs>
+    <linearGradient id="suvTitanium" x1="0" y1="28" x2="0" y2="72" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#475569"/>
+      <stop offset="50%" stop-color="#334155"/>
+      <stop offset="100%" stop-color="#1e293b"/>
+    </linearGradient>
+  </defs>
+  <!-- Ground Shadow -->
+  <ellipse cx="100" cy="80" rx="84" ry="4" fill="#0f172a" opacity="0.22"/>
+  <!-- Silver Alpine Roof Rails -->
+  <rect x="54" y="22" width="82" height="3.5" rx="1.5" fill="#0f172a"/>
+  <line x1="62" y1="25" x2="62" y2="29" stroke="#94a3b8" stroke-width="1.5"/>
+  <line x1="98" y1="25" x2="98" y2="29" stroke="#94a3b8" stroke-width="1.5"/>
+  <line x1="130" y1="25" x2="130" y2="29" stroke="#94a3b8" stroke-width="1.5"/>
+  <!-- Muscular SUV Profile (Innova Crysta / Scorpio) -->
+  <path d="M 24 51 L 30 40 C 33 31 41 29 51 29 L 130 29 L 157 44 L 176 53 L 177 66 C 177 72 173 73 166 73 L 152 73 A 13 13 0 0 1 126 73 L 74 73 A 13 13 0 0 1 48 73 L 24 73 Z" fill="url(#suvTitanium)" stroke="#64748b" stroke-width="0.8"/>
+  <!-- Dark Privacy Tapered Glasshouse -->
+  <polygon points="37,42 62,32 62,49 33,49" fill="#0f172a"/>
+  <rect x="66" y="32" width="33" height="17" rx="1" fill="#0f172a"/>
+  <polygon points="102,32 128,32 152,46 102,49" fill="#0f172a"/>
+  <!-- Chrome Shoulder Crease & Handles -->
+  <line x1="33" y1="51" x2="156" y2="51" stroke="#94a3b8" stroke-width="1"/>
+  <rect x="105" y="53" width="6.5" height="2" rx="0.6" fill="#e2e8f0"/>
+  <rect x="72" y="53" width="6.5" height="2" rx="0.6" fill="#e2e8f0"/>
+  <!-- Projector LED Headlamp Unit -->
+  <polygon points="166,53 176,55 174,62 163,60" fill="#e0f2fe" stroke="#38bdf8" stroke-width="0.8"/>
+  <!-- Premium Machined Alloy Wheels -->
+  <g>
+    <circle cx="61" cy="73" r="13" fill="#0f172a"/>
+    <circle cx="61" cy="73" r="8" fill="#64748b"/>
+    <circle cx="61" cy="73" r="3.5" fill="#f8fafc"/>
+  </g>
+  <g>
+    <circle cx="139" cy="73" r="13" fill="#0f172a"/>
+    <circle cx="139" cy="73" r="8" fill="#64748b"/>
+    <circle cx="139" cy="73" r="3.5" fill="#f8fafc"/>
+  </g>
+</svg>

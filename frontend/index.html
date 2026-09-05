@@ -13,7 +13,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
     rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css?v=1.0.7">
+  <link rel="stylesheet" href="css/style.css?v=1.0.8">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" type="image/x-icon" href="favicon.ico">
   <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
@@ -217,14 +217,15 @@
                 <div class="step-badge">1</div>
                 <div class="header-titles">
                   <h2>Choose Your Vehicle Mode</h2>
-                  <p>All 9 commercial transit categories across Jammu & Kashmir (Non-SRTC & Non-E-Bus)</p>
+                  <p>All 11 commercial transit categories across Jammu & Kashmir (Non-SRTC & Non-E-Bus)</p>
                 </div>
                 <span class="chip-sm">Non-SRTC</span>
               </div>
 
               <!-- Vehicle Category Filter Pills -->
               <div class="category-filter-bar" id="category-filter-container">
-                <button class="cat-filter-btn active" data-cat="all">All Vehicles (9)</button>
+                <button class="cat-filter-btn active" data-cat="all">All Vehicles (11)</button>
+                <button class="cat-filter-btn" data-cat="mini-bus">🚌 Minibus (Matador)</button>
                 <button class="cat-filter-btn" data-cat="shared">Shared Cabs & Vans</button>
                 <button class="cat-filter-btn" data-cat="bus">Private Buses</button>
                 <button class="cat-filter-btn" data-cat="auto">Autos & E-Rickshaws</button>
@@ -335,6 +336,11 @@
               </div>
 
               <p class="route-summary-text" id="fare-route-summary" style="display: none;"></p>
+
+              <!-- Live Vehicle Illustration Preview -->
+              <div class="hero-vehicle-preview" id="hero-vehicle-preview">
+                <!-- Injected by JavaScript -->
+              </div>
 
               <!-- Per Seat vs Entire Cab Switch -->
               <div class="seat-mode-switch" id="seat-mode-container">
@@ -574,11 +580,18 @@
               <p class="modal-subtitle">Official J&amp;K RTO Directory · Police Helplines · Statutory Grievance Redressal</p>
             </div>
           </div>
-          <button id="close-modal-btn" class="icon-btn" aria-label="Close Help Modal"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"
-              stroke="currentColor" stroke-width="2">
-              <line x1="18" y1="6" x2="6" y2="18"></line>
-              <line x1="6" y1="6" x2="18" y2="18"></line>
-            </svg></button>
+          <div class="modal-window-actions">
+            <button id="minimize-modal-btn" class="icon-btn minimize-btn" aria-label="Minimize Help Assistant" title="Minimize to Floating Tab">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+              </svg>
+            </button>
+            <button id="close-modal-btn" class="icon-btn" aria-label="Close Help Modal" title="Close"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg></button>
+          </div>
         </div>
         <div class="modal-body help-hub-body">
           <div id="help-modal-dynamic-content"></div>
@@ -673,16 +686,38 @@
       </svg>
       <span id="toast-text">Route updated</span>
     </div>
+
+    <!-- Floating Minimizer Tab Dock (when Help & AI Assistant is minimized) -->
+    <div id="minimized-assistant-tab" class="minimized-assistant-tab hidden" hidden>
+      <div class="minimized-tab-content" title="Click to Restore Safar AI Assistant">
+        <span class="pulse-dot"></span>
+        <span class="tab-robot-icon">🤖</span>
+        <span class="tab-title">Safar AI Assistant</span>
+        <span class="tab-badge">Active</span>
+        <button id="restore-modal-btn" class="restore-tab-btn" type="button" title="Restore Assistant">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <polyline points="15 3 21 3 21 9"></polyline>
+            <polyline points="9 21 3 21 3 15"></polyline>
+            <line x1="21" y1="3" x2="14" y2="10"></line>
+            <line x1="3" y1="21" x2="10" y2="14"></line>
+          </svg>
+          <span>Expand</span>
+        </button>
+        <button id="dismiss-minimized-tab" class="dismiss-tab-btn" type="button" title="Dismiss Tab" aria-label="Dismiss">
+          &times;
+        </button>
+      </div>
+    </div>
   </div>
 
-  <script src="js/vehicle-illustrations.js?v=1.0.7"></script>
+  <script src="js/vehicle-illustrations.js?v=1.0.8"></script>
   <script src="js/qrcode.js"></script>
   <script src="js/dispute-engine.js"></script>
   <script src="js/crowd-radar.js"></script>
   <script src="js/evidence-locker.js"></script>
-  <script src="js/help-assistant.js?v=1.0.7"></script>
-  <script src="js/driver-mode.js?v=1.0.7"></script>
-  <script src="js/main.js?v=1.0.7"></script>
+  <script src="js/help-assistant.js?v=1.0.8"></script>
+  <script src="js/driver-mode.js?v=1.0.8"></script>
+  <script src="js/main.js?v=1.0.8"></script>
   <script>
     // Commuter Defense Layer DOM Bindings & Radar Initialization
     document.addEventListener("DOMContentLoaded", () => {

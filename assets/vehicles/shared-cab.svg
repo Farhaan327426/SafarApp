@@ -1,0 +1,58 @@
+<svg viewBox="0 0 200 90" fill="none" xmlns="http://www.w3.org/2000/svg" class="vehicle-illustration-svg">
+  <defs>
+    <linearGradient id="sumoBody" x1="0" y1="20" x2="0" y2="70" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="55%" stop-color="#f1f5f9"/>
+      <stop offset="100%" stop-color="#cbd5e1"/>
+    </linearGradient>
+    <linearGradient id="sumoTarp" x1="0" y1="10" x2="0" y2="25" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#f97316"/>
+      <stop offset="100%" stop-color="#c2410c"/>
+    </linearGradient>
+    <linearGradient id="sumoGlass" x1="0" y1="25" x2="0" y2="50" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#64748b"/>
+      <stop offset="100%" stop-color="#1e293b"/>
+    </linearGradient>
+  </defs>
+  <!-- Ground Shadow -->
+  <ellipse cx="100" cy="80" rx="84" ry="4" fill="#0f172a" opacity="0.22"/>
+  <!-- Roof Rack & Orange Luggage Tarp -->
+  <rect x="52" y="11" width="76" height="13" rx="3" fill="url(#sumoTarp)"/>
+  <path d="M 66 11 L 66 24 M 82 11 L 82 24 M 98 11 L 98 24 M 114 11 L 114 24" stroke="#fed7aa" stroke-width="1.2"/>
+  <rect x="46" y="21" width="90" height="4" rx="1.5" fill="#334155"/>
+  <path d="M 52 25 L 52 29 M 80 25 L 80 29 M 108 25 L 108 29 M 132 25 L 132 29" stroke="#334155" stroke-width="1.8" stroke-linecap="round"/>
+  <!-- Main Sumo / Bolero Body -->
+  <path d="M 24 44 L 32 30 C 34 29 37 28 41 28 L 138 28 C 143 28 147 31 150 36 L 163 51 L 176 54 C 180 55 182 58 182 62 L 182 68 C 182 71 180 73 176 73 L 157 73 A 14 14 0 0 1 129 73 L 69 73 A 14 14 0 0 1 41 73 L 24 73 C 21 73 19 71 19 68 L 19 49 C 19 46 21 44 24 44 Z" fill="url(#sumoBody)" stroke="#94a3b8" stroke-width="0.8"/>
+  <!-- Rear Spare Wheel Mounted -->
+  <rect x="14" y="42" width="7" height="25" rx="3.5" fill="#1e293b"/>
+  <!-- Windows -->
+  <path d="M 40 32 L 67 32 L 67 48 L 33 48 L 33 37 C 33 34 36 32 40 32 Z" fill="url(#sumoGlass)"/>
+  <rect x="71" y="32" width="34" height="16" rx="1" fill="url(#sumoGlass)"/>
+  <path d="M 109 32 L 135 32 C 138 32 141 34 143 37 L 151 48 L 109 48 Z" fill="url(#sumoGlass)"/>
+  <!-- Windshield Reflection -->
+  <path d="M 132 34 L 145 46" stroke="#94a3b8" stroke-width="1" stroke-linecap="round" opacity="0.6"/>
+  <!-- Door Cuts & Handles -->
+  <line x1="70" y1="32" x2="70" y2="67" stroke="#94a3b8" stroke-width="1"/>
+  <line x1="108" y1="32" x2="108" y2="67" stroke="#94a3b8" stroke-width="1"/>
+  <rect x="73" y="52" width="7" height="2" rx="1" fill="#475569"/>
+  <rect x="111" y="52" width="7" height="2" rx="1" fill="#475569"/>
+  <!-- Dark Side Protective Cladding -->
+  <path d="M 20 64 L 41 64 A 14 14 0 0 1 69 64 L 129 64 A 14 14 0 0 1 157 64 L 180 64 L 180 69 L 157 69 A 14 14 0 0 1 129 69 L 69 69 A 14 14 0 0 1 41 69 L 20 69 Z" fill="#334155"/>
+  <!-- Headlamp & Grille Front -->
+  <path d="M 178 55 L 182 55 L 182 62 L 178 62 Z" fill="#fef08a" stroke="#eab308" stroke-width="0.5"/>
+  <rect x="178" y="63" width="3" height="3" rx="0.5" fill="#f97316"/>
+  <rect x="172" y="66" width="10" height="5" rx="1" fill="#1e293b"/>
+  <!-- Wheels -->
+  <g>
+    <circle cx="55" cy="73" r="13" fill="#1e293b"/>
+    <circle cx="55" cy="73" r="8" fill="#64748b"/>
+    <circle cx="55" cy="73" r="4" fill="#cbd5e1"/>
+    <circle cx="55" cy="73" r="1.5" fill="#1e293b"/>
+  </g>
+  <g>
+    <circle cx="143" cy="73" r="13" fill="#1e293b"/>
+    <circle cx="143" cy="73" r="8" fill="#64748b"/>
+    <circle cx="143" cy="73" r="4" fill="#cbd5e1"/>
+    <circle cx="143" cy="73" r="1.5" fill="#1e293b"/>
+  </g>
+</svg>

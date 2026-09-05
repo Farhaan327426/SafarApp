@@ -553,6 +553,10 @@ const helpModalTrigger = document.getElementById("help-modal-trigger");
 const footerHelpTrigger = document.getElementById("footer-help-trigger");
 const closeModalBtn = document.getElementById("close-modal-btn");
 const modalCloseActionBtn = document.getElementById("modal-close-action-btn");
+const minimizeModalBtn = document.getElementById("minimize-modal-btn");
+const minimizedAssistantTab = document.getElementById("minimized-assistant-tab");
+const restoreModalBtn = document.getElementById("restore-modal-btn");
+const dismissMinimizedTab = document.getElementById("dismiss-minimized-tab");
 const notificationsBtn = document.getElementById("notifications-btn");
 const notificationsDropdown = document.getElementById("notifications-dropdown");
 const mobileMenuBtn = document.getElementById("mobile-menu-btn");
@@ -1068,6 +1072,8 @@ function renderVehicleCards() {
   
   const list = currentCategoryFilter === "all"
     ? vehicleOptions
+    : currentCategoryFilter === "mini-bus"
+    ? vehicleOptions.filter((v) => v.key === "mini-bus" || v.key === "tata-magic")
     : vehicleOptions.filter((v) => v.category === currentCategoryFilter);
 
   const km = Math.max(1, Number(currentDistance) || 1);
@@ -1343,6 +1349,11 @@ function calculateAndRender() {
     : totalSingle;
 
   // Update elements
+  const heroVehiclePreview = document.getElementById("hero-vehicle-preview");
+  if (heroVehiclePreview && window.getVehicleIllustrationSvg) {
+    heroVehiclePreview.innerHTML = window.getVehicleIllustrationSvg(v.key);
+  }
+
   if (fareRouteSummary) {
     if (hasRoute) {
       fareRouteSummary.textContent = `${currentFrom} ➔ ${currentTo}`;
@@ -1627,11 +1638,25 @@ function attachListeners() {
     });
   });
 
-  // Modal triggers
+  // Modal triggers & Minimizer Tab
   const hideModal = () => {
     if (helpModal) helpModal.hidden = true;
   };
+
+  const minimizeModal = () => {
+    if (helpModal) helpModal.hidden = true;
+    if (minimizedAssistantTab) {
+      minimizedAssistantTab.classList.remove("hidden");
+      minimizedAssistantTab.hidden = false;
+      showToast("Assistant minimized to floating tab");
+    }
+  };
+
   const showModal = () => {
+    if (minimizedAssistantTab) {
+      minimizedAssistantTab.classList.add("hidden");
+      minimizedAssistantTab.hidden = true;
+    }
     if (helpModal) {
       helpModal.hidden = false;
       if (window.SafarHelpAssistant && typeof window.SafarHelpAssistant.init === "function") {
@@ -1640,10 +1665,29 @@ function attachListeners() {
     }
   };
 
+  const dismissMinTab = (e) => {
+    if (e) e.stopPropagation();
+    if (minimizedAssistantTab) {
+      minimizedAssistantTab.classList.add("hidden");
+      minimizedAssistantTab.hidden = true;
+    }
+  };
+
   if (helpModalTrigger) helpModalTrigger.addEventListener("click", showModal);
   if (footerHelpTrigger) footerHelpTrigger.addEventListener("click", showModal);
   if (closeModalBtn) closeModalBtn.addEventListener("click", hideModal);
   if (modalCloseActionBtn) modalCloseActionBtn.addEventListener("click", hideModal);
+  if (minimizeModalBtn) minimizeModalBtn.addEventListener("click", minimizeModal);
+  if (restoreModalBtn) restoreModalBtn.addEventListener("click", showModal);
+  if (minimizedAssistantTab) {
+    minimizedAssistantTab.addEventListener("click", (e) => {
+      if (!e.target.closest("#dismiss-minimized-tab")) {
+        showModal();
+      }
+    });
+  }
+  if (dismissMinimizedTab) dismissMinimizedTab.addEventListener("click", dismissMinTab);
+
   if (helpModal) {
     helpModal.addEventListener("click", (e) => {
       if (e.target === helpModal) hideModal();

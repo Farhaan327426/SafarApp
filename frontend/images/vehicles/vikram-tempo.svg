@@ -1,0 +1,49 @@
+<svg viewBox="0 0 200 90" fill="none" xmlns="http://www.w3.org/2000/svg" class="vehicle-illustration-svg">
+  <defs>
+    <linearGradient id="tempoBody" x1="0" y1="40" x2="0" y2="72" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#ea580c"/>
+      <stop offset="100%" stop-color="#9a3412"/>
+    </linearGradient>
+    <linearGradient id="tempoRoof" x1="0" y1="18" x2="0" y2="34" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#fef3c7"/>
+      <stop offset="100%" stop-color="#e4d9b8"/>
+    </linearGradient>
+  </defs>
+  <!-- Ground Shadow -->
+  <ellipse cx="100" cy="80" rx="78" ry="4" fill="#0f172a" opacity="0.22"/>
+  <!-- Khaki Canvas Canopy -->
+  <path d="M 32 24 C 32 20 40 18 52 18 L 136 18 C 144 18 150 21 150 26 L 148 36 L 32 36 Z" fill="url(#tempoRoof)"/>
+  <line x1="55" y1="18" x2="55" y2="36" stroke="#9a3412" stroke-width="1.2"/>
+  <line x1="88" y1="18" x2="88" y2="36" stroke="#9a3412" stroke-width="1.2"/>
+  <line x1="120" y1="18" x2="120" y2="36" stroke="#9a3412" stroke-width="1.2"/>
+  <!-- Canopy Support Struts -->
+  <line x1="36" y1="36" x2="36" y2="60" stroke="#334155" stroke-width="2"/>
+  <line x1="80" y1="36" x2="80" y2="60" stroke="#334155" stroke-width="2"/>
+  <line x1="120" y1="36" x2="120" y2="60" stroke="#334155" stroke-width="2"/>
+  <line x1="148" y1="36" x2="148" y2="52" stroke="#334155" stroke-width="2"/>
+  <!-- Driver Cab Windshield -->
+  <polygon points="123,36 146,36 144,52 123,52" fill="#385263" opacity="0.9"/>
+  <!-- Front Snout Diesel Body -->
+  <path d="M 32 58 L 122 58 L 146 50 L 172 60 C 176 62 178 66 176 71 L 172 73 L 158 73 A 12 12 0 0 1 134 73 L 74 73 A 13 13 0 0 1 48 73 L 32 73 Z" fill="url(#tempoBody)"/>
+  <!-- Rear Passenger Safety Rail -->
+  <line x1="35" y1="48" x2="120" y2="48" stroke="#cbd5e1" stroke-width="1.8"/>
+  <!-- Large Round Front Snout Headlamp -->
+  <circle cx="174" cy="65" r="4.5" fill="#fef08a" stroke="#fff" stroke-width="1"/>
+  <circle cx="174" cy="65" r="1.5" fill="#fff"/>
+  <!-- Side Branding -->
+  <rect x="52" y="61" width="58" height="7" rx="1.5" fill="#431407" opacity="0.7"/>
+  <text x="56" y="66.5" fill="#fef08a" font-size="5" font-weight="bold" font-family="sans-serif">VIKRAM JAMMU</text>
+  <!-- Rear Wheel -->
+  <g>
+    <circle cx="61" cy="73" r="13" fill="#1e293b"/>
+    <circle cx="61" cy="73" r="8" fill="#64748b"/>
+    <circle cx="61" cy="73" r="4" fill="#cbd5e1"/>
+    <circle cx="61" cy="73" r="1.5" fill="#1e293b"/>
+  </g>
+  <!-- Front Wheel (Snout Mounted) -->
+  <g>
+    <circle cx="160" cy="74" r="11" fill="#1e293b"/>
+    <circle cx="160" cy="74" r="6" fill="#64748b"/>
+    <circle cx="160" cy="74" r="3" fill="#cbd5e1"/>
+  </g>
+</svg>

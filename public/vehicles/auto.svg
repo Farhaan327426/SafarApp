@@ -1,0 +1,39 @@
+<svg viewBox="0 0 200 90" fill="none" xmlns="http://www.w3.org/2000/svg" class="vehicle-illustration-svg">
+  <defs>
+    <linearGradient id="autoYellow" x1="0" y1="20" x2="0" y2="48" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#fbbf24"/>
+      <stop offset="100%" stop-color="#d97706"/>
+    </linearGradient>
+  </defs>
+  <!-- Ground Shadow -->
+  <ellipse cx="100" cy="80" rx="74" ry="4" fill="#0f172a" opacity="0.2"/>
+  <!-- Yellow Hood Canopy -->
+  <path d="M 40 48 C 40 30 58 22 104 22 C 132 22 146 28 152 40 L 150 50 L 40 50 Z" fill="url(#autoYellow)"/>
+  <!-- Black Metallic Lower Chassis -->
+  <path d="M 40 50 L 150 50 L 156 62 L 158 73 L 142 73 A 12 12 0 0 1 118 73 L 82 73 A 12 12 0 0 1 58 73 L 39 73 Z" fill="#1e2429"/>
+  <!-- Windshield & Front Glass -->
+  <polygon points="120,28 148,32 144,48 120,48" fill="#334e68"/>
+  <line x1="136" y1="30" x2="132" y2="46" stroke="#94a3b8" stroke-width="0.8"/>
+  <!-- Fare Meter Box (Red LED) -->
+  <rect x="124" y="44" width="7" height="4.5" rx="1" fill="#dc2626"/>
+  <circle cx="127.5" cy="46" r="0.8" fill="#fef08a"/>
+  <!-- Passenger Compartment Opening -->
+  <rect x="68" y="31" width="46" height="23" rx="2" fill="#0f172a" opacity="0.9"/>
+  <line x1="68" y1="51" x2="114" y2="51" stroke="#f59e0b" stroke-width="1.8"/>
+  <!-- Front Round Headlamp -->
+  <circle cx="155" cy="61" r="4.5" fill="#fef08a" stroke="#d1d5db" stroke-width="0.8"/>
+  <!-- Yellow Number Plate Strip -->
+  <rect x="44" y="62" width="14" height="4.5" rx="1" fill="#facc15"/>
+  <text x="45.5" y="65.5" fill="#000" font-size="3.5" font-weight="bold" font-family="sans-serif">JK 01</text>
+  <!-- Wheels -->
+  <g>
+    <circle cx="70" cy="73" r="12" fill="#111827"/>
+    <circle cx="70" cy="73" r="7" fill="#6b7280"/>
+    <circle cx="70" cy="73" r="2.5" fill="#111827"/>
+  </g>
+  <g>
+    <circle cx="146" cy="73" r="12" fill="#111827"/>
+    <circle cx="146" cy="73" r="7" fill="#6b7280"/>
+    <circle cx="146" cy="73" r="2.5" fill="#111827"/>
+  </g>
+</svg>

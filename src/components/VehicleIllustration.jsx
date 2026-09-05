@@ -135,741 +135,536 @@ export const VEHICLE_VISUAL_META = {
  */
 export function TataSumoIllustration({ className = "w-full h-full" }) {
   return (
-    <svg viewBox="0 0 280 140" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
-      <defs>
-        <linearGradient id="sumoBodyGrad" x1="0" y1="30" x2="0" y2="105" gradientUnits="userSpaceOnUse">
-          <stop offset="0%" stopColor="#ffffff" />
-          <stop offset="70%" stopColor="#edf1f3" />
-          <stop offset="100%" stopColor="#d5dde0" />
-        </linearGradient>
-        <linearGradient id="sumoGlassGrad" x1="0" y1="40" x2="0" y2="75" gradientUnits="userSpaceOnUse">
-          <stop offset="0%" stopColor="#4a6b82" />
-          <stop offset="100%" stopColor="#253a47" />
-        </linearGradient>
-        <linearGradient id="sumoTarpGrad" x1="0" y1="12" x2="0" y2="35" gradientUnits="userSpaceOnUse">
-          <stop offset="0%" stopColor="#e28743" />
-          <stop offset="100%" stopColor="#b25d1e" />
-        </linearGradient>
-      </defs>
-
-      {/* Road Shadow */}
-      <ellipse cx="140" cy="126" rx="115" ry="7" fill="#1b2a2a" fillOpacity="0.18" />
-
-      {/* Roof Luggage Rack with Packed Baggage / Tarpaulin */}
-      <rect x="75" y="16" width="105" height="20" rx="5" fill="url(#sumoTarpGrad)" />
-      <line x1="95" y1="16" x2="95" y2="36" stroke="#f6c28b" strokeWidth="1.8" />
-      <line x1="120" y1="16" x2="120" y2="36" stroke="#f6c28b" strokeWidth="1.8" />
-      <line x1="145" y1="16" x2="145" y2="36" stroke="#f6c28b" strokeWidth="1.8" />
-      <line x1="165" y1="16" x2="165" y2="36" stroke="#f6c28b" strokeWidth="1.8" />
-      <rect x="100" y="8" width="45" height="10" rx="3" fill="#2b5b84" />
-      <rect x="68" y="32" width="125" height="6" rx="1.5" fill="#2c3e50" />
-      <line x1="75" y1="38" x2="75" y2="44" stroke="#2c3e50" strokeWidth="2.5" strokeLinecap="round" />
-      <line x1="110" y1="38" x2="110" y2="44" stroke="#2c3e50" strokeWidth="2.5" strokeLinecap="round" />
-      <line x1="150" y1="38" x2="150" y2="44" stroke="#2c3e50" strokeWidth="2.5" strokeLinecap="round" />
-      <line x1="185" y1="38" x2="185" y2="44" stroke="#2c3e50" strokeWidth="2.5" strokeLinecap="round" />
-
-      {/* Rear Mounted Spare Tyre */}
-      <rect x="23" y="60" width="14" height="42" rx="4" fill="#202224" />
-      <rect x="27" y="68" width="6" height="26" rx="2" fill="#555a60" />
-
-      {/* Main Car Body - Boxy Tata Sumo Silhouette */}
-      <path
-        d="M 32 62 L 32 100 L 225 100 L 236 94 L 236 82 L 202 78 L 178 44 L 52 44 L 38 52 Z"
-        fill="url(#sumoBodyGrad)"
-        stroke="#8b9ea6"
-        strokeWidth="1.2"
-      />
-
-      {/* Black Lower Protective Cladding / Bumper */}
-      <path
-        d="M 30 96 L 30 106 L 68 106 A 18 18 0 0 1 104 106 L 172 106 A 18 18 0 0 1 208 106 L 244 106 L 244 94 L 225 100 Z"
-        fill="#262c30"
-      />
-
-      {/* Windows Frame & Tinted Glass */}
-      <polygon points="175,48 198,76 168,76 150,48" fill="url(#sumoGlassGrad)" />
-      <rect x="100" y="48" width="46" height="28" rx="2" fill="url(#sumoGlassGrad)" />
-      <polygon points="56,48 96,48 96,76 46,76 46,60" fill="url(#sumoGlassGrad)" />
-      <line x1="98" y1="48" x2="98" y2="76" stroke="#2c3e50" strokeWidth="3" />
-      <line x1="148" y1="48" x2="148" y2="76" stroke="#2c3e50" strokeWidth="3" />
-
-      {/* Side Details: Door Lines, Handle, Side Indicator */}
-      <line x1="150" y1="76" x2="150" y2="98" stroke="#a0b2ba" strokeWidth="1.5" />
-      <line x1="98" y1="76" x2="98" y2="98" stroke="#a0b2ba" strokeWidth="1.5" />
-      <rect x="154" y="80" width="10" height="3" rx="1" fill="#3c4c54" />
-      <rect x="104" y="80" width="10" height="3" rx="1" fill="#3c4c54" />
-      <rect x="212" y="81" width="5" height="3" rx="1" fill="#f59e0b" />
-
-      {/* Front Grille & Headlight */}
-      <rect x="234" y="80" width="5" height="12" rx="1.5" fill="#fef08a" stroke="#d97706" strokeWidth="0.8" />
-      <rect x="238" y="94" width="7" height="11" rx="2" fill="#1e2327" />
-
-      {/* J&K Taxi Permit Stripe / Sumo Decal */}
-      <rect x="40" y="88" width="155" height="3.5" fill="#d36b3d" opacity="0.85" />
-      <text x="50" y="87" fill="#234b4c" fontSize="7" fontWeight="bold" fontFamily="sans-serif">SUMO MAXI CAB</text>
-
-      {/* Front Wheel */}
-      <g>
-        <circle cx="190" cy="110" r="19" fill="#1c2024" />
-        <circle cx="190" cy="110" r="12" fill="#50565e" />
-        <circle cx="190" cy="110" r="6" fill="#88929e" />
-        <circle cx="190" cy="110" r="2.5" fill="#1c2024" />
-      </g>
-
-      {/* Rear Wheel */}
-      <g>
-        <circle cx="86" cy="110" r="19" fill="#1c2024" />
-        <circle cx="86" cy="110" r="12" fill="#50565e" />
-        <circle cx="86" cy="110" r="6" fill="#88929e" />
-        <circle cx="86" cy="110" r="2.5" fill="#1c2024" />
-      </g>
-    </svg>
+    <svg viewBox="0 0 200 90" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
+  <defs>
+    <linearGradient id="sumoBody" x1="0" y1="20" x2="0" y2="70" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stopColor="#ffffff"/>
+      <stop offset="55%" stopColor="#f1f5f9"/>
+      <stop offset="100%" stopColor="#cbd5e1"/>
+    </linearGradient>
+    <linearGradient id="sumoTarp" x1="0" y1="10" x2="0" y2="25" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stopColor="#f97316"/>
+      <stop offset="100%" stopColor="#c2410c"/>
+    </linearGradient>
+    <linearGradient id="sumoGlass" x1="0" y1="25" x2="0" y2="50" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stopColor="#64748b"/>
+      <stop offset="100%" stopColor="#1e293b"/>
+    </linearGradient>
+  </defs>
+  {/*  Ground Shadow  */}
+  <ellipse cx="100" cy="80" rx="84" ry="4" fill="#0f172a" opacity="0.22"/>
+  {/*  Roof Rack & Orange Luggage Tarp  */}
+  <rect x="52" y="11" width="76" height="13" rx="3" fill="url(#sumoTarp)"/>
+  <path d="M 66 11 L 66 24 M 82 11 L 82 24 M 98 11 L 98 24 M 114 11 L 114 24" stroke="#fed7aa" strokeWidth="1.2"/>
+  <rect x="46" y="21" width="90" height="4" rx="1.5" fill="#334155"/>
+  <path d="M 52 25 L 52 29 M 80 25 L 80 29 M 108 25 L 108 29 M 132 25 L 132 29" stroke="#334155" strokeWidth="1.8" strokeLinecap="round"/>
+  {/*  Main Sumo / Bolero Body  */}
+  <path d="M 24 44 L 32 30 C 34 29 37 28 41 28 L 138 28 C 143 28 147 31 150 36 L 163 51 L 176 54 C 180 55 182 58 182 62 L 182 68 C 182 71 180 73 176 73 L 157 73 A 14 14 0 0 1 129 73 L 69 73 A 14 14 0 0 1 41 73 L 24 73 C 21 73 19 71 19 68 L 19 49 C 19 46 21 44 24 44 Z" fill="url(#sumoBody)" stroke="#94a3b8" strokeWidth="0.8"/>
+  {/*  Rear Spare Wheel Mounted  */}
+  <rect x="14" y="42" width="7" height="25" rx="3.5" fill="#1e293b"/>
+  {/*  Windows  */}
+  <path d="M 40 32 L 67 32 L 67 48 L 33 48 L 33 37 C 33 34 36 32 40 32 Z" fill="url(#sumoGlass)"/>
+  <rect x="71" y="32" width="34" height="16" rx="1" fill="url(#sumoGlass)"/>
+  <path d="M 109 32 L 135 32 C 138 32 141 34 143 37 L 151 48 L 109 48 Z" fill="url(#sumoGlass)"/>
+  {/*  Windshield Reflection  */}
+  <path d="M 132 34 L 145 46" stroke="#94a3b8" strokeWidth="1" strokeLinecap="round" opacity="0.6"/>
+  {/*  Door Cuts & Handles  */}
+  <line x1="70" y1="32" x2="70" y2="67" stroke="#94a3b8" strokeWidth="1"/>
+  <line x1="108" y1="32" x2="108" y2="67" stroke="#94a3b8" strokeWidth="1"/>
+  <rect x="73" y="52" width="7" height="2" rx="1" fill="#475569"/>
+  <rect x="111" y="52" width="7" height="2" rx="1" fill="#475569"/>
+  {/*  Dark Side Protective Cladding  */}
+  <path d="M 20 64 L 41 64 A 14 14 0 0 1 69 64 L 129 64 A 14 14 0 0 1 157 64 L 180 64 L 180 69 L 157 69 A 14 14 0 0 1 129 69 L 69 69 A 14 14 0 0 1 41 69 L 20 69 Z" fill="#334155"/>
+  {/*  Headlamp & Grille Front  */}
+  <path d="M 178 55 L 182 55 L 182 62 L 178 62 Z" fill="#fef08a" stroke="#eab308" strokeWidth="0.5"/>
+  <rect x="178" y="63" width="3" height="3" rx="0.5" fill="#f97316"/>
+  <rect x="172" y="66" width="10" height="5" rx="1" fill="#1e293b"/>
+  {/*  Wheels  */}
+  <g>
+    <circle cx="55" cy="73" r="13" fill="#1e293b"/>
+    <circle cx="55" cy="73" r="8" fill="#64748b"/>
+    <circle cx="55" cy="73" r="4" fill="#cbd5e1"/>
+    <circle cx="55" cy="73" r="1.5" fill="#1e293b"/>
+  </g>
+  <g>
+    <circle cx="143" cy="73" r="13" fill="#1e293b"/>
+    <circle cx="143" cy="73" r="8" fill="#64748b"/>
+    <circle cx="143" cy="73" r="4" fill="#cbd5e1"/>
+    <circle cx="143" cy="73" r="1.5" fill="#1e293b"/>
+  </g>
+</svg>
   );
 }
 
-/**
- * Matador (Mini Bus / Tata 407) SVG
- * Features: Iconic Tata 407 curved nose, blue & cream livery, large passenger windows, dual rear wheels
- */
 export function MatadorIllustration({ className = "w-full h-full" }) {
   return (
-    <svg viewBox="0 0 280 140" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
-      <defs>
-        <linearGradient id="matadorBlue" x1="0" y1="35" x2="0" y2="105" gradientUnits="userSpaceOnUse">
-          <stop offset="0%" stopColor="#437793" />
-          <stop offset="100%" stopColor="#244d64" />
-        </linearGradient>
-        <linearGradient id="matadorCream" x1="0" y1="30" x2="0" y2="70" gradientUnits="userSpaceOnUse">
-          <stop offset="0%" stopColor="#fbf9f0" />
-          <stop offset="100%" stopColor="#e8e2cd" />
-        </linearGradient>
-      </defs>
-
-      {/* Road Shadow */}
-      <ellipse cx="140" cy="127" rx="120" ry="7" fill="#1b2a2a" fillOpacity="0.18" />
-
-      {/* Bus Body - Upper Cream Section */}
-      <path
-        d="M 28 42 C 28 36, 34 32, 42 32 L 210 32 C 224 32, 236 40, 240 54 L 246 80 L 28 80 Z"
-        fill="url(#matadorCream)"
-      />
-
-      {/* Bus Body - Lower Blue Section with 407 Nose */}
-      <path
-        d="M 26 80 L 246 80 L 252 86 C 254 94, 250 104, 244 106 L 218 106 A 18 18 0 0 1 182 106 L 108 106 A 18 18 0 0 1 72 106 L 26 106 Z"
-        fill="url(#matadorBlue)"
-      />
-
-      {/* Decorative Red/Orange Accent Stripe */}
-      <rect x="26" y="78" width="224" height="4" fill="#e0633b" />
-
-      {/* Split Front Windshield (Tata 407 Characteristic) */}
-      <path d="M 214 36 L 234 52 L 238 74 L 206 74 L 206 36 Z" fill="#2d4454" />
-      <line x1="222" y1="36" x2="222" y2="74" stroke="#e8e2cd" strokeWidth="2.5" />
-
-      {/* Side Passenger Windows Row */}
-      <g fill="#2d4454" rx="2">
-        <rect x="168" y="38" width="32" height="34" rx="2" />
-        <rect x="130" y="38" width="34" height="34" rx="2" />
-        <rect x="92" y="38" width="34" height="34" rx="2" />
-        <rect x="54" y="38" width="34" height="34" rx="2" />
-        <rect x="32" y="38" width="18" height="34" rx="2" />
-      </g>
-      <line x1="184" y1="38" x2="184" y2="72" stroke="#b0c0cb" strokeWidth="1" />
-      <line x1="147" y1="38" x2="147" y2="72" stroke="#b0c0cb" strokeWidth="1" />
-      <line x1="109" y1="38" x2="109" y2="72" stroke="#b0c0cb" strokeWidth="1" />
-      <line x1="71" y1="38" x2="71" y2="72" stroke="#b0c0cb" strokeWidth="1" />
-
-      {/* Front Nose, Grille & Headlights */}
-      <rect x="246" y="86" width="6" height="10" rx="2" fill="#fef08a" stroke="#d97706" strokeWidth="0.8" />
-      <line x1="244" y1="96" x2="252" y2="96" stroke="#c0d0d8" strokeWidth="2" />
-      <line x1="243" y1="100" x2="250" y2="100" stroke="#c0d0d8" strokeWidth="2" />
-
-      {/* Stage Carriage Route Board on Roof */}
-      <rect x="100" y="24" width="75" height="10" rx="2" fill="#244d64" stroke="#e8e2cd" strokeWidth="1" />
-      <text x="107" y="32" fill="#fef08a" fontSize="6.5" fontWeight="900" fontFamily="sans-serif">TATA 407 MATADOR</text>
-
-      {/* Front Wheel */}
-      <g>
-        <circle cx="200" cy="110" r="19" fill="#1c2024" />
-        <circle cx="200" cy="110" r="12" fill="#50565e" />
-        <circle cx="200" cy="110" r="6" fill="#88929e" />
-        <circle cx="200" cy="110" r="2.5" fill="#1c2024" />
-      </g>
-
-      {/* Heavy Duty Double Rear Wheels */}
-      <g>
-        <circle cx="86" cy="110" r="19" fill="#1c2024" />
-        <circle cx="92" cy="110" r="19" fill="#1c2024" />
-        <circle cx="90" cy="110" r="12" fill="#50565e" />
-        <circle cx="90" cy="110" r="6" fill="#88929e" />
-        <circle cx="90" cy="110" r="2.5" fill="#1c2024" />
-      </g>
-    </svg>
+    <svg viewBox="0 0 200 90" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
+  <defs>
+    <linearGradient id="matadorCream" x1="0" y1="20" x2="0" y2="48" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stopColor="#fffdf5"/>
+      <stop offset="100%" stopColor="#ede4c8"/>
+    </linearGradient>
+    <linearGradient id="matadorBlue" x1="0" y1="48" x2="0" y2="72" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stopColor="#2563eb"/>
+      <stop offset="60%" stopColor="#1d4ed8"/>
+      <stop offset="100%" stopColor="#1e3a8a"/>
+    </linearGradient>
+  </defs>
+  {/*  Ground Shadow  */}
+  <ellipse cx="100" cy="80" rx="88" ry="4" fill="#0f172a" opacity="0.22"/>
+  {/*  Destination Header Board  */}
+  <rect x="70" y="14" width="56" height="8" rx="2" fill="#1e3a8a" stroke="#dbeafe" strokeWidth="0.8"/>
+  <text x="75" y="20" fill="#fef08a" fontSize="5" fontWeight="900" fontFamily="sans-serif" letterSpacing="0.5">TATA 407 MATADOR</text>
+  {/*  Upper Cream Body  */}
+  <path d="M 22 30 C 22 24 28 20 36 20 L 152 20 C 162 20 171 25 174 34 L 178 48 L 22 48 Z" fill="url(#matadorCream)"/>
+  {/*  Lower Royal Blue Body  */}
+  <path d="M 22 48 L 178 48 L 183 56 C 185 62 182 70 176 72 L 160 72 A 13 13 0 0 1 134 72 L 76 72 A 13 13 0 0 1 50 72 L 22 72 Z" fill="url(#matadorBlue)"/>
+  {/*  Red Transit Accent Stripe  */}
+  <rect x="22" y="47" width="158" height="3" fill="#dc2626"/>
+  {/*  Bus Windows Row  */}
+  <g fill="#1e293b">
+    <rect x="26" y="24" width="16" height="20" rx="1.5"/>
+    <rect x="46" y="24" width="22" height="20" rx="1.5"/>
+    <rect x="72" y="24" width="22" height="20" rx="1.5"/>
+    <rect x="98" y="24" width="22" height="20" rx="1.5"/>
+    <rect x="124" y="24" width="22" height="20" rx="1.5"/>
+    {/*  Curved Driver Cab Windshield  */}
+    <path d="M 150 24 L 165 24 C 170 27 172 32 174 42 L 150 42 Z"/>
+  </g>
+  {/*  Window Dividers  */}
+  <line x1="57" y1="24" x2="57" y2="44" stroke="#94a3b8" strokeWidth="0.8"/>
+  <line x1="83" y1="24" x2="83" y2="44" stroke="#94a3b8" strokeWidth="0.8"/>
+  <line x1="109" y1="24" x2="109" y2="44" stroke="#94a3b8" strokeWidth="0.8"/>
+  <line x1="135" y1="24" x2="135" y2="44" stroke="#94a3b8" strokeWidth="0.8"/>
+  {/*  Grille & Headlamp  */}
+  <rect x="179" y="54" width="4" height="8" rx="1.5" fill="#fef08a" stroke="#ca8a04" strokeWidth="0.6"/>
+  <rect x="176" y="63" width="6" height="3" rx="1" fill="#475569"/>
+  {/*  Rear Wheels (Dual Heavy-Duty)  */}
+  <g>
+    <circle cx="61" cy="72" r="13" fill="#1e293b"/>
+    <circle cx="65" cy="72" r="13" fill="#1e293b"/>
+    <circle cx="63" cy="72" r="8" fill="#64748b"/>
+    <circle cx="63" cy="72" r="4" fill="#cbd5e1"/>
+    <circle cx="63" cy="72" r="1.5" fill="#1e293b"/>
+  </g>
+  {/*  Front Steering Wheel  */}
+  <g>
+    <circle cx="147" cy="72" r="13" fill="#1e293b"/>
+    <circle cx="147" cy="72" r="8" fill="#64748b"/>
+    <circle cx="147" cy="72" r="4" fill="#cbd5e1"/>
+    <circle cx="147" cy="72" r="1.5" fill="#1e293b"/>
+  </g>
+</svg>
   );
 }
 
-/**
- * Vikram Tempo SVG (Jammu Urban 3-Wheeler)
- * Features: Authentic elongated front bonnet with circular lamp, open passenger cabin with tubular frame and canvas canopy
- */
 export function VikramTempoIllustration({ className = "w-full h-full" }) {
   return (
-    <svg viewBox="0 0 280 140" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
-      <defs>
-        <linearGradient id="vikramMetal" x1="0" y1="50" x2="0" y2="105" gradientUnits="userSpaceOnUse">
-          <stop offset="0%" stopColor="#bf6530" />
-          <stop offset="100%" stopColor="#873f15" />
-        </linearGradient>
-        <linearGradient id="vikramCanopy" x1="0" y1="30" x2="0" y2="65" gradientUnits="userSpaceOnUse">
-          <stop offset="0%" stopColor="#e4d9b8" />
-          <stop offset="100%" stopColor="#c5b68d" />
-        </linearGradient>
-      </defs>
-
-      {/* Road Shadow */}
-      <ellipse cx="140" cy="126" rx="110" ry="6.5" fill="#1b2a2a" fillOpacity="0.18" />
-
-      {/* Canvas Canopy Roof */}
-      <path d="M 45 34 C 45 30, 55 28, 70 28 L 195 28 C 205 28, 212 32, 212 38 L 210 52 L 45 52 Z" fill="url(#vikramCanopy)" />
-      <line x1="75" y1="28" x2="75" y2="52" stroke="#873f15" strokeWidth="1.5" />
-      <line x1="120" y1="28" x2="120" y2="52" stroke="#873f15" strokeWidth="1.5" />
-      <line x1="165" y1="28" x2="165" y2="52" stroke="#873f15" strokeWidth="1.5" />
-
-      {/* Tubular Steel Safety Framework */}
-      <line x1="48" y1="52" x2="48" y2="92" stroke="#2b3137" strokeWidth="3" />
-      <line x1="110" y1="52" x2="110" y2="92" stroke="#2b3137" strokeWidth="3" />
-      <line x1="170" y1="52" x2="170" y2="92" stroke="#2b3137" strokeWidth="3" />
-      <line x1="210" y1="52" x2="210" y2="78" stroke="#2b3137" strokeWidth="3" />
-      <line x1="48" y1="74" x2="170" y2="74" stroke="#e4d9b8" strokeWidth="2.5" />
-
-      {/* Front Snout / Engine Bonnet (Famous Vikram Nose) */}
-      <path
-        d="M 210 74 L 244 86 C 250 88, 252 94, 250 102 L 244 106 L 222 106 A 18 18 0 0 1 186 106 L 46 106 L 42 90 L 170 90 L 208 74 Z"
-        fill="url(#vikramMetal)"
-      />
-
-      {/* Front Windshield on Driver Section */}
-      <polygon points="174,52 208,52 206,74 174,74" fill="#385263" />
-
-      {/* Front Circular Chrome Headlight */}
-      <circle cx="248" cy="94" r="6" fill="#fef08a" stroke="#ffffff" strokeWidth="1.2" />
-      <circle cx="248" cy="94" r="2" fill="#ffffff" />
-
-      {/* Passenger Benches Silhouette */}
-      <rect x="58" y="78" width="105" height="10" rx="2" fill="#522a13" opacity="0.8" />
-      <text x="65" y="100" fill="#fef08a" fontSize="8" fontWeight="bold" fontFamily="sans-serif">VIKRAM JAMMU</text>
-
-      {/* Front 3-Wheeler Single Wheel */}
-      <g>
-        <circle cx="230" cy="112" r="16" fill="#1c2024" />
-        <circle cx="230" cy="112" r="9" fill="#50565e" />
-        <circle cx="230" cy="112" r="4" fill="#88929e" />
-      </g>
-
-      {/* Rear Main Wheel */}
-      <g>
-        <circle cx="82" cy="110" r="19" fill="#1c2024" />
-        <circle cx="82" cy="110" r="12" fill="#50565e" />
-        <circle cx="82" cy="110" r="6" fill="#88929e" />
-        <circle cx="82" cy="110" r="2.5" fill="#1c2024" />
-      </g>
-    </svg>
+    <svg viewBox="0 0 200 90" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
+  <defs>
+    <linearGradient id="tempoBody" x1="0" y1="40" x2="0" y2="72" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stopColor="#ea580c"/>
+      <stop offset="100%" stopColor="#9a3412"/>
+    </linearGradient>
+    <linearGradient id="tempoRoof" x1="0" y1="18" x2="0" y2="34" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stopColor="#fef3c7"/>
+      <stop offset="100%" stopColor="#e4d9b8"/>
+    </linearGradient>
+  </defs>
+  {/*  Ground Shadow  */}
+  <ellipse cx="100" cy="80" rx="78" ry="4" fill="#0f172a" opacity="0.22"/>
+  {/*  Khaki Canvas Canopy  */}
+  <path d="M 32 24 C 32 20 40 18 52 18 L 136 18 C 144 18 150 21 150 26 L 148 36 L 32 36 Z" fill="url(#tempoRoof)"/>
+  <line x1="55" y1="18" x2="55" y2="36" stroke="#9a3412" strokeWidth="1.2"/>
+  <line x1="88" y1="18" x2="88" y2="36" stroke="#9a3412" strokeWidth="1.2"/>
+  <line x1="120" y1="18" x2="120" y2="36" stroke="#9a3412" strokeWidth="1.2"/>
+  {/*  Canopy Support Struts  */}
+  <line x1="36" y1="36" x2="36" y2="60" stroke="#334155" strokeWidth="2"/>
+  <line x1="80" y1="36" x2="80" y2="60" stroke="#334155" strokeWidth="2"/>
+  <line x1="120" y1="36" x2="120" y2="60" stroke="#334155" strokeWidth="2"/>
+  <line x1="148" y1="36" x2="148" y2="52" stroke="#334155" strokeWidth="2"/>
+  {/*  Driver Cab Windshield  */}
+  <polygon points="123,36 146,36 144,52 123,52" fill="#385263" opacity="0.9"/>
+  {/*  Front Snout Diesel Body  */}
+  <path d="M 32 58 L 122 58 L 146 50 L 172 60 C 176 62 178 66 176 71 L 172 73 L 158 73 A 12 12 0 0 1 134 73 L 74 73 A 13 13 0 0 1 48 73 L 32 73 Z" fill="url(#tempoBody)"/>
+  {/*  Rear Passenger Safety Rail  */}
+  <line x1="35" y1="48" x2="120" y2="48" stroke="#cbd5e1" strokeWidth="1.8"/>
+  {/*  Large Round Front Snout Headlamp  */}
+  <circle cx="174" cy="65" r="4.5" fill="#fef08a" stroke="#fff" strokeWidth="1"/>
+  <circle cx="174" cy="65" r="1.5" fill="#fff"/>
+  {/*  Side Branding  */}
+  <rect x="52" y="61" width="58" height="7" rx="1.5" fill="#431407" opacity="0.7"/>
+  <text x="56" y="66.5" fill="#fef08a" fontSize="5" fontWeight="bold" fontFamily="sans-serif">VIKRAM JAMMU</text>
+  {/*  Rear Wheel  */}
+  <g>
+    <circle cx="61" cy="73" r="13" fill="#1e293b"/>
+    <circle cx="61" cy="73" r="8" fill="#64748b"/>
+    <circle cx="61" cy="73" r="4" fill="#cbd5e1"/>
+    <circle cx="61" cy="73" r="1.5" fill="#1e293b"/>
+  </g>
+  {/*  Front Wheel (Snout Mounted)  */}
+  <g>
+    <circle cx="160" cy="74" r="11" fill="#1e293b"/>
+    <circle cx="160" cy="74" r="6" fill="#64748b"/>
+    <circle cx="160" cy="74" r="3" fill="#cbd5e1"/>
+  </g>
+</svg>
   );
 }
 
-/**
- * E-Rickshaw SVG (Battery Toto)
- * Features: Lightweight open green frame, curved yellow canopy, passenger seat bench, thin EV wheels
- */
 export function ERickshawIllustration({ className = "w-full h-full" }) {
   return (
-    <svg viewBox="0 0 280 140" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
-      <defs>
-        <linearGradient id="erickGreen" x1="0" y1="60" x2="0" y2="105" gradientUnits="userSpaceOnUse">
-          <stop offset="0%" stopColor="#34d399" />
-          <stop offset="100%" stopColor="#059669" />
-        </linearGradient>
-      </defs>
-
-      {/* Road Shadow */}
-      <ellipse cx="140" cy="126" rx="100" ry="6" fill="#1b2a2a" fillOpacity="0.16" />
-
-      {/* Lightweight Yellow Curved Canopy */}
-      <path d="M 55 38 C 55 30, 80 26, 140 26 C 200 26, 218 32, 218 40 L 216 46 L 55 46 Z" fill="#facc15" stroke="#ca8a04" strokeWidth="1" />
-
-      {/* Tubular Black Frame Structure */}
-      <line x1="60" y1="46" x2="60" y2="92" stroke="#1f2937" strokeWidth="2.5" />
-      <line x1="120" y1="46" x2="120" y2="92" stroke="#1f2937" strokeWidth="2.5" />
-      <line x1="190" y1="46" x2="190" y2="76" stroke="#1f2937" strokeWidth="2.5" />
-      <line x1="85" y1="50" x2="85" y2="58" stroke="#facc15" strokeWidth="2" />
-      <line x1="150" y1="50" x2="150" y2="58" stroke="#facc15" strokeWidth="2" />
-
-      {/* Driver Windscreen & Apron */}
-      <polygon points="186,46 208,46 204,74 186,74" fill="#3b82f6" fillOpacity="0.3" stroke="#1f2937" strokeWidth="1.5" />
-
-      {/* Green Metal Body Lower Panels */}
-      <path
-        d="M 56 86 L 165 86 L 180 74 L 212 74 L 222 96 L 222 106 L 202 106 A 16 16 0 0 1 170 106 L 112 106 A 16 16 0 0 1 80 106 L 56 106 Z"
-        fill="url(#erickGreen)"
-      />
-
-      {/* Passenger Seat Bench & Battery Compartment */}
-      <rect x="68" y="74" width="48" height="14" rx="3" fill="#1e293b" />
-      <rect x="122" y="78" width="38" height="12" rx="2" fill="#1e293b" />
-      <circle cx="95" cy="96" r="6" fill="#fef08a" />
-      <path d="M 96 92 L 93 96 L 96 96 L 94 100 L 98 95 L 95 95 Z" fill="#059669" />
-
-      {/* Front Headlamp */}
-      <circle cx="222" cy="86" r="5" fill="#fef08a" stroke="#ca8a04" strokeWidth="1" />
-
-      {/* Front Wheel */}
-      <g>
-        <circle cx="212" cy="112" r="15" fill="#111827" />
-        <circle cx="212" cy="112" r="9" fill="#9ca3af" />
-        <circle cx="212" cy="112" r="4" fill="#111827" />
-        <line x1="212" y1="103" x2="212" y2="121" stroke="#4b5563" strokeWidth="1" />
-        <line x1="203" y1="112" x2="221" y2="112" stroke="#4b5563" strokeWidth="1" />
-      </g>
-
-      {/* Rear Wheel */}
-      <g>
-        <circle cx="96" cy="112" r="15" fill="#111827" />
-        <circle cx="96" cy="112" r="9" fill="#9ca3af" />
-        <circle cx="96" cy="112" r="4" fill="#111827" />
-        <line x1="96" y1="103" x2="96" y2="121" stroke="#4b5563" strokeWidth="1" />
-        <line x1="87" y1="112" x2="105" y2="112" stroke="#4b5563" strokeWidth="1" />
-      </g>
-    </svg>
+    <svg viewBox="0 0 200 90" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
+  <defs>
+    <linearGradient id="erickGreen" x1="0" y1="40" x2="0" y2="72" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stopColor="#10b981"/>
+      <stop offset="100%" stopColor="#047857"/>
+    </linearGradient>
+  </defs>
+  {/*  Ground Shadow  */}
+  <ellipse cx="100" cy="80" rx="74" ry="4" fill="#0f172a" opacity="0.2"/>
+  {/*  Curved Yellow Weather Canopy  */}
+  <path d="M 40 25 C 40 19 60 16 100 16 C 140 16 156 20 156 26 L 154 32 L 40 32 Z" fill="#facc15" stroke="#ca8a04" strokeWidth="0.8"/>
+  {/*  Canopy Steel Tubular Frame  */}
+  <line x1="44" y1="32" x2="44" y2="60" stroke="#1f2937" strokeWidth="1.8"/>
+  <line x1="88" y1="32" x2="88" y2="60" stroke="#1f2937" strokeWidth="1.8"/>
+  <line x1="136" y1="32" x2="136" y2="52" stroke="#1f2937" strokeWidth="1.8"/>
+  {/*  Transparent Passenger Windscreen  */}
+  <polygon points="133,32 148,32 145,52 133,52" fill="#38bdf8" fillOpacity="0.3" stroke="#1f2937" strokeWidth="1"/>
+  {/*  Passenger Body Shell  */}
+  <path d="M 41 58 L 118 58 L 128 50 L 152 50 L 158 65 L 158 72 L 144 72 A 12 12 0 0 1 120 72 L 78 72 A 12 12 0 0 1 54 72 L 41 72 Z" fill="url(#erickGreen)"/>
+  {/*  Passenger Cushions  */}
+  <rect x="50" y="48" width="34" height="10" rx="2" fill="#1e293b"/>
+  <rect x="88" y="52" width="28" height="8" rx="1.5" fill="#1e293b"/>
+  {/*  EV Battery Emblem on Side  */}
+  <circle cx="68" cy="65" r="4.5" fill="#fef08a"/>
+  <path d="M 68 62 L 66 65 L 68 65 L 67 68 L 70 64 L 68 64 Z" fill="#047857"/>
+  {/*  Front Bright Round LED  */}
+  <circle cx="158" cy="58" r="3.5" fill="#fef08a" stroke="#ca8a04" strokeWidth="0.8"/>
+  {/*  Wheels with Clean Wire Spokes  */}
+  <g>
+    <circle cx="66" cy="74" r="11" fill="#111827"/>
+    <circle cx="66" cy="74" r="7" fill="#9ca3af"/>
+    <circle cx="66" cy="74" r="3" fill="#111827"/>
+    <line x1="66" y1="67" x2="66" y2="81" stroke="#4b5563" strokeWidth="0.8"/>
+    <line x1="59" y1="74" x2="73" y2="74" stroke="#4b5563" strokeWidth="0.8"/>
+  </g>
+  <g>
+    <circle cx="150" cy="74" r="11" fill="#111827"/>
+    <circle cx="150" cy="74" r="7" fill="#9ca3af"/>
+    <circle cx="150" cy="74" r="3" fill="#111827"/>
+    <line x1="150" y1="67" x2="150" y2="81" stroke="#4b5563" strokeWidth="0.8"/>
+    <line x1="143" y1="74" x2="157" y2="74" stroke="#4b5563" strokeWidth="0.8"/>
+  </g>
+</svg>
   );
 }
 
-/**
- * E-Auto SVG (Modern Electric Auto / Mahindra Treo)
- * Features: Aerodynamic teardrop body, dual-tone emerald & white, single front windscreen wiper, EV emblem
- */
 export function EAutoIllustration({ className = "w-full h-full" }) {
   return (
-    <svg viewBox="0 0 280 140" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
-      <defs>
-        <linearGradient id="eautoGreen" x1="0" y1="40" x2="0" y2="105" gradientUnits="userSpaceOnUse">
-          <stop offset="0%" stopColor="#10b981" />
-          <stop offset="100%" stopColor="#047857" />
-        </linearGradient>
-      </defs>
-
-      {/* Road Shadow */}
-      <ellipse cx="140" cy="126" rx="105" ry="6.5" fill="#1b2a2a" fillOpacity="0.16" />
-
-      {/* Aerodynamic Teardrop Monocoque Roof & Body */}
-      <path
-        d="M 52 82 C 52 50, 72 34, 130 34 L 175 34 C 205 34, 222 48, 228 72 L 232 94 L 222 106 L 198 106 A 16 16 0 0 1 166 106 L 116 106 A 16 16 0 0 1 84 106 L 52 106 Z"
-        fill="url(#eautoGreen)"
-      />
-
-      {/* White Aerodynamic Lower Door Contrast Accent */}
-      <path d="M 95 64 L 165 64 C 172 64, 178 70, 176 78 L 170 102 L 95 102 Z" fill="#f8fafc" />
-
-      {/* Large Panoramic Front Curved Windshield */}
-      <path d="M 172 38 L 216 46 C 224 54, 226 68, 224 78 L 182 78 Z" fill="#1e3a4a" />
-      <line x1="202" y1="78" x2="212" y2="52" stroke="#94a3b8" strokeWidth="1.5" />
-
-      {/* Passenger Side Open Window */}
-      <rect x="98" y="44" width="65" height="28" rx="4" fill="#0f172a" opacity="0.85" />
-      <rect x="105" y="66" width="48" height="8" rx="2" fill="#334155" />
-
-      {/* EV Clean Mobility Badge */}
-      <circle cx="132" cy="85" r="9" fill="#047857" />
-      <text x="127" y="88" fill="#ffffff" fontSize="7" fontWeight="bold" fontFamily="sans-serif">EV</text>
-
-      {/* Modern Flush LED Headlight */}
-      <rect x="228" y="84" width="5" height="12" rx="2" fill="#e0f2fe" stroke="#38bdf8" strokeWidth="1" />
-
-      {/* Front Wheel */}
-      <g>
-        <circle cx="210" cy="112" r="16" fill="#1e293b" />
-        <circle cx="210" cy="112" r="10" fill="#64748b" />
-        <circle cx="210" cy="112" r="4" fill="#047857" />
-      </g>
-
-      {/* Rear Wheel */}
-      <g>
-        <circle cx="98" cy="112" r="16" fill="#1e293b" />
-        <circle cx="98" cy="112" r="10" fill="#64748b" />
-        <circle cx="98" cy="112" r="4" fill="#047857" />
-      </g>
-    </svg>
+    <svg viewBox="0 0 200 90" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
+  <defs>
+    <linearGradient id="eautoGradient" x1="0" y1="24" x2="0" y2="72" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stopColor="#10b981"/>
+      <stop offset="60%" stopColor="#059669"/>
+      <stop offset="100%" stopColor="#047857"/>
+    </linearGradient>
+  </defs>
+  {/*  Ground Shadow  */}
+  <ellipse cx="100" cy="80" rx="76" ry="4" fill="#0f172a" opacity="0.2"/>
+  {/*  Aerodynamic Green Body Shell  */}
+  <path d="M 38 56 C 38 34 52 24 92 24 L 125 24 C 146 24 158 34 162 50 L 165 65 L 158 73 L 142 73 A 12 12 0 0 1 118 73 L 82 73 A 12 12 0 0 1 58 73 L 38 73 Z" fill="url(#eautoGradient)"/>
+  {/*  Contrasting White Passenger Cutout Door  */}
+  <path d="M 68 44 L 118 44 C 122 44 126 48 125 54 L 120 70 L 68 70 Z" fill="#f8fafc"/>
+  {/*  Cabin Glass & Panoramic Front Windshield  */}
+  <path d="M 123 26 L 153 32 C 158 38 160 48 158 55 L 130 55 Z" fill="#1e3a4a"/>
+  <line x1="143" y1="55" x2="151" y2="36" stroke="#94a3b8" strokeWidth="1"/>
+  {/*  Interior Passenger Seat  */}
+  <rect x="70" y="32" width="46" height="20" rx="3" fill="#0f172a" opacity="0.85"/>
+  <rect x="75" y="48" width="34" height="6" rx="1.5" fill="#334155"/>
+  {/*  Emerald Green EV Badge  */}
+  <circle cx="94" cy="58" r="6.5" fill="#047857"/>
+  <text x="90" y="60.5" fill="#ffffff" fontSize="5.5" fontWeight="900" fontFamily="sans-serif">EV</text>
+  {/*  Modern Sleek Headlight  */}
+  <rect x="162" y="58" width="4" height="8" rx="1.5" fill="#e0f2fe" stroke="#38bdf8" strokeWidth="0.8"/>
+  {/*  Wheels  */}
+  <g>
+    <circle cx="70" cy="73" r="12" fill="#1e293b"/>
+    <circle cx="70" cy="73" r="7.5" fill="#64748b"/>
+    <circle cx="70" cy="73" r="3" fill="#10b981"/>
+  </g>
+  <g>
+    <circle cx="150" cy="73" r="12" fill="#1e293b"/>
+    <circle cx="150" cy="73" r="7.5" fill="#64748b"/>
+    <circle cx="150" cy="73" r="3" fill="#10b981"/>
+  </g>
+</svg>
   );
 }
 
-/**
- * Auto Rickshaw SVG (Classic Bajaj RE 3-Wheeler)
- * Features: Yellow roof canopy, black metal chassis, circular front headlamp, meter on dashboard
- */
 export function AutoRickshawIllustration({ className = "w-full h-full" }) {
   return (
-    <svg viewBox="0 0 280 140" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
-      <defs>
-        <linearGradient id="autoYellow" x1="0" y1="30" x2="0" y2="70" gradientUnits="userSpaceOnUse">
-          <stop offset="0%" stopColor="#f59e0b" />
-          <stop offset="100%" stopColor="#d97706" />
-        </linearGradient>
-      </defs>
-
-      {/* Road Shadow */}
-      <ellipse cx="140" cy="126" rx="100" ry="6.5" fill="#1b2a2a" fillOpacity="0.16" />
-
-      {/* Classic Yellow Canopy Top */}
-      <path
-        d="M 56 68 C 56 42, 80 32, 145 32 C 185 32, 204 40, 212 56 L 210 70 L 56 70 Z"
-        fill="url(#autoYellow)"
-      />
-
-      {/* Classic Black Metal Lower Body */}
-      <path
-        d="M 56 70 L 210 70 L 218 88 L 222 106 L 198 106 A 16 16 0 0 1 166 106 L 116 106 A 16 16 0 0 1 84 106 L 54 106 Z"
-        fill="#1e2429"
-      />
-
-      {/* Front Windshield */}
-      <polygon points="168,40 206,46 200,68 168,68" fill="#334e68" />
-      <rect x="172" y="62" width="10" height="6" rx="1" fill="#dc2626" />
-      <circle cx="177" cy="65" r="1" fill="#fef08a" />
-
-      {/* Open Side Entry with Safety Bar */}
-      <rect x="95" y="44" width="65" height="32" rx="3" fill="#0f172a" opacity="0.9" />
-      <line x1="95" y1="72" x2="160" y2="72" stroke="#f59e0b" strokeWidth="2.5" />
-
-      {/* Circular Chrome Headlamp */}
-      <circle cx="218" cy="88" r="6" fill="#fef08a" stroke="#d1d5db" strokeWidth="1.2" />
-
-      {/* Yellow Registration Plate */}
-      <rect x="62" y="90" width="18" height="6" rx="1" fill="#facc15" />
-      <text x="64" y="95" fill="#000" fontSize="4.5" fontWeight="bold" fontFamily="sans-serif">JK 01</text>
-
-      {/* Front Wheel */}
-      <g>
-        <circle cx="204" cy="112" r="16" fill="#111827" />
-        <circle cx="204" cy="112" r="9" fill="#6b7280" />
-        <circle cx="204" cy="112" r="3.5" fill="#111827" />
-      </g>
-
-      {/* Rear Wheel */}
-      <g>
-        <circle cx="98" cy="112" r="16" fill="#111827" />
-        <circle cx="98" cy="112" r="9" fill="#6b7280" />
-        <circle cx="98" cy="112" r="3.5" fill="#111827" />
-      </g>
-    </svg>
+    <svg viewBox="0 0 200 90" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
+  <defs>
+    <linearGradient id="autoYellow" x1="0" y1="20" x2="0" y2="48" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stopColor="#fbbf24"/>
+      <stop offset="100%" stopColor="#d97706"/>
+    </linearGradient>
+  </defs>
+  {/*  Ground Shadow  */}
+  <ellipse cx="100" cy="80" rx="74" ry="4" fill="#0f172a" opacity="0.2"/>
+  {/*  Yellow Hood Canopy  */}
+  <path d="M 40 48 C 40 30 58 22 104 22 C 132 22 146 28 152 40 L 150 50 L 40 50 Z" fill="url(#autoYellow)"/>
+  {/*  Black Metallic Lower Chassis  */}
+  <path d="M 40 50 L 150 50 L 156 62 L 158 73 L 142 73 A 12 12 0 0 1 118 73 L 82 73 A 12 12 0 0 1 58 73 L 39 73 Z" fill="#1e2429"/>
+  {/*  Windshield & Front Glass  */}
+  <polygon points="120,28 148,32 144,48 120,48" fill="#334e68"/>
+  <line x1="136" y1="30" x2="132" y2="46" stroke="#94a3b8" strokeWidth="0.8"/>
+  {/*  Fare Meter Box (Red LED)  */}
+  <rect x="124" y="44" width="7" height="4.5" rx="1" fill="#dc2626"/>
+  <circle cx="127.5" cy="46" r="0.8" fill="#fef08a"/>
+  {/*  Passenger Compartment Opening  */}
+  <rect x="68" y="31" width="46" height="23" rx="2" fill="#0f172a" opacity="0.9"/>
+  <line x1="68" y1="51" x2="114" y2="51" stroke="#f59e0b" strokeWidth="1.8"/>
+  {/*  Front Round Headlamp  */}
+  <circle cx="155" cy="61" r="4.5" fill="#fef08a" stroke="#d1d5db" strokeWidth="0.8"/>
+  {/*  Yellow Number Plate Strip  */}
+  <rect x="44" y="62" width="14" height="4.5" rx="1" fill="#facc15"/>
+  <text x="45.5" y="65.5" fill="#000" fontSize="3.5" fontWeight="bold" fontFamily="sans-serif">JK 01</text>
+  {/*  Wheels  */}
+  <g>
+    <circle cx="70" cy="73" r="12" fill="#111827"/>
+    <circle cx="70" cy="73" r="7" fill="#6b7280"/>
+    <circle cx="70" cy="73" r="2.5" fill="#111827"/>
+  </g>
+  <g>
+    <circle cx="146" cy="73" r="12" fill="#111827"/>
+    <circle cx="146" cy="73" r="7" fill="#6b7280"/>
+    <circle cx="146" cy="73" r="2.5" fill="#111827"/>
+  </g>
+</svg>
   );
 }
 
-/**
- * Tata Magic / Maruti Eeco SVG (Suburban Feeder Van)
- * Features: Compact white van body, sliding passenger side door with handle, rear tinted window
- */
 export function TataMagicIllustration({ className = "w-full h-full" }) {
   return (
-    <svg viewBox="0 0 280 140" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
-      <defs>
-        <linearGradient id="magicBody" x1="0" y1="36" x2="0" y2="105" gradientUnits="userSpaceOnUse">
-          <stop offset="0%" stopColor="#ffffff" />
-          <stop offset="80%" stopColor="#edf2f7" />
-          <stop offset="100%" stopColor="#cbd5e1" />
-        </linearGradient>
-      </defs>
-
-      {/* Road Shadow */}
-      <ellipse cx="140" cy="126" rx="112" ry="6.5" fill="#1b2a2a" fillOpacity="0.18" />
-
-      {/* Compact Van Silhouette */}
-      <path
-        d="M 38 48 C 38 40, 48 36, 60 36 L 195 36 C 212 36, 225 44, 230 62 L 236 86 C 238 94, 236 104, 230 106 L 208 106 A 16 16 0 0 1 176 106 L 104 106 A 16 16 0 0 1 72 106 L 38 106 Z"
-        fill="url(#magicBody)"
-        stroke="#94a3b8"
-        strokeWidth="1.2"
-      />
-
-      <rect x="38" y="98" width="192" height="6" fill="#334155" />
-
-      {/* Front Windshield */}
-      <path d="M 175 40 L 214 46 L 222 72 L 175 72 Z" fill="#294354" />
-
-      {/* Middle Passenger Window (Sliding Door) */}
-      <rect x="110" y="42" width="58" height="30" rx="2" fill="#294354" />
-      <rect x="46" y="42" width="58" height="30" rx="2" fill="#294354" />
-
-      {/* Sliding Door Track Line & Door Handle */}
-      <line x1="90" y1="80" x2="175" y2="80" stroke="#94a3b8" strokeWidth="1.5" />
-      <rect x="160" y="74" width="8" height="3" rx="1" fill="#334155" />
-
-      {/* Headlight & Indicator */}
-      <rect x="232" y="74" width="5" height="12" rx="2" fill="#fef08a" stroke="#e2e8f0" strokeWidth="0.8" />
-      <rect x="232" y="86" width="5" height="4" rx="1" fill="#f59e0b" />
-
-      {/* Front Wheel */}
-      <g>
-        <circle cx="192" cy="110" r="17" fill="#1e293b" />
-        <circle cx="192" cy="110" r="10" fill="#64748b" />
-        <circle cx="192" cy="110" r="4" fill="#cbd5e1" />
-      </g>
-
-      {/* Rear Wheel */}
-      <g>
-        <circle cx="88" cy="110" r="17" fill="#1e293b" />
-        <circle cx="88" cy="110" r="10" fill="#64748b" />
-        <circle cx="88" cy="110" r="4" fill="#cbd5e1" />
-      </g>
-    </svg>
+    <svg viewBox="0 0 200 90" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
+  <defs>
+    <linearGradient id="magicWhite" x1="0" y1="24" x2="0" y2="72" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stopColor="#ffffff"/>
+      <stop offset="70%" stopColor="#f1f5f9"/>
+      <stop offset="100%" stopColor="#cbd5e1"/>
+    </linearGradient>
+  </defs>
+  {/*  Ground Shadow  */}
+  <ellipse cx="100" cy="80" rx="84" ry="4" fill="#0f172a" opacity="0.2"/>
+  {/*  Minivan Body Contour  */}
+  <path d="M 28 34 C 28 28 35 25 44 25 L 140 25 C 152 25 161 31 165 44 L 169 60 C 170 66 169 72 165 73 L 150 73 A 12 12 0 0 1 126 73 L 74 73 A 12 12 0 0 1 50 73 L 28 73 Z" fill="url(#magicWhite)" stroke="#94a3b8" strokeWidth="0.8"/>
+  {/*  Dark Rocker Panel Skirt  */}
+  <rect x="28" y="68" width="138" height="4" fill="#334155"/>
+  {/*  Slanted Front Windshield  */}
+  <path d="M 126 28 L 154 32 L 160 50 L 126 50 Z" fill="#294354"/>
+  {/*  Side Passenger Windows  */}
+  <rect x="80" y="29" width="41" height="21" rx="1.5" fill="#294354"/>
+  <rect x="34" y="29" width="41" height="21" rx="1.5" fill="#294354"/>
+  {/*  Sliding Door Rail & Handle  */}
+  <line x1="66" y1="56" x2="126" y2="56" stroke="#94a3b8" strokeWidth="1.2"/>
+  <rect x="116" y="52" width="6" height="2" rx="0.8" fill="#334155"/>
+  {/*  Headlamp & Signal  */}
+  <rect x="166" y="52" width="4" height="9" rx="1.5" fill="#fef08a" stroke="#cbd5e1" strokeWidth="0.6"/>
+  <rect x="166" y="61" width="4" height="3" rx="0.8" fill="#f59e0b"/>
+  {/*  Wheels  */}
+  <g>
+    <circle cx="62" cy="73" r="12" fill="#1e293b"/>
+    <circle cx="62" cy="73" r="7.5" fill="#64748b"/>
+    <circle cx="62" cy="73" r="3" fill="#cbd5e1"/>
+  </g>
+  <g>
+    <circle cx="138" cy="73" r="12" fill="#1e293b"/>
+    <circle cx="138" cy="73" r="7.5" fill="#64748b"/>
+    <circle cx="138" cy="73" r="3" fill="#cbd5e1"/>
+  </g>
+</svg>
   );
 }
 
-/**
- * Private Bus SVG (32+ Seater Highway Coach)
- * Features: Long chassis, crimson & cream highway livery, large panoramic side windows, roof luggage carrier
- */
 export function PrivateBusIllustration({ className = "w-full h-full" }) {
   return (
-    <svg viewBox="0 0 280 140" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
-      <defs>
-        <linearGradient id="busRed" x1="0" y1="30" x2="0" y2="105" gradientUnits="userSpaceOnUse">
-          <stop offset="0%" stopColor="#b91c1c" />
-          <stop offset="100%" stopColor="#7f1d1d" />
-        </linearGradient>
-      </defs>
-
-      {/* Road Shadow */}
-      <ellipse cx="140" cy="127" rx="125" ry="7" fill="#1b2a2a" fillOpacity="0.18" />
-
-      {/* Full Length Coach Body */}
-      <path
-        d="M 22 40 C 22 34, 30 28, 42 28 L 235 28 C 248 28, 256 36, 258 50 L 260 88 C 260 98, 254 106, 246 106 L 225 106 A 16 16 0 0 1 193 106 L 98 106 A 16 16 0 0 1 66 106 L 22 106 Z"
-        fill="url(#busRed)"
-      />
-
-      <rect x="22" y="28" width="236" height="6" fill="#fef3c7" />
-
-      {/* Destination LED Board */}
-      <rect x="205" y="32" width="45" height="8" rx="1.5" fill="#0f172a" />
-      <text x="210" y="38" fill="#facc15" fontSize="5" fontWeight="bold" fontFamily="sans-serif">J&K STAGE</text>
-
-      {/* Large Highway Windows */}
-      <g fill="#1e293b">
-        <rect x="30" y="38" width="22" height="32" rx="2" />
-        <rect x="56" y="38" width="24" height="32" rx="2" />
-        <rect x="84" y="38" width="24" height="32" rx="2" />
-        <rect x="112" y="38" width="24" height="32" rx="2" />
-        <rect x="140" y="38" width="24" height="32" rx="2" />
-        <rect x="168" y="38" width="24" height="32" rx="2" />
-        <path d="M 196 38 L 244 38 C 250 44, 252 54, 252 70 L 196 70 Z" />
-      </g>
-
-      {/* Underbelly Luggage Cargo Compartment Doors */}
-      <rect x="98" y="86" width="38" height="15" rx="1.5" fill="#581c1c" stroke="#991b1b" strokeWidth="0.8" />
-      <rect x="140" y="86" width="38" height="15" rx="1.5" fill="#581c1c" stroke="#991b1b" strokeWidth="0.8" />
-
-      {/* Front Headlights */}
-      <rect x="256" y="76" width="4" height="14" rx="1.5" fill="#fef08a" stroke="#d97706" strokeWidth="0.8" />
-
-      {/* Front Wheel */}
-      <g>
-        <circle cx="210" cy="110" r="18" fill="#111827" />
-        <circle cx="210" cy="110" r="11" fill="#4b5563" />
-        <circle cx="210" cy="110" r="5" fill="#9ca3af" />
-      </g>
-
-      {/* Rear Double Axle */}
-      <g>
-        <circle cx="82" cy="110" r="18" fill="#111827" />
-        <circle cx="82" cy="110" r="11" fill="#4b5563" />
-        <circle cx="82" cy="110" r="5" fill="#9ca3af" />
-      </g>
-    </svg>
+    <svg viewBox="0 0 200 90" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
+  <defs>
+    <linearGradient id="busRed" x1="0" y1="20" x2="0" y2="72" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stopColor="#dc2626"/>
+      <stop offset="50%" stopColor="#b91c1c"/>
+      <stop offset="100%" stopColor="#7f1d1d"/>
+    </linearGradient>
+  </defs>
+  {/*  Ground Shadow  */}
+  <ellipse cx="100" cy="80" rx="92" ry="4" fill="#0f172a" opacity="0.22"/>
+  {/*  Main Coach Body  */}
+  <path d="M 16 28 C 16 23 22 19 31 19 L 168 19 C 178 19 184 25 186 35 L 187 62 C 187 69 183 73 177 73 L 162 73 A 12 12 0 0 1 138 73 L 70 73 A 12 12 0 0 1 46 73 L 16 73 Z" fill="url(#busRed)"/>
+  {/*  Cream Roof Trim  */}
+  <rect x="16" y="19" width="170" height="4.5" fill="#fef3c7"/>
+  {/*  J&K STAGE Destination Placard  */}
+  <rect x="148" y="22" width="34" height="6.5" rx="1" fill="#0f172a"/>
+  <text x="151" y="27" fill="#facc15" fontSize="4" fontWeight="900" fontFamily="sans-serif" letterSpacing="0.5">J&K STAGE</text>
+  {/*  Touring Windows Row  */}
+  <g fill="#1e293b">
+    <rect x="22" y="26" width="16" height="23" rx="1.5"/>
+    <rect x="41" y="26" width="18" height="23" rx="1.5"/>
+    <rect x="62" y="26" width="18" height="23" rx="1.5"/>
+    <rect x="83" y="26" width="18" height="23" rx="1.5"/>
+    <rect x="104" y="26" width="18" height="23" rx="1.5"/>
+    <rect x="125" y="26" width="18" height="23" rx="1.5"/>
+    {/*  Front Panoramic Driver Screen  */}
+    <path d="M 146 26 L 180 26 C 184 31 185 38 185 49 L 146 49 Z"/>
+  </g>
+  {/*  Underfloor Luggage Compartments  */}
+  <rect x="70" y="59" width="28" height="10" rx="1" fill="#581c1c" stroke="#991b1b" strokeWidth="0.6"/>
+  <rect x="101" y="59" width="28" height="10" rx="1" fill="#581c1c" stroke="#991b1b" strokeWidth="0.6"/>
+  {/*  Front Headlamp Unit  */}
+  <rect x="184" y="54" width="3.5" height="10" rx="1" fill="#fef08a" stroke="#d97706" strokeWidth="0.6"/>
+  {/*  Heavy Dual Rear Wheels  */}
+  <g>
+    <circle cx="58" cy="73" r="13" fill="#111827"/>
+    <circle cx="58" cy="73" r="8" fill="#4b5563"/>
+    <circle cx="58" cy="73" r="3.5" fill="#9ca3af"/>
+  </g>
+  {/*  Front Steering Wheel  */}
+  <g>
+    <circle cx="150" cy="73" r="13" fill="#111827"/>
+    <circle cx="150" cy="73" r="8" fill="#4b5563"/>
+    <circle cx="150" cy="73" r="3.5" fill="#9ca3af"/>
+  </g>
+</svg>
   );
 }
 
-/**
- * Force Traveller SVG (14-Seater Tourist Maxi-Cab)
- * Features: High-roof white van, large panoramic privacy dark glass, roof AC unit pod, front chrome grille
- */
 export function ForceTravelerIllustration({ className = "w-full h-full" }) {
   return (
-    <svg viewBox="0 0 280 140" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
-      <defs>
-        <linearGradient id="travellerBody" x1="0" y1="30" x2="0" y2="105" gradientUnits="userSpaceOnUse">
-          <stop offset="0%" stopColor="#ffffff" />
-          <stop offset="75%" stopColor="#f1f5f9" />
-          <stop offset="100%" stopColor="#cbd5e1" />
-        </linearGradient>
-      </defs>
-
-      {/* Road Shadow */}
-      <ellipse cx="140" cy="127" rx="120" ry="6.5" fill="#1b2a2a" fillOpacity="0.18" />
-
-      {/* Rooftop Air Conditioning Unit Pod */}
-      <rect x="100" y="20" width="55" height="8" rx="3" fill="#334155" />
-      <line x1="110" y1="23" x2="145" y2="23" stroke="#64748b" strokeWidth="1" />
-
-      {/* High-Roof Van Body Silhouette */}
-      <path
-        d="M 32 46 C 32 34, 44 28, 58 28 L 205 28 C 220 28, 232 36, 238 52 L 246 82 C 248 92, 244 104, 236 106 L 214 106 A 16 16 0 0 1 182 106 L 104 106 A 16 16 0 0 1 72 106 L 32 106 Z"
-        fill="url(#travellerBody)"
-        stroke="#94a3b8"
-        strokeWidth="1.2"
-      />
-
-      {/* Panoramic Dark Privacy Touring Glass */}
-      <path
-        d="M 40 40 L 195 40 L 235 48 L 240 70 L 40 70 Z"
-        fill="#0f172a"
-      />
-      <line x1="85" y1="40" x2="85" y2="70" stroke="#f1f5f9" strokeWidth="2" />
-      <line x1="130" y1="40" x2="130" y2="70" stroke="#f1f5f9" strokeWidth="2" />
-      <line x1="175" y1="40" x2="175" y2="70" stroke="#f1f5f9" strokeWidth="2" />
-
-      {/* Side Tourist Graphics Stripe */}
-      <path d="M 40 82 L 180 82 L 200 90 L 40 90 Z" fill="#2563eb" opacity="0.85" />
-
-      {/* Front Chrome Grille & Headlight */}
-      <rect x="242" y="74" width="5" height="12" rx="2" fill="#fef08a" stroke="#cbd5e1" strokeWidth="0.8" />
-      <line x1="240" y1="90" x2="246" y2="90" stroke="#94a3b8" strokeWidth="2" />
-
-      {/* Front Wheel */}
-      <g>
-        <circle cx="198" cy="110" r="18" fill="#1e293b" />
-        <circle cx="198" cy="110" r="11" fill="#64748b" />
-        <circle cx="198" cy="110" r="5" fill="#e2e8f0" />
-      </g>
-
-      {/* Rear Wheel */}
-      <g>
-        <circle cx="88" cy="110" r="18" fill="#1e293b" />
-        <circle cx="88" cy="110" r="11" fill="#64748b" />
-        <circle cx="88" cy="110" r="5" fill="#e2e8f0" />
-      </g>
-    </svg>
+    <svg viewBox="0 0 200 90" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
+  <defs>
+    <linearGradient id="travellerBody" x1="0" y1="20" x2="0" y2="72" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stopColor="#ffffff"/>
+      <stop offset="65%" stopColor="#f1f5f9"/>
+      <stop offset="100%" stopColor="#cbd5e1"/>
+    </linearGradient>
+  </defs>
+  {/*  Ground Shadow  */}
+  <ellipse cx="100" cy="80" rx="88" ry="4" fill="#0f172a" opacity="0.22"/>
+  {/*  High-Roof AC Condenser Unit  */}
+  <rect x="72" y="13" width="40" height="6" rx="2" fill="#334155"/>
+  <line x1="80" y1="16" x2="104" y2="16" stroke="#64748b" strokeWidth="0.8"/>
+  {/*  High-Roof Tourist Van Body  */}
+  <path d="M 24 33 C 24 24 32 19 43 19 L 148 19 C 159 19 168 25 172 37 L 178 59 C 179 66 176 73 170 73 L 155 73 A 12 12 0 0 1 131 73 L 75 73 A 12 12 0 0 1 51 73 L 24 73 Z" fill="url(#travellerBody)" stroke="#94a3b8" strokeWidth="0.8"/>
+  {/*  Full-Length Privacy Tint Glass Band  */}
+  <path d="M 30 28 L 142 28 L 170 34 L 174 50 L 30 50 Z" fill="#0f172a"/>
+  <line x1="62" y1="28" x2="62" y2="50" stroke="#f1f5f9" strokeWidth="1.5"/>
+  <line x1="95" y1="28" x2="95" y2="50" stroke="#f1f5f9" strokeWidth="1.5"/>
+  <line x1="128" y1="28" x2="128" y2="50" stroke="#f1f5f9" strokeWidth="1.5"/>
+  {/*  Royal Blue Alpine Swoosh Graphic  */}
+  <path d="M 30 58 L 132 58 L 148 64 L 30 64 Z" fill="#2563eb" opacity="0.85"/>
+  {/*  Front Headlamp & Grille Details  */}
+  <rect x="175" y="53" width="4" height="9" rx="1.5" fill="#fef08a" stroke="#cbd5e1" strokeWidth="0.6"/>
+  <line x1="173" y1="65" x2="178" y2="65" stroke="#94a3b8" strokeWidth="1.5"/>
+  {/*  Wheels  */}
+  <g>
+    <circle cx="63" cy="73" r="13" fill="#1e293b"/>
+    <circle cx="63" cy="73" r="8" fill="#64748b"/>
+    <circle cx="63" cy="73" r="3.5" fill="#e2e8f0"/>
+  </g>
+  <g>
+    <circle cx="143" cy="73" r="13" fill="#1e293b"/>
+    <circle cx="143" cy="73" r="8" fill="#64748b"/>
+    <circle cx="143" cy="73" r="3.5" fill="#e2e8f0"/>
+  </g>
+</svg>
   );
 }
 
-/**
- * Sedan Taxi SVG (Maruti Dzire / Etios)
- * Features: Sleek modern 3-box sedan silhouette, yellow commercial plate / taxi badge, alloy wheels
- */
 export function SedanTaxiIllustration({ className = "w-full h-full" }) {
   return (
-    <svg viewBox="0 0 280 140" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
-      <defs>
-        <linearGradient id="sedanBody" x1="0" y1="45" x2="0" y2="105" gradientUnits="userSpaceOnUse">
-          <stop offset="0%" stopColor="#ffffff" />
-          <stop offset="75%" stopColor="#e2e8f0" />
-          <stop offset="100%" stopColor="#94a3b8" />
-        </linearGradient>
-      </defs>
-
-      {/* Road Shadow */}
-      <ellipse cx="140" cy="126" rx="110" ry="6.5" fill="#1b2a2a" fillOpacity="0.18" />
-
-      {/* Roof TAXI Light Sign */}
-      <rect x="125" y="38" width="28" height="7" rx="2" fill="#facc15" stroke="#ca8a04" strokeWidth="1" />
-      <text x="129" y="44" fill="#000000" fontSize="5" fontWeight="bold" fontFamily="sans-serif">TAXI</text>
-
-      {/* Sleek Aerodynamic Sedan Profile */}
-      <path
-        d="M 36 82 L 52 68 L 96 46 L 175 46 L 214 68 L 244 76 L 248 94 C 248 102, 242 106, 234 106 L 210 106 A 16 16 0 0 1 178 106 L 102 106 A 16 16 0 0 1 70 106 L 36 106 Z"
-        fill="url(#sedanBody)"
-        stroke="#64748b"
-        strokeWidth="1.2"
-      />
-
-      {/* Tinted Cabin Windows */}
-      <polygon points="60,68 98,50 98,72 56,72" fill="#1e293b" />
-      <rect x="102" y="50" width="40" height="22" rx="1" fill="#1e293b" />
-      <polygon points="146,50 172,50 204,70 146,72" fill="#1e293b" />
-
-      {/* Door Handle & Character Crease */}
-      <line x1="56" y1="78" x2="230" y2="78" stroke="#cbd5e1" strokeWidth="1" />
-      <rect x="150" y="74" width="8" height="2.5" rx="1" fill="#334155" />
-      <rect x="108" y="74" width="8" height="2.5" rx="1" fill="#334155" />
-
-      {/* Sleek Front Headlight */}
-      <path d="M 235 74 L 246 76 L 242 86 L 228 84 Z" fill="#e0f2fe" stroke="#38bdf8" strokeWidth="0.8" />
-
-      {/* Front Wheel */}
-      <g>
-        <circle cx="194" cy="110" r="16" fill="#0f172a" />
-        <circle cx="194" cy="110" r="10" fill="#64748b" />
-        <circle cx="194" cy="110" r="4" fill="#f8fafc" />
-      </g>
-
-      {/* Rear Wheel */}
-      <g>
-        <circle cx="86" cy="110" r="16" fill="#0f172a" />
-        <circle cx="86" cy="110" r="10" fill="#64748b" />
-        <circle cx="86" cy="110" r="4" fill="#f8fafc" />
-      </g>
-    </svg>
+    <svg viewBox="0 0 200 90" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
+  <defs>
+    <linearGradient id="taxiBody" x1="0" y1="32" x2="0" y2="72" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stopColor="#ffffff"/>
+      <stop offset="65%" stopColor="#f1f5f9"/>
+      <stop offset="100%" stopColor="#94a3b8"/>
+    </linearGradient>
+  </defs>
+  {/*  Ground Shadow  */}
+  <ellipse cx="100" cy="80" rx="80" ry="4" fill="#0f172a" opacity="0.2"/>
+  {/*  Yellow TAXI Roof Sign  */}
+  <rect x="90" y="26" width="20" height="5.5" rx="1.5" fill="#facc15" stroke="#ca8a04" strokeWidth="0.8"/>
+  <text x="93" y="30.5" fill="#000000" fontSize="3.8" fontWeight="900" fontFamily="sans-serif" letterSpacing="0.5">TAXI</text>
+  {/*  Three-Box Sedan Profile  */}
+  <path d="M 26 56 L 38 46 L 70 32 L 126 32 L 154 47 L 176 53 L 179 66 C 179 71 175 73 169 73 L 152 73 A 12 12 0 0 1 128 73 L 74 73 A 12 12 0 0 1 50 73 L 26 73 Z" fill="url(#taxiBody)" stroke="#64748b" strokeWidth="0.8"/>
+  {/*  Windows  */}
+  <polygon points="44,46 71,35 71,50 41,50" fill="#1e293b"/>
+  <rect x="74" y="35" width="28" height="15" rx="1" fill="#1e293b"/>
+  <polygon points="105,35 124,35 146,48 105,50" fill="#1e293b"/>
+  {/*  Chrome Waistline Strip & Handles  */}
+  <line x1="41" y1="54" x2="166" y2="54" stroke="#cbd5e1" strokeWidth="0.8"/>
+  <rect x="108" y="52" width="6" height="2" rx="0.6" fill="#334155"/>
+  <rect x="78" y="52" width="6" height="2" rx="0.6" fill="#334155"/>
+  {/*  Headlamp and Tail Lamp  */}
+  <path d="M 170 51 L 178 52 L 175 59 L 165 58 Z" fill="#e0f2fe" stroke="#38bdf8" strokeWidth="0.6"/>
+  <rect x="25" y="54" width="3" height="6" rx="1" fill="#ef4444"/>
+  {/*  Sedan Multi-Spoke Wheels  */}
+  <g>
+    <circle cx="62" cy="73" r="12" fill="#0f172a"/>
+    <circle cx="62" cy="73" r="7.5" fill="#64748b"/>
+    <circle cx="62" cy="73" r="3" fill="#f8fafc"/>
+  </g>
+  <g>
+    <circle cx="140" cy="73" r="12" fill="#0f172a"/>
+    <circle cx="140" cy="73" r="7.5" fill="#64748b"/>
+    <circle cx="140" cy="73" r="3" fill="#f8fafc"/>
+  </g>
+</svg>
   );
 }
 
-/**
- * SUV Taxi SVG (Toyota Innova Crysta / Scorpio)
- * Features: Long premium alpine SUV body, roof luggage rails, alloy rims, high ground clearance
- */
 export function SUVTaxiIllustration({ className = "w-full h-full" }) {
   return (
-    <svg viewBox="0 0 280 140" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
-      <defs>
-        <linearGradient id="suvBody" x1="0" y1="40" x2="0" y2="105" gradientUnits="userSpaceOnUse">
-          <stop offset="0%" stopColor="#475569" />
-          <stop offset="60%" stopColor="#334155" />
-          <stop offset="100%" stopColor="#1e293b" />
-        </linearGradient>
-      </defs>
-
-      {/* Road Shadow */}
-      <ellipse cx="140" cy="126" rx="115" ry="7" fill="#1b2a2a" fillOpacity="0.18" />
-
-      {/* Aerodynamic Sleek Roof Luggage Carrier */}
-      <rect x="75" y="32" width="115" height="5" rx="2" fill="#0f172a" />
-      <line x1="85" y1="37" x2="85" y2="42" stroke="#475569" strokeWidth="2" />
-      <line x1="135" y1="37" x2="135" y2="42" stroke="#475569" strokeWidth="2" />
-      <line x1="180" y1="37" x2="180" y2="42" stroke="#475569" strokeWidth="2" />
-
-      {/* Premium Innova Crysta / Scorpio SUV Profile */}
-      <path
-        d="M 32 74 L 40 58 C 44 46, 56 42, 70 42 L 180 42 L 218 64 L 244 76 L 246 94 C 246 104, 240 106, 230 106 L 210 106 A 18 18 0 0 1 174 106 L 102 106 A 18 18 0 0 1 66 106 L 32 106 Z"
-        fill="url(#suvBody)"
-        stroke="#64748b"
-        strokeWidth="1.2"
-      />
-
-      {/* Tinted Touring Windows */}
-      <polygon points="50,60 85,46 85,70 44,70" fill="#0f172a" />
-      <rect x="90" y="46" width="46" height="24" rx="1.5" fill="#0f172a" />
-      <polygon points="140,46 176,46 210,66 140,70" fill="#0f172a" />
-
-      {/* Chrome Beltline & Door Handles */}
-      <line x1="44" y1="72" x2="216" y2="72" stroke="#94a3b8" strokeWidth="1.5" />
-      <rect x="144" y="75" width="9" height="2.5" rx="1" fill="#e2e8f0" />
-      <rect x="98" y="75" width="9" height="2.5" rx="1" fill="#e2e8f0" />
-
-      {/* Aggressive LED Headlamp */}
-      <polygon points="230,76 245,78 242,88 226,86" fill="#e0f2fe" stroke="#38bdf8" strokeWidth="1" />
-
-      {/* Front High-Clearance Alloy Wheel */}
-      <g>
-        <circle cx="192" cy="110" r="18" fill="#0f172a" />
-        <circle cx="192" cy="110" r="11" fill="#64748b" />
-        <circle cx="192" cy="110" r="5" fill="#f8fafc" />
-      </g>
-
-      {/* Rear High-Clearance Alloy Wheel */}
-      <g>
-        <circle cx="84" cy="110" r="18" fill="#0f172a" />
-        <circle cx="84" cy="110" r="11" fill="#64748b" />
-        <circle cx="84" cy="110" r="5" fill="#f8fafc" />
-      </g>
-    </svg>
+    <svg viewBox="0 0 200 90" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
+  <defs>
+    <linearGradient id="suvTitanium" x1="0" y1="28" x2="0" y2="72" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stopColor="#475569"/>
+      <stop offset="50%" stopColor="#334155"/>
+      <stop offset="100%" stopColor="#1e293b"/>
+    </linearGradient>
+  </defs>
+  {/*  Ground Shadow  */}
+  <ellipse cx="100" cy="80" rx="84" ry="4" fill="#0f172a" opacity="0.22"/>
+  {/*  Silver Alpine Roof Rails  */}
+  <rect x="54" y="22" width="82" height="3.5" rx="1.5" fill="#0f172a"/>
+  <line x1="62" y1="25" x2="62" y2="29" stroke="#94a3b8" strokeWidth="1.5"/>
+  <line x1="98" y1="25" x2="98" y2="29" stroke="#94a3b8" strokeWidth="1.5"/>
+  <line x1="130" y1="25" x2="130" y2="29" stroke="#94a3b8" strokeWidth="1.5"/>
+  {/*  Muscular SUV Profile (Innova Crysta / Scorpio)  */}
+  <path d="M 24 51 L 30 40 C 33 31 41 29 51 29 L 130 29 L 157 44 L 176 53 L 177 66 C 177 72 173 73 166 73 L 152 73 A 13 13 0 0 1 126 73 L 74 73 A 13 13 0 0 1 48 73 L 24 73 Z" fill="url(#suvTitanium)" stroke="#64748b" strokeWidth="0.8"/>
+  {/*  Dark Privacy Tapered Glasshouse  */}
+  <polygon points="37,42 62,32 62,49 33,49" fill="#0f172a"/>
+  <rect x="66" y="32" width="33" height="17" rx="1" fill="#0f172a"/>
+  <polygon points="102,32 128,32 152,46 102,49" fill="#0f172a"/>
+  {/*  Chrome Shoulder Crease & Handles  */}
+  <line x1="33" y1="51" x2="156" y2="51" stroke="#94a3b8" strokeWidth="1"/>
+  <rect x="105" y="53" width="6.5" height="2" rx="0.6" fill="#e2e8f0"/>
+  <rect x="72" y="53" width="6.5" height="2" rx="0.6" fill="#e2e8f0"/>
+  {/*  Projector LED Headlamp Unit  */}
+  <polygon points="166,53 176,55 174,62 163,60" fill="#e0f2fe" stroke="#38bdf8" strokeWidth="0.8"/>
+  {/*  Premium Machined Alloy Wheels  */}
+  <g>
+    <circle cx="61" cy="73" r="13" fill="#0f172a"/>
+    <circle cx="61" cy="73" r="8" fill="#64748b"/>
+    <circle cx="61" cy="73" r="3.5" fill="#f8fafc"/>
+  </g>
+  <g>
+    <circle cx="139" cy="73" r="13" fill="#0f172a"/>
+    <circle cx="139" cy="73" r="8" fill="#64748b"/>
+    <circle cx="139" cy="73" r="3.5" fill="#f8fafc"/>
+  </g>
+</svg>
   );
 }
 

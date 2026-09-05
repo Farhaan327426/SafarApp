@@ -74,3 +74,31 @@ Protect `/admin.html` with Cloudflare Access policies validating authorized tran
 ## 📴 Service Worker & Offline Sync
 - **Service Worker:** [`frontend/sw.js`](frontend/sw.js) enforces Cache-First for static assets, Network-First for navigation and API calls, and Map Tile caching for CartoDB OpenStreetMap tiles.
 - **Offline Bookings:** Bookings made offline are recorded in IndexedDB (`safar_sync` db, `offline_queue` store) and automatically synced via Background Sync API (`safar-offline-queue`) when connectivity is restored.
+
+---
+
+## 🎨 Official J&K Vehicle Fleet Recognition & Vector Asset Gallery
+
+All 11 statutory commercial transit vehicle types operating across Jammu & Kashmir have dedicated, high-definition vector illustrations stored as standalone SVG image files in [`assets/vehicles/`](assets/vehicles/) and [`frontend/images/vehicles/`](frontend/images/vehicles/):
+
+| Vehicle Mode | Statutory Category | Illustration Asset | Distinctive Recognition Hallmark |
+| :--- | :--- | :---: | :--- |
+| **Tata Sumo / Bolero** | Shared Maxi-Cab | ![Tata Sumo](assets/vehicles/shared-cab.svg) | Boxy White 4x4 with Heavy-Duty Roof Luggage Carrier & Orange Tarpaulin |
+| **Matador (Tata 407)** | Stage Carriage Minibus | ![Matador](assets/vehicles/mini-bus.svg) | Iconic Blue & Cream or Green/White Tata 407 with curved front nose |
+| **Tata Magic / Eeco** | Suburban Feeder Van | ![Tata Magic](assets/vehicles/tata-magic.svg) | White compact minivan with sliding passenger side door |
+| **Vikram Tempo** | Jammu Urban Shuttle | ![Vikram Tempo](assets/vehicles/vikram-tempo.svg) | Front-snout 3-wheeler diesel tempo with canvas roof & longitudinal rear benches |
+| **E-Rickshaw (Toto)** | Zero-Emission Feeder | ![E-Rickshaw](assets/vehicles/e-rickshaw.svg) | Bright Green lightweight open-frame electric toto with weather canopy |
+| **E-Auto (Mahindra Treo)** | Metered Electric Auto | ![E-Auto](assets/vehicles/e-auto.svg) | Aerodynamic dual-tone emerald & white closed cabin with 'EV' emblem |
+| **Auto Rickshaw (Bajaj RE)** | Standard 3-Wheeler Auto | ![Auto Rickshaw](assets/vehicles/auto.svg) | Classic Yellow canopy with Black chassis and front circular headlight |
+| **Private Stage Bus** | 32+ Seater Trunk Bus | ![Private Bus](assets/vehicles/private-bus.svg) | Large 32+ passenger coach in multi-color livery with destination board |
+| **Tempo Traveler** | Tourist Maxi-Cab | ![Tempo Traveler](assets/vehicles/force-traveler.svg) | High-roof white van with panoramic dark tinted windows & roof AC unit |
+| **Sedan Taxi (Dzire/Etios)** | Private Cab | ![Sedan Taxi](assets/vehicles/taxi.svg) | Streamlined white sedan with roof taxi placard and chrome grille |
+| **SUV Taxi (Innova/Scorpio)** | Alpine Tourist SUV | ![SUV Taxi](assets/vehicles/suv-taxi.svg) | Silver/Graphite Toyota Innova Crysta or Scorpio with sleek roof rack |
+
+---
+
+## 🗂️ UI Navigation & Floating Minimizer Tab Dock
+
+- **Dedicated Minibus (Matador) Tab:** Direct quick-filter in the vehicle selection bar (`🚌 Minibus (Matador)`) alongside All Vehicles (11), Shared Cabs, Private Buses, Autos, and Taxis.
+- **Floating Assistant Minimizer Tab:** The SAFAR Help & AI Transit Assistant hub modal includes an integrated minimize button (`—`). Clicking minimize collapses the full-screen dialog into a dockable floating bottom-right tab widget (`[ 🤖 Safar AI Assistant · Active · Expand ↗ ]`). Commuters can verify live fares on the calculator while preserving their grievance draft, telephone directory state, and AI chat context.
+

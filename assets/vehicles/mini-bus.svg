@@ -1,0 +1,57 @@
+<svg viewBox="0 0 200 90" fill="none" xmlns="http://www.w3.org/2000/svg" class="vehicle-illustration-svg">
+  <defs>
+    <linearGradient id="matadorCream" x1="0" y1="20" x2="0" y2="48" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#fffdf5"/>
+      <stop offset="100%" stop-color="#ede4c8"/>
+    </linearGradient>
+    <linearGradient id="matadorBlue" x1="0" y1="48" x2="0" y2="72" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#2563eb"/>
+      <stop offset="60%" stop-color="#1d4ed8"/>
+      <stop offset="100%" stop-color="#1e3a8a"/>
+    </linearGradient>
+  </defs>
+  <!-- Ground Shadow -->
+  <ellipse cx="100" cy="80" rx="88" ry="4" fill="#0f172a" opacity="0.22"/>
+  <!-- Destination Header Board -->
+  <rect x="70" y="14" width="56" height="8" rx="2" fill="#1e3a8a" stroke="#dbeafe" stroke-width="0.8"/>
+  <text x="75" y="20" fill="#fef08a" font-size="5" font-weight="900" font-family="sans-serif" letter-spacing="0.5">TATA 407 MATADOR</text>
+  <!-- Upper Cream Body -->
+  <path d="M 22 30 C 22 24 28 20 36 20 L 152 20 C 162 20 171 25 174 34 L 178 48 L 22 48 Z" fill="url(#matadorCream)"/>
+  <!-- Lower Royal Blue Body -->
+  <path d="M 22 48 L 178 48 L 183 56 C 185 62 182 70 176 72 L 160 72 A 13 13 0 0 1 134 72 L 76 72 A 13 13 0 0 1 50 72 L 22 72 Z" fill="url(#matadorBlue)"/>
+  <!-- Red Transit Accent Stripe -->
+  <rect x="22" y="47" width="158" height="3" fill="#dc2626"/>
+  <!-- Bus Windows Row -->
+  <g fill="#1e293b">
+    <rect x="26" y="24" width="16" height="20" rx="1.5"/>
+    <rect x="46" y="24" width="22" height="20" rx="1.5"/>
+    <rect x="72" y="24" width="22" height="20" rx="1.5"/>
+    <rect x="98" y="24" width="22" height="20" rx="1.5"/>
+    <rect x="124" y="24" width="22" height="20" rx="1.5"/>
+    <!-- Curved Driver Cab Windshield -->
+    <path d="M 150 24 L 165 24 C 170 27 172 32 174 42 L 150 42 Z"/>
+  </g>
+  <!-- Window Dividers -->
+  <line x1="57" y1="24" x2="57" y2="44" stroke="#94a3b8" stroke-width="0.8"/>
+  <line x1="83" y1="24" x2="83" y2="44" stroke="#94a3b8" stroke-width="0.8"/>
+  <line x1="109" y1="24" x2="109" y2="44" stroke="#94a3b8" stroke-width="0.8"/>
+  <line x1="135" y1="24" x2="135" y2="44" stroke="#94a3b8" stroke-width="0.8"/>
+  <!-- Grille & Headlamp -->
+  <rect x="179" y="54" width="4" height="8" rx="1.5" fill="#fef08a" stroke="#ca8a04" stroke-width="0.6"/>
+  <rect x="176" y="63" width="6" height="3" rx="1" fill="#475569"/>
+  <!-- Rear Wheels (Dual Heavy-Duty) -->
+  <g>
+    <circle cx="61" cy="72" r="13" fill="#1e293b"/>
+    <circle cx="65" cy="72" r="13" fill="#1e293b"/>
+    <circle cx="63" cy="72" r="8" fill="#64748b"/>
+    <circle cx="63" cy="72" r="4" fill="#cbd5e1"/>
+    <circle cx="63" cy="72" r="1.5" fill="#1e293b"/>
+  </g>
+  <!-- Front Steering Wheel -->
+  <g>
+    <circle cx="147" cy="72" r="13" fill="#1e293b"/>
+    <circle cx="147" cy="72" r="8" fill="#64748b"/>
+    <circle cx="147" cy="72" r="4" fill="#cbd5e1"/>
+    <circle cx="147" cy="72" r="1.5" fill="#1e293b"/>
+  </g>
+</svg>

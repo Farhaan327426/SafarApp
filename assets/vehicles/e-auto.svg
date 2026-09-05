@@ -1,0 +1,37 @@
+<svg viewBox="0 0 200 90" fill="none" xmlns="http://www.w3.org/2000/svg" class="vehicle-illustration-svg">
+  <defs>
+    <linearGradient id="eautoGradient" x1="0" y1="24" x2="0" y2="72" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#10b981"/>
+      <stop offset="60%" stop-color="#059669"/>
+      <stop offset="100%" stop-color="#047857"/>
+    </linearGradient>
+  </defs>
+  <!-- Ground Shadow -->
+  <ellipse cx="100" cy="80" rx="76" ry="4" fill="#0f172a" opacity="0.2"/>
+  <!-- Aerodynamic Green Body Shell -->
+  <path d="M 38 56 C 38 34 52 24 92 24 L 125 24 C 146 24 158 34 162 50 L 165 65 L 158 73 L 142 73 A 12 12 0 0 1 118 73 L 82 73 A 12 12 0 0 1 58 73 L 38 73 Z" fill="url(#eautoGradient)"/>
+  <!-- Contrasting White Passenger Cutout Door -->
+  <path d="M 68 44 L 118 44 C 122 44 126 48 125 54 L 120 70 L 68 70 Z" fill="#f8fafc"/>
+  <!-- Cabin Glass & Panoramic Front Windshield -->
+  <path d="M 123 26 L 153 32 C 158 38 160 48 158 55 L 130 55 Z" fill="#1e3a4a"/>
+  <line x1="143" y1="55" x2="151" y2="36" stroke="#94a3b8" stroke-width="1"/>
+  <!-- Interior Passenger Seat -->
+  <rect x="70" y="32" width="46" height="20" rx="3" fill="#0f172a" opacity="0.85"/>
+  <rect x="75" y="48" width="34" height="6" rx="1.5" fill="#334155"/>
+  <!-- Emerald Green EV Badge -->
+  <circle cx="94" cy="58" r="6.5" fill="#047857"/>
+  <text x="90" y="60.5" fill="#ffffff" font-size="5.5" font-weight="900" font-family="sans-serif">EV</text>
+  <!-- Modern Sleek Headlight -->
+  <rect x="162" y="58" width="4" height="8" rx="1.5" fill="#e0f2fe" stroke="#38bdf8" stroke-width="0.8"/>
+  <!-- Wheels -->
+  <g>
+    <circle cx="70" cy="73" r="12" fill="#1e293b"/>
+    <circle cx="70" cy="73" r="7.5" fill="#64748b"/>
+    <circle cx="70" cy="73" r="3" fill="#10b981"/>
+  </g>
+  <g>
+    <circle cx="150" cy="73" r="12" fill="#1e293b"/>
+    <circle cx="150" cy="73" r="7.5" fill="#64748b"/>
+    <circle cx="150" cy="73" r="3" fill="#10b981"/>
+  </g>
+</svg>

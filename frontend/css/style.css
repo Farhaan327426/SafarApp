@@ -1256,6 +1256,29 @@ body {
   margin-top: 10px;
 }
 
+/* Hero Card Vehicle Preview */
+.hero-vehicle-preview {
+  width: 100%;
+  height: 90px;
+  background: rgba(24, 54, 55, 0.45);
+  border: 1px solid rgba(56, 98, 96, 0.5);
+  border-radius: var(--radius-md);
+  margin-top: 12px;
+  padding: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  transition: all 0.25s ease;
+}
+
+.hero-vehicle-preview .vehicle-illustration-svg {
+  height: 100%;
+  width: auto;
+  max-width: 100%;
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.25));
+}
+
 .seat-mode-switch {
   margin-top: 14px;
   display: flex;
@@ -2998,6 +3021,158 @@ body.driver-low-power * {
   color: var(--color-text-muted);
   margin-top: 2px;
   font-weight: 500;
+}
+
+/* Modal Window Actions (Minimize & Close) */
+.modal-window-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.modal-window-actions .icon-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  border: 1px solid var(--color-border-subtle);
+  background: var(--color-surface);
+  color: var(--color-text-main);
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+
+.modal-window-actions .icon-btn:hover {
+  background: var(--color-border-subtle);
+  border-color: var(--color-border);
+}
+
+.modal-window-actions .minimize-btn:hover {
+  background: #e2e8f0;
+  color: #0f172a;
+}
+
+/* Floating Minimized Assistant Tab Dock */
+.minimized-assistant-tab {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 10000;
+  animation: slideUpTab 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.minimized-assistant-tab.hidden {
+  display: none !important;
+}
+
+@keyframes slideUpTab {
+  from {
+    transform: translateY(20px) scale(0.94);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+}
+
+.minimized-tab-content {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #234b4c;
+  color: #f8fafc;
+  padding: 8px 14px;
+  border-radius: 30px;
+  box-shadow: 0 10px 25px -3px rgba(35, 75, 76, 0.45), 0 4px 6px -2px rgba(0, 0, 0, 0.1);
+  border: 1.5px solid rgba(255, 255, 255, 0.25);
+  cursor: pointer;
+  user-select: none;
+  backdrop-filter: blur(8px);
+  transition: all 0.2s ease;
+}
+
+.minimized-tab-content:hover {
+  background: #1c3c3d;
+  box-shadow: 0 14px 28px -3px rgba(35, 75, 76, 0.6);
+  transform: translateY(-2px);
+}
+
+.minimized-tab-content .pulse-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #4ade80;
+  box-shadow: 0 0 8px #4ade80;
+  animation: pulseGreen 1.6s infinite;
+}
+
+@keyframes pulseGreen {
+  0% { transform: scale(0.9); opacity: 0.8; }
+  50% { transform: scale(1.3); opacity: 1; }
+  100% { transform: scale(0.9); opacity: 0.8; }
+}
+
+.minimized-tab-content .tab-robot-icon {
+  font-size: 16px;
+  line-height: 1;
+}
+
+.minimized-tab-content .tab-title {
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: 0.2px;
+  white-space: nowrap;
+}
+
+.minimized-tab-content .tab-badge {
+  font-size: 10px;
+  font-weight: 800;
+  background: rgba(74, 222, 128, 0.2);
+  color: #86efac;
+  padding: 2px 7px;
+  border-radius: 10px;
+  border: 1px solid rgba(74, 222, 128, 0.4);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.restore-tab-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: #ffffff;
+  color: #234b4c;
+  border: none;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 14px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  margin-left: 2px;
+}
+
+.restore-tab-btn:hover {
+  background: #f1f5f9;
+  transform: scale(1.05);
+}
+
+.dismiss-tab-btn {
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.65);
+  font-size: 18px;
+  line-height: 1;
+  padding: 0 4px;
+  cursor: pointer;
+  transition: color 0.15s ease;
+}
+
+.dismiss-tab-btn:hover {
+  color: #ffffff;
 }
 
 .modal-body.help-hub-body {

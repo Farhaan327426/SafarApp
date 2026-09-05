@@ -1,0 +1,38 @@
+<svg viewBox="0 0 200 90" fill="none" xmlns="http://www.w3.org/2000/svg" class="vehicle-illustration-svg">
+  <defs>
+    <linearGradient id="taxiBody" x1="0" y1="32" x2="0" y2="72" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="65%" stop-color="#f1f5f9"/>
+      <stop offset="100%" stop-color="#94a3b8"/>
+    </linearGradient>
+  </defs>
+  <!-- Ground Shadow -->
+  <ellipse cx="100" cy="80" rx="80" ry="4" fill="#0f172a" opacity="0.2"/>
+  <!-- Yellow TAXI Roof Sign -->
+  <rect x="90" y="26" width="20" height="5.5" rx="1.5" fill="#facc15" stroke="#ca8a04" stroke-width="0.8"/>
+  <text x="93" y="30.5" fill="#000000" font-size="3.8" font-weight="900" font-family="sans-serif" letter-spacing="0.5">TAXI</text>
+  <!-- Three-Box Sedan Profile -->
+  <path d="M 26 56 L 38 46 L 70 32 L 126 32 L 154 47 L 176 53 L 179 66 C 179 71 175 73 169 73 L 152 73 A 12 12 0 0 1 128 73 L 74 73 A 12 12 0 0 1 50 73 L 26 73 Z" fill="url(#taxiBody)" stroke="#64748b" stroke-width="0.8"/>
+  <!-- Windows -->
+  <polygon points="44,46 71,35 71,50 41,50" fill="#1e293b"/>
+  <rect x="74" y="35" width="28" height="15" rx="1" fill="#1e293b"/>
+  <polygon points="105,35 124,35 146,48 105,50" fill="#1e293b"/>
+  <!-- Chrome Waistline Strip & Handles -->
+  <line x1="41" y1="54" x2="166" y2="54" stroke="#cbd5e1" stroke-width="0.8"/>
+  <rect x="108" y="52" width="6" height="2" rx="0.6" fill="#334155"/>
+  <rect x="78" y="52" width="6" height="2" rx="0.6" fill="#334155"/>
+  <!-- Headlamp and Tail Lamp -->
+  <path d="M 170 51 L 178 52 L 175 59 L 165 58 Z" fill="#e0f2fe" stroke="#38bdf8" stroke-width="0.6"/>
+  <rect x="25" y="54" width="3" height="6" rx="1" fill="#ef4444"/>
+  <!-- Sedan Multi-Spoke Wheels -->
+  <g>
+    <circle cx="62" cy="73" r="12" fill="#0f172a"/>
+    <circle cx="62" cy="73" r="7.5" fill="#64748b"/>
+    <circle cx="62" cy="73" r="3" fill="#f8fafc"/>
+  </g>
+  <g>
+    <circle cx="140" cy="73" r="12" fill="#0f172a"/>
+    <circle cx="140" cy="73" r="7.5" fill="#64748b"/>
+    <circle cx="140" cy="73" r="3" fill="#f8fafc"/>
+  </g>
+</svg>
