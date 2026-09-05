@@ -554,6 +554,24 @@ Logged via Safar J&K Transit Portal.`;
     `).join('');
   }
 
+  function buildEveningHubsHTML() {
+    const hubs = (typeof window !== 'undefined' && window.SafarCrowdRadar && typeof window.SafarCrowdRadar.getActiveEveningPools === 'function')
+      ? window.SafarCrowdRadar.getActiveEveningPools()
+      : [
+          { name: "Jahangir Chowk / TRC", city: "Srinagar", activeVehiclesRemaining: 2, routes: ["Budgam", "Baramulla", "Soura", "Pampore"] },
+          { name: "Batamaloo Stand", city: "Srinagar", activeVehiclesRemaining: 2, routes: ["Tangmarg", "Magam", "Pattan"] },
+          { name: "Jewel Chowk", city: "Jammu", activeVehiclesRemaining: 2, routes: ["RS Pura", "Akhnoor", "Bishnah", "Udhampur"] }
+        ];
+
+    return hubs.map(h => `
+      <div class="hub-pill">
+        <strong>${h.name} (${h.city})</strong>
+        <span>${h.activeVehiclesRemaining} shared cabs active</span>
+        <small>Routes: ${Array.isArray(h.routes) ? h.routes.join(", ") : h.routes}</small>
+      </div>
+    `).join('');
+  }
+
   function buildSolutionCard(problem) {
     if (!problem) return '';
     const complaint = generateComplaintText(problem);
@@ -667,6 +685,26 @@ Logged via Safar J&K Transit Portal.`;
           <p>Select your situation or ask anything below. Safar AI will instantly formulate your statutory legal defense, tell you what to say to the driver, and provide 1-tap direct numbers to on-duty RTOs and Traffic Police flying squads.</p>
         </div>
 
+        <!-- 🎙️ Instant Voice Fare Check & Dispute -->
+        <div class="card voice-box" style="margin-bottom: 18px;">
+          <div class="voice-header">
+            <div class="voice-title-wrap">
+              <span class="voice-icon">🎙️</span>
+              <div>
+                <h3>Instant Voice Fare Check &amp; Dispute</h3>
+                <p class="subtitle">Tap the mic and state route or fare (e.g. <em>"Driver charging 30 from Lal Chowk to Batamaloo"</em>)</p>
+              </div>
+            </div>
+            <span class="lang-tag">Urdu / Dogri / Kashmiri / Hindi</span>
+          </div>
+          
+          <div class="voice-input-row">
+            <input type="text" id="voiceQueryInput" placeholder="Type or speak fare issue (e.g. Driver charging 30 from Lal Chowk to Batamaloo)..." value="${state.customQuery || ''}" />
+            <button id="micBtn" class="btn btn-mic" type="button" aria-label="Start Voice Recording" title="Speak in Urdu/Hindi/English">🎙️</button>
+            <button id="checkDisputeBtn" class="btn btn-primary" type="button">Check Fare</button>
+          </div>
+        </div>
+
         <div class="help-prob-grid">
           ${buildProblemTiles()}
         </div>
@@ -687,6 +725,57 @@ Logged via Safar J&K Transit Portal.`;
         <!-- Solution Container -->
         <div id="ai-solution-render">
           ${buildSolutionCard(state.selectedProblem)}
+        </div>
+
+        <!-- Real-Time Crowd Telemetry & Evidence Quick Row -->
+        <div class="defense-dual-grid" style="margin-top: 20px;">
+          <!-- Crowdsourced Occupancy Telemetry -->
+          <div class="card occupancy-card">
+            <div class="section-title-row">
+              <div class="sec-title-wrap">
+                <span class="sec-icon">👥</span>
+                <h3>1-Tap Vehicle Crowd Status</h3>
+              </div>
+              <small>Real-time passenger safety reports</small>
+            </div>
+            <div class="occupancy-buttons">
+              <button class="occ-btn occ-green" type="button" data-level="SEATS_AVAILABLE">🟢 Seating Available</button>
+              <button class="occ-btn occ-yellow" type="button" data-level="STANDING_ONLY">🟡 Standing Room</button>
+              <button class="occ-btn occ-red" type="button" data-level="SEVERE_OVERLOAD">🔴 Severe Overload</button>
+            </div>
+          </div>
+
+          <!-- Evidence Locker Quick Box -->
+          <div class="card grievance-quick-box">
+            <div class="section-title-row">
+              <div class="sec-title-wrap">
+                <span class="sec-icon">⚖️</span>
+                <h3>Evidence Locker &amp; Action</h3>
+              </div>
+              <small>Report under MVA Sec 194A / 192A</small>
+            </div>
+            <div class="grid-2col">
+              <input type="text" id="quickPlateInput" placeholder="Vehicle No (e.g. JK01 AB 1234)" />
+              <button id="openEvidenceModalBtn" class="btn btn-danger" type="button">File 1-Tap Report</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Post-7 PM Evening Stand Radar -->
+        <div id="eveningRadarSection" class="card evening-radar-card" style="margin-top: 16px;">
+          <div class="section-title-row">
+            <div class="radar-title-wrap">
+              <span class="radar-moon-icon">🌙</span>
+              <div>
+                <h3>Evening Stand Radar (Post-7 PM)</h3>
+                <small>Live active shared cabs &amp; safe carpool hubs</small>
+              </div>
+            </div>
+            <span class="live-tag">LIVE STANDS</span>
+          </div>
+          <div id="eveningHubsList" class="hubs-grid">
+            ${buildEveningHubsHTML()}
+          </div>
         </div>
       </div>
 
@@ -834,6 +923,127 @@ Logged via Safar J&K Transit Portal.`;
         copyNumBtn.textContent = '✓';
         setTimeout(() => copyNumBtn.textContent = '📋', 1800);
       });
+      return;
+    }
+
+    // Instant Voice Fare Check trigger
+    if (e.target.closest('#checkDisputeBtn')) {
+      const qInput = document.getElementById('voiceQueryInput');
+      const query = qInput ? qInput.value.trim() : "Driver charging 30 from Lal Chowk to Batamaloo";
+      if (window.SafarDisputeEngine) {
+        const parsed = window.SafarDisputeEngine.parseDisputeQuery(query);
+        const result = window.SafarDisputeEngine.verifyFare(parsed.origin, parsed.destination, parsed.demandedFare);
+
+        const cardLegalFare = document.getElementById("cardLegalFare");
+        const cardDemandedFare = document.getElementById("cardDemandedFare");
+        const cardRouteDesc = document.getElementById("cardRouteDesc");
+        const cardTariffBreakdown = document.getElementById("cardTariffBreakdown");
+        const banner = document.getElementById("cardDiscrepancyBanner");
+
+        if (cardLegalFare) cardLegalFare.textContent = `₹${result.legalFare}`;
+        if (cardDemandedFare) cardDemandedFare.textContent = `₹${result.demandedFare}`;
+        if (cardRouteDesc) cardRouteDesc.textContent = `${result.origin} ⇄ ${result.destination} (~${result.distanceKm} km)`;
+        if (cardTariffBreakdown) cardTariffBreakdown.textContent = result.breakdown;
+
+        if (banner) {
+          if (result.isViolation) {
+            banner.textContent = `⚠️ Overcharging by ₹${result.overcharge} — Illegal under ${result.mvaSection}`;
+            banner.className = "discrepancy-banner alert";
+          } else {
+            banner.textContent = `✅ Fare is compliant with SRO-97 statutory ceiling.`;
+            banner.className = "discrepancy-banner safe";
+          }
+        }
+
+        const disputeModal = document.getElementById("disputeModal");
+        if (disputeModal) {
+          disputeModal.hidden = false;
+          disputeModal.classList.remove("hidden");
+        }
+
+        const speakBtn = document.getElementById("speakToConductorBtn");
+        if (speakBtn) {
+          speakBtn.onclick = () => {
+            window.SafarDisputeEngine.verbalNegotiationTTS(result.legalFare, result.origin, result.destination);
+          };
+        }
+
+        const escalateBtn = document.getElementById("escalateToLockerBtn");
+        if (escalateBtn) {
+          escalateBtn.onclick = () => {
+            if (disputeModal) {
+              disputeModal.hidden = true;
+              disputeModal.classList.add("hidden");
+            }
+            const evidenceModal = document.getElementById("evidenceModal");
+            if (evidenceModal) {
+              const locInput = document.getElementById("dossierLocation");
+              if (locInput) locInput.value = `${result.origin} to ${result.destination}`;
+              evidenceModal.hidden = false;
+              evidenceModal.classList.remove("hidden");
+            }
+          };
+        }
+      }
+      return;
+    }
+
+    // Mic button
+    if (e.target.closest('#micBtn')) {
+      const micBtn = e.target.closest('#micBtn');
+      const qInput = document.getElementById('voiceQueryInput');
+      if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+        const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+        const recognition = new SpeechRec();
+        recognition.lang = "en-IN";
+        micBtn.textContent = "🔴";
+        try {
+          recognition.start();
+        } catch (err) {
+          console.warn(err);
+        }
+        recognition.onresult = (evt) => {
+          if (qInput && evt.results && evt.results[0]) {
+            qInput.value = evt.results[0][0].transcript;
+            micBtn.textContent = "🎙️";
+            const chk = document.getElementById('checkDisputeBtn');
+            if (chk) chk.click();
+          }
+        };
+        recognition.onerror = () => { micBtn.textContent = "🎙️"; };
+        recognition.onend = () => { micBtn.textContent = "🎙️"; };
+      }
+      return;
+    }
+
+    // 1-Click Occupancy Telemetry
+    const occBtn = e.target.closest('.occ-btn');
+    if (occBtn) {
+      const level = occBtn.dataset.level;
+      if (window.SafarCrowdRadar) {
+        window.SafarCrowdRadar.recordOccupancy("JK-ACTIVE", "Lal Chowk-Route", level);
+      }
+      const msg = `Recorded: ${occBtn.textContent.trim()}. Telemetry broadcasted.`;
+      if (typeof window.showToast === "function") {
+        window.showToast(msg);
+      } else {
+        alert(msg);
+      }
+      return;
+    }
+
+    // Evidence Locker quick button
+    if (e.target.closest('#openEvidenceModalBtn')) {
+      const quickPlate = document.getElementById("quickPlateInput");
+      const dossierPlate = document.getElementById("dossierPlate");
+      if (quickPlate && dossierPlate && quickPlate.value.trim()) {
+        dossierPlate.value = quickPlate.value.trim();
+      }
+      const evidenceModal = document.getElementById("evidenceModal");
+      if (evidenceModal) {
+        evidenceModal.hidden = false;
+        evidenceModal.classList.remove("hidden");
+      }
       return;
     }
   }

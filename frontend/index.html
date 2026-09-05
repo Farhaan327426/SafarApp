@@ -95,10 +95,6 @@
 
         <!-- Right Tools -->
         <div class="header-tools">
-          <div id="radarBadge" class="radar-status-pill hidden" hidden>
-            🌙 Evening Transit Radar Active
-          </div>
-
           <div class="status-chip desktop-only">
             <span class="pulse-dot"></span>
             <span>SRO-97 Verified</span>
@@ -205,82 +201,6 @@
             <!-- Injected by JavaScript -->
           </div>
         </div>
-
-        <!-- ============================================================= -->
-        <!-- COMMUTER DEFENSE LAYER (VOICE, CROWD TELEMETRY & RADAR)       -->
-        <!-- ============================================================= -->
-        <section class="commuter-defense-strip">
-          <!-- Quick Voice & Fast Dispute Prompt -->
-          <div class="card voice-box">
-            <div class="voice-header">
-              <div class="voice-title-wrap">
-                <span class="voice-icon">🎙️</span>
-                <div>
-                  <h3>Instant Voice Fare Check &amp; Dispute</h3>
-                  <p class="subtitle">Tap the mic and state route or fare (e.g. <em>"Driver charging 30 from Lal Chowk to Batamaloo"</em>)</p>
-                </div>
-              </div>
-              <span class="lang-tag">Urdu / Dogri / Kashmiri / Hindi</span>
-            </div>
-            
-            <div class="voice-input-row">
-              <input type="text" id="voiceQueryInput" placeholder="Type or speak fare issue (e.g. Driver charging 30 from Lal Chowk to Batamaloo)..." />
-              <button id="micBtn" class="btn btn-mic" aria-label="Start Voice Recording" title="Speak in Urdu/Hindi/English">🎙️</button>
-              <button id="checkDisputeBtn" class="btn btn-primary">Check Fare</button>
-            </div>
-          </div>
-
-          <!-- Real-Time Crowd Telemetry & Evidence Quick Row -->
-          <div class="defense-dual-grid">
-            <!-- Crowdsourced Occupancy Telemetry -->
-            <div class="card occupancy-card">
-              <div class="section-title-row">
-                <div class="sec-title-wrap">
-                  <span class="sec-icon">👥</span>
-                  <h3>1-Tap Vehicle Crowd Status</h3>
-                </div>
-                <small>Real-time passenger safety reports</small>
-              </div>
-              <div class="occupancy-buttons">
-                <button class="occ-btn occ-green" data-level="SEATS_AVAILABLE">🟢 Seating Available</button>
-                <button class="occ-btn occ-yellow" data-level="STANDING_ONLY">🟡 Standing Room</button>
-                <button class="occ-btn occ-red" data-level="SEVERE_OVERLOAD">🔴 Severe Overload</button>
-              </div>
-            </div>
-
-            <!-- Evidence Locker Quick Box -->
-            <div class="card grievance-quick-box">
-              <div class="section-title-row">
-                <div class="sec-title-wrap">
-                  <span class="sec-icon">⚖️</span>
-                  <h3>Evidence Locker &amp; Action</h3>
-                </div>
-                <small>Report under MVA Sec 194A / 192A</small>
-              </div>
-              <div class="grid-2col">
-                <input type="text" id="quickPlateInput" placeholder="Vehicle No (e.g. JK01 AB 1234)" />
-                <button id="openEvidenceModalBtn" class="btn btn-danger">File 1-Tap Report</button>
-              </div>
-            </div>
-          </div>
-
-          <!-- Post-7 PM Evening Stand Radar -->
-          <div id="eveningRadarSection" class="card evening-radar-card">
-            <div class="section-title-row">
-              <div class="radar-title-wrap">
-                <span class="radar-moon-icon">🌙</span>
-                <div>
-                  <h3>Evening Stand Radar (Post-7 PM)</h3>
-                  <small>Live active shared cabs &amp; safe carpool hubs</small>
-                </div>
-              </div>
-              <span class="live-tag">LIVE STANDS</span>
-            </div>
-            <div id="eveningHubsList" class="hubs-grid">
-              <!-- Injected via JavaScript -->
-            </div>
-          </div>
-        </section>
 
         <!-- Main Interactive Layout Grid -->
         <div class="calculator-grid">
