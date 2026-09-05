@@ -2,7 +2,6 @@ import React, { useState, useMemo, useEffect } from "react";
 import {
   ArrowDownUp,
   ArrowRight,
-  Bell,
   BusFront,
   Calculator,
   CarFront,
@@ -14,13 +13,13 @@ import {
   Clock3,
   Compass,
   FileText,
-  HelpCircle,
   Info,
   MapPin,
   MapPinned,
   Menu,
   Navigation,
   PhoneCall,
+  QrCode,
   RefreshCw,
   Route,
   Share2,
@@ -32,8 +31,9 @@ import {
   Eye,
   LayoutGrid,
   List,
-  Luggage,
 } from "lucide-react";
+import StageExplorer from "./components/StageExplorer.jsx";
+import ConductorSlipModal from "./components/ConductorSlipModal.jsx";
 import VehicleIllustration, {
   VEHICLE_VISUAL_META,
 } from "./components/VehicleIllustration.jsx";
@@ -994,9 +994,9 @@ export default function App() {
   const [vehicleCategoryFilter, setVehicleCategoryFilter] = useState("all");
   const [terrainRegion, setTerrainRegion] = useState("kashmir-plain");
   const [notice, setNotice] = useState("");
-  const [showNotifications, setShowNotifications] = useState(false);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [showHelpModal, setShowHelpModal] = useState(false);
+  const [showConductorSlip, setShowConductorSlip] = useState(false);
   const [searchFromFocus, setSearchFromFocus] = useState(false);
   const [searchToFocus, setSearchToFocus] = useState(false);
   const [priceMode, setPriceMode] = useState("per-seat");
@@ -1535,49 +1535,16 @@ export default function App() {
               <span className="hidden sm:inline">Help</span>
             </button>
 
-            <div className="relative">
-              <button
-                onClick={() => setShowNotifications(!showNotifications)}
-                className="p-2 rounded-xl text-[#557b72] hover:bg-[#eaf0e9] hover:text-[#234b4c] transition relative"
-                aria-label="Notifications"
-              >
-                <Bell size={19} />
-                <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-[#d36b3d]" />
-              </button>
-
-              {showNotifications && (
-                <div className="absolute right-0 mt-2 w-80 rounded-2xl bg-[#fbfcf8] border border-[#dce5dc] p-4 shadow-xl z-50 animate-in fade-in slide-in-from-top-2 duration-150">
-                  <div className="flex items-center justify-between pb-2 border-b border-[#e5ece3]">
-                    <h3 className="text-xs font-bold text-[#234b4c] uppercase tracking-wider">
-                      J&K Transit Alerts
-                    </h3>
-                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#edf5ee] text-[#426a54]">
-                      Live
-                    </span>
-                  </div>
-                  <div className="mt-3 space-y-2.5">
-                    <div className="p-2.5 rounded-xl bg-[#f5f8f3] border border-[#e2eae0] text-xs">
-                      <p className="font-semibold text-[#345657]">Tangmarg - Gulmarg Road</p>
-                      <p className="text-[11px] text-[#78908a] mt-0.5">
-                        Clear traffic. Snow chains mandatory only during severe icing.
-                      </p>
-                    </div>
-                    <div className="p-2.5 rounded-xl bg-[#f5f8f3] border border-[#e2eae0] text-xs">
-                      <p className="font-semibold text-[#345657]">NH-44 Jammu-Srinagar</p>
-                      <p className="text-[11px] text-[#78908a] mt-0.5">
-                        Two-way light vehicular traffic operating smoothly through Navyug Tunnel.
-                      </p>
-                    </div>
-                  </div>
-                  <button
-                    onClick={() => setShowNotifications(false)}
-                    className="w-full mt-3 py-1.5 text-center text-xs font-bold text-[#d36b3d] hover:underline"
-                  >
-                    Close Alerts
-                  </button>
-                </div>
-              )}
-            </div>
+            {/* Passenger Hub — replaces Defense Suite & notifications */}
+            <button
+              id="passengerRightsBtn"
+              onClick={() => setShowHelpModal(true)}
+              className="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-xl text-[#345657] bg-[#f0f4ee] hover:bg-[#e4ece2] border border-[#dce5dc] transition"
+              title="Passenger Rights & Helplines"
+            >
+              <ShieldCheck size={16} className="text-[#557b72]" />
+              <span className="hidden sm:inline">Rights</span>
+            </button>
           </div>
         </div>
       </header>
@@ -2580,15 +2547,25 @@ export default function App() {
                     </div>
                   </div>
 
-                  {/* Share & Copy Actions */}
+                  {/* Share, Pass & Helpline Actions */}
                   <div className="relative z-10 mt-4 flex items-center gap-2">
                     <button
                       onClick={handleShare}
                       className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl bg-[#f4f6ed] text-[#234b4c] font-bold text-xs hover:bg-[#e4eae0] transition shadow-sm"
                     >
                       <Share2 size={14} />
-                      <span>Copy / Share Fare</span>
+                      <span>Copy / Share</span>
                     </button>
+                    {hasRoute && fareParts.isViable && displayFare > 0 && (
+                      <button
+                        onClick={() => setShowConductorSlip(true)}
+                        className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl bg-[#d36b3d] text-[#ffffff] font-bold text-xs hover:bg-[#c05e32] transition shadow-sm"
+                        title="Generate Digital Fare Pass"
+                      >
+                        <QrCode size={14} />
+                        <span>Fare Pass</span>
+                      </button>
+                    )}
                     <button
                       onClick={() => showToast("Helpline 1033 is available 24/7 across J&K")}
                       className="p-2.5 rounded-xl bg-[#183637] text-[#f2bd70] hover:bg-[#152e2f] border border-[#386260] transition"
@@ -2734,33 +2711,14 @@ export default function App() {
           </div>
         )}
 
-        {/* Other tabs */}
+        {/* Stage Explorer Tab */}
         {activeNav === "Route guide" && (
-          <div className="bg-[#fbfcf8] border border-[#dce5dc] rounded-3xl p-6 sm:p-8 shadow-sm">
-            <h2 className="text-xl font-extrabold text-[#234b4c] pb-4 border-b border-[#e5ece3]">
-              J&K Transit Corridors Directory
-            </h2>
-            <div className="mt-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {routePresets.map((r) => (
-                <div key={`${r.from}-${r.to}`} className="p-5 rounded-2xl bg-[#f8faf6] border border-[#e2eae0]">
-                  <div className="flex justify-between items-center text-sm font-bold text-[#234b4c]">
-                    <span>{r.from} ➔ {r.to}</span>
-                    <span className="text-xs text-[#d36b3d] bg-[#fbf3ec] px-2 py-0.5 rounded">{r.duration}</span>
-                  </div>
-                  <p className="text-xs text-[#78908a] mt-2">{r.distance} km • {r.highway}</p>
-                  <button
-                    onClick={() => {
-                      handleSelectPreset(r);
-                      setActiveNav("Fare calculator");
-                    }}
-                    className="mt-4 w-full py-2 bg-[#e5eee4] text-[#234b4c] font-bold text-xs rounded-xl hover:bg-[#234b4c] hover:text-[#f4f6ed] transition"
-                  >
-                    Calculate This Route ➔
-                  </button>
-                </div>
-              ))}
-            </div>
-          </div>
+          <StageExplorer
+            onUseRoute={(preset) => {
+              handleSelectPreset(preset);
+              setActiveNav("Fare calculator");
+            }}
+          />
         )}
 
         {activeNav === "Recent estimates" && (
@@ -3115,6 +3073,17 @@ export default function App() {
           </div>
         </div>
       )}
+
+      {/* Digital Conductor Fare Pass Modal */}
+      <ConductorSlipModal
+        open={showConductorSlip}
+        onClose={() => setShowConductorSlip(false)}
+        origin={from}
+        destination={to}
+        vehicle={chosenVehicle?.label || ""}
+        distanceKm={Number(distance) || 0}
+        farePerSeat={displayFare}
+      />
 
       {/* Floating Toast Notification */}
       {notice && (
