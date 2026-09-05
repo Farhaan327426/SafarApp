@@ -4445,3 +4445,48 @@ body.driver-low-power * {
     grid-template-columns: 1fr;
   }
 }
+
+/* Corridor Timeline & Conductor Pass */
+.timeline-stop {
+  position: relative;
+  padding-left: 1.5rem;
+}
+
+.timeline-stop::before {
+  content: '';
+  position: absolute;
+  left: 0.35rem;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background-color: var(--border-color, #e2e8f0);
+}
+
+.conductor-pass-card {
+  border-radius: 1rem;
+  background: var(--surface-1, #ffffff);
+  border: 1px solid var(--border-color, #e2e8f0);
+  box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1);
+}
+
+.conductor-pass-divider {
+  border-top: 2px dashed #cbd5e1;
+  position: relative;
+  margin: 1rem 0;
+}
+
+.badge-tier-low {
+  background-color: #d1fae5;
+  color: #065f46;
+}
+
+.badge-tier-moderate {
+  background-color: #fef3c7;
+  color: #92400e;
+}
+
+.badge-tier-high {
+  background-color: #ffe4e6;
+  color: #9f1239;
+}
+

@@ -1,246 +1,146 @@
-/**
- * SAFAR — TransitCorridor Schema Dataset
- * Hierarchical J&K corridor data for Stage Explorer
- * Schema: TransitCorridor { id, name, vehicleTypes, frequencyText, firstTrip, lastTrip, occupancyTier, stages[] }
- * Each stage: { stopId, stopName, kmFromSource, statutoryFare }
- */
-
-/** @typedef {'bus'|'matador'|'sumo'|'shared-cab'|'tata-magic'|'e-rickshaw'|'taxi'|'suv-taxi'} VehicleType */
-/** @typedef {'low'|'moderate'|'high'} OccupancyTier */
-
-/**
- * @typedef {Object} CorridorStage
- * @property {string} stopId
- * @property {string} stopName
- * @property {number} kmFromSource
- * @property {number} statutoryFare - Per-seat fare at this stop from source (SRO-97)
- */
-
-/**
- * @typedef {Object} TransitCorridor
- * @property {string} id
- * @property {string} name
- * @property {string} region - 'kashmir-plain'|'kashmir-hill'|'jammu-plain'|'jammu-hill'
- * @property {VehicleType[]} vehicleTypes
- * @property {string} frequencyText
- * @property {string} firstTrip
- * @property {string} lastTrip
- * @property {OccupancyTier} occupancyTier
- * @property {string} highway
- * @property {CorridorStage[]} stages
- */
-
-/** @type {TransitCorridor[]} */
-export const JK_CORRIDORS = [
+export const corridors = [
   {
-    id: "JK-SRI-01",
-    name: "Lal Chowk ⇄ Hazratbal via Dalgate",
-    region: "kashmir-plain",
-    vehicleTypes: ["matador", "e-rickshaw"],
-    frequencyText: "Every 8–12 min",
-    firstTrip: "06:30",
-    lastTrip: "20:00",
-    occupancyTier: "high",
-    highway: "Boulevard Road / Foreshore Road",
+    id: 'JK-SRI-01',
+    name: 'Lal Chowk ⇄ Hazratbal via Dalgate',
+    vehicleTypes: ['Matador', 'E-Bus'],
+    frequencyText: 'Every 10 min',
+    firstTrip: '06:00',
+    lastTrip: '21:00',
+    occupancyTier: 'low',
     stages: [
-      { stopId: "lal-chowk",   stopName: "Lal Chowk",           kmFromSource: 0,  statutoryFare: 0  },
-      { stopId: "ma-road",     stopName: "MA Road",              kmFromSource: 1,  statutoryFare: 10 },
-      { stopId: "trc",         stopName: "TRC Crossing",         kmFromSource: 2,  statutoryFare: 10 },
-      { stopId: "dalgate",     stopName: "Dalgate",              kmFromSource: 4,  statutoryFare: 10 },
-      { stopId: "rainawari",   stopName: "Rainawari",            kmFromSource: 6,  statutoryFare: 14 },
-      { stopId: "saida-kadal", stopName: "Saida Kadal",          kmFromSource: 8,  statutoryFare: 14 },
-      { stopId: "nigeen",      stopName: "Nigeen Lake",          kmFromSource: 9,  statutoryFare: 17 },
-      { stopId: "hazratbal",   stopName: "Hazratbal",            kmFromSource: 11, statutoryFare: 17 },
-    ],
+      { stopId: 's1', stopName: 'Lal Chowk', kmFromSource: 0, statutoryFare: 0 },
+      { stopId: 's2', stopName: 'Dalgate', kmFromSource: 3.2, statutoryFare: 10 },
+      { stopId: 's3', stopName: 'Hazratbal', kmFromSource: 11.5, statutoryFare: 20 }
+    ]
   },
-
   {
-    id: "JK-SRI-02",
-    name: "Batamaloo ⇄ Baramulla via NH-1",
-    region: "kashmir-plain",
-    vehicleTypes: ["sumo", "matador", "bus"],
-    frequencyText: "Every 15–25 min",
-    firstTrip: "06:00",
-    lastTrip: "19:30",
-    occupancyTier: "high",
-    highway: "NH-1 Valley Highway",
+    id: 'JK-SRI-02',
+    name: 'Batamaloo ⇄ Baramulla NH-1',
+    vehicleTypes: ['Sumo', 'Mini-Bus'],
+    frequencyText: 'Every 15 min',
+    firstTrip: '06:30',
+    lastTrip: '19:30',
+    occupancyTier: 'high',
     stages: [
-      { stopId: "batamaloo",  stopName: "Batamaloo Bus Stand",  kmFromSource: 0,  statutoryFare: 0  },
-      { stopId: "parimpora",  stopName: "Parimpora",            kmFromSource: 6,  statutoryFare: 31 },
-      { stopId: "pattan",     stopName: "Pattan",               kmFromSource: 30, statutoryFare: 156},
-      { stopId: "sangrama",   stopName: "Sangrama",             kmFromSource: 40, statutoryFare: 208},
-      { stopId: "sopore",     stopName: "Sopore",               kmFromSource: 48, statutoryFare: 249},
-      { stopId: "baramulla",  stopName: "Baramulla",            kmFromSource: 54, statutoryFare: 281},
-    ],
+      { stopId: 's1', stopName: 'Batamaloo', kmFromSource: 0, statutoryFare: 0 },
+      { stopId: 's2', stopName: 'Pattan', kmFromSource: 27.0, statutoryFare: 45 },
+      { stopId: 's3', stopName: 'Baramulla', kmFromSource: 54.0, statutoryFare: 85 }
+    ]
   },
-
   {
-    id: "JK-SRI-03",
-    name: "Pantha Chowk ⇄ Anantnag via NH-44",
-    region: "kashmir-plain",
-    vehicleTypes: ["sumo", "bus", "matador"],
-    frequencyText: "Every 10–20 min",
-    firstTrip: "06:00",
-    lastTrip: "20:00",
-    occupancyTier: "high",
-    highway: "NH-44 Valley Expressway",
+    id: 'JK-SRI-03',
+    name: 'Lal Chowk ⇄ Anantnag NH-44',
+    vehicleTypes: ['Bus', 'Cab', 'Sumo'],
+    frequencyText: 'Every 12 min',
+    firstTrip: '06:00',
+    lastTrip: '20:00',
+    occupancyTier: 'moderate',
     stages: [
-      { stopId: "pantha-chowk",  stopName: "Pantha Chowk",     kmFromSource: 0,  statutoryFare: 0  },
-      { stopId: "pampore",       stopName: "Pampore",           kmFromSource: 8,  statutoryFare: 42 },
-      { stopId: "awantipora",    stopName: "Awantipora",        kmFromSource: 18, statutoryFare: 94 },
-      { stopId: "bijbehara",     stopName: "Bijbehara",         kmFromSource: 28, statutoryFare: 145},
-      { stopId: "anantnag",      stopName: "Anantnag",          kmFromSource: 32, statutoryFare: 166},
-    ],
+      { stopId: 's1', stopName: 'Lal Chowk', kmFromSource: 0, statutoryFare: 0 },
+      { stopId: 's2', stopName: 'Pampore', kmFromSource: 14.0, statutoryFare: 25 },
+      { stopId: 's3', stopName: 'Anantnag', kmFromSource: 52.0, statutoryFare: 80 }
+    ]
   },
-
   {
-    id: "JK-JAM-01",
-    name: "Jammu GBS ⇄ Katra Vaishno Devi",
-    region: "jammu-hill",
-    vehicleTypes: ["bus", "sumo", "taxi"],
-    frequencyText: "Every 20–30 min",
-    firstTrip: "05:00",
-    lastTrip: "22:00",
-    occupancyTier: "high",
-    highway: "NH-44 / Katra Bypass",
+    id: 'JK-JAM-01',
+    name: 'General Bus Stand ⇄ Katra',
+    vehicleTypes: ['Deluxe Bus', 'Cab'],
+    frequencyText: 'Every 8 min',
+    firstTrip: '05:00',
+    lastTrip: '22:00',
+    occupancyTier: 'high',
     stages: [
-      { stopId: "jammu-gbs",       stopName: "Jammu General Bus Stand", kmFromSource: 0,  statutoryFare: 0  },
-      { stopId: "nagrota",         stopName: "Nagrota",                 kmFromSource: 12, statutoryFare: 62 },
-      { stopId: "domel",           stopName: "Domel",                   kmFromSource: 30, statutoryFare: 156},
-      { stopId: "jhajjar-kotli",   stopName: "Jhajjar Kotli",           kmFromSource: 38, statutoryFare: 197},
-      { stopId: "katra",           stopName: "Katra (Vaishno Devi)",    kmFromSource: 49, statutoryFare: 255},
-    ],
+      { stopId: 's1', stopName: 'General Bus Stand', kmFromSource: 0, statutoryFare: 0 },
+      { stopId: 's2', stopName: 'Jhajjar Kotli', kmFromSource: 30.0, statutoryFare: 50 },
+      { stopId: 's3', stopName: 'Katra', kmFromSource: 48.0, statutoryFare: 90 }
+    ]
   },
-
   {
-    id: "JK-JAM-02",
-    name: "Jammu ⇄ Udhampur via NH-44",
-    region: "jammu-hill",
-    vehicleTypes: ["bus", "sumo", "shared-cab"],
-    frequencyText: "Every 15–20 min",
-    firstTrip: "06:00",
-    lastTrip: "20:00",
-    occupancyTier: "moderate",
-    highway: "NH-44 4-Lane Highway",
+    id: 'JK-JAM-02',
+    name: 'Jammu ⇄ Udhampur NH-44',
+    vehicleTypes: ['Bus', 'Sumo'],
+    frequencyText: 'Every 20 min',
+    firstTrip: '06:00',
+    lastTrip: '20:30',
+    occupancyTier: 'moderate',
     stages: [
-      { stopId: "jammu",       stopName: "Jammu",              kmFromSource: 0,  statutoryFare: 0  },
-      { stopId: "nagrota",     stopName: "Nagrota",            kmFromSource: 12, statutoryFare: 62 },
-      { stopId: "nandni",      stopName: "Nandni Tunnel",      kmFromSource: 30, statutoryFare: 156},
-      { stopId: "tikri",       stopName: "Tikri",              kmFromSource: 50, statutoryFare: 260},
-      { stopId: "udhampur",    stopName: "Udhampur",           kmFromSource: 65, statutoryFare: 338},
-    ],
+      { stopId: 's1', stopName: 'Jammu', kmFromSource: 0, statutoryFare: 0 },
+      { stopId: 's2', stopName: 'Nagrota', kmFromSource: 15.0, statutoryFare: 25 },
+      { stopId: 's3', stopName: 'Udhampur', kmFromSource: 65.0, statutoryFare: 110 }
+    ]
   },
-
   {
-    id: "JK-NKA-01",
-    name: "Srinagar ⇄ Baramulla via NH-1",
-    region: "kashmir-plain",
-    vehicleTypes: ["sumo", "bus", "matador"],
-    frequencyText: "Every 12–18 min",
-    firstTrip: "06:00",
-    lastTrip: "19:30",
-    occupancyTier: "high",
-    highway: "NH-1 Valley Highway",
+    id: 'JK-KMR-01',
+    name: 'Pantha Chowk ⇄ Anantnag NH-44',
+    vehicleTypes: ['Bus', 'Cab', 'Sumo'],
+    frequencyText: 'Every 15 min',
+    firstTrip: '06:30',
+    lastTrip: '19:00',
+    occupancyTier: 'low',
     stages: [
-      { stopId: "srinagar",   stopName: "Srinagar (Parimpora)", kmFromSource: 0,  statutoryFare: 0  },
-      { stopId: "shalteng",   stopName: "Shalteng",             kmFromSource: 8,  statutoryFare: 42 },
-      { stopId: "pattan",     stopName: "Pattan",               kmFromSource: 24, statutoryFare: 125},
-      { stopId: "sangrama",   stopName: "Sangrama",             kmFromSource: 34, statutoryFare: 177},
-      { stopId: "sopore",     stopName: "Sopore",               kmFromSource: 42, statutoryFare: 218},
-      { stopId: "baramulla",  stopName: "Baramulla",            kmFromSource: 54, statutoryFare: 281},
-    ],
+      { stopId: 's1', stopName: 'Pantha Chowk', kmFromSource: 0, statutoryFare: 0 },
+      { stopId: 's2', stopName: 'Awantipora', kmFromSource: 30.0, statutoryFare: 45 },
+      { stopId: 's3', stopName: 'Anantnag', kmFromSource: 45.0, statutoryFare: 70 }
+    ]
   },
-
   {
-    id: "JK-NKA-02",
-    name: "Srinagar ⇄ Sonmarg (Tourist Corridor)",
-    region: "kashmir-hill",
-    vehicleTypes: ["sumo", "taxi", "suv-taxi"],
-    frequencyText: "Every 30–45 min",
-    firstTrip: "07:00",
-    lastTrip: "15:00",
-    occupancyTier: "moderate",
-    highway: "NH-1 (Srinagar–Leh)",
+    id: 'JK-NKA-01',
+    name: 'Srinagar ⇄ Baramulla',
+    vehicleTypes: ['Bus', 'Sumo'],
+    frequencyText: 'Every 10 min',
+    firstTrip: '06:00',
+    lastTrip: '20:00',
+    occupancyTier: 'moderate',
     stages: [
-      { stopId: "srinagar",  stopName: "Srinagar",             kmFromSource: 0,  statutoryFare: 0   },
-      { stopId: "ganderbal", stopName: "Ganderbal",            kmFromSource: 21, statutoryFare: 109  },
-      { stopId: "kangan",    stopName: "Kangan",               kmFromSource: 45, statutoryFare: 234  },
-      { stopId: "gund",      stopName: "Gund",                 kmFromSource: 62, statutoryFare: 322  },
-      { stopId: "sonmarg",   stopName: "Sonmarg",              kmFromSource: 80, statutoryFare: 416  },
-    ],
+      { stopId: 's1', stopName: 'Srinagar', kmFromSource: 0, statutoryFare: 0 },
+      { stopId: 's2', stopName: 'Sangrama', kmFromSource: 42.0, statutoryFare: 65 },
+      { stopId: 's3', stopName: 'Baramulla', kmFromSource: 54.0, statutoryFare: 85 }
+    ]
   },
-
   {
-    id: "JK-SRI-04",
-    name: "Srinagar ⇄ Gulmarg (Mountain Pass)",
-    region: "kashmir-hill",
-    vehicleTypes: ["sumo", "suv-taxi", "taxi"],
-    frequencyText: "Every 30–40 min",
-    firstTrip: "07:00",
-    lastTrip: "16:00",
-    occupancyTier: "moderate",
-    highway: "Tangmarg–Gulmarg Road",
+    id: 'JK-NKA-02',
+    name: 'Srinagar ⇄ Sonmarg',
+    vehicleTypes: ['Tourist Bus', 'Cab'],
+    frequencyText: 'Every 30 min',
+    firstTrip: '07:00',
+    lastTrip: '18:00',
+    occupancyTier: 'high',
     stages: [
-      { stopId: "srinagar",  stopName: "Srinagar",             kmFromSource: 0,  statutoryFare: 0   },
-      { stopId: "narbal",    stopName: "Narbal",               kmFromSource: 14, statutoryFare: 73  },
-      { stopId: "magam",     stopName: "Magam",                kmFromSource: 22, statutoryFare: 114 },
-      { stopId: "tangmarg",  stopName: "Tangmarg",             kmFromSource: 38, statutoryFare: 198 },
-      { stopId: "gulmarg",   stopName: "Gulmarg",              kmFromSource: 51, statutoryFare: 265 },
-    ],
-  },
+      { stopId: 's1', stopName: 'Srinagar', kmFromSource: 0, statutoryFare: 0 },
+      { stopId: 's2', stopName: 'Ganderbal', kmFromSource: 21.0, statutoryFare: 35 },
+      { stopId: 's3', stopName: 'Sonmarg', kmFromSource: 80.0, statutoryFare: 180 }
+    ]
+  }
 ];
 
-/**
- * Get a corridor by ID
- * @param {string} id
- * @returns {TransitCorridor|undefined}
- */
-export function getCorridorById(id) {
-  return JK_CORRIDORS.find((c) => c.id === id);
-}
+export const JK_CORRIDORS = corridors;
 
-/**
- * Search corridors by name or stop name
- * @param {string} query
- * @returns {TransitCorridor[]}
- */
+export const OCCUPANCY_LABELS = {
+  low: 'Seats Available',
+  moderate: 'Moderate Rush',
+  high: 'Standing / Heavy Rush'
+};
+
+export const OCCUPANCY_COLORS = {
+  low: '#16a34a',
+  moderate: '#d97706',
+  high: '#dc2626'
+};
+
 export function searchCorridors(query) {
-  if (!query || !query.trim()) return JK_CORRIDORS;
-  const q = query.trim().toLowerCase();
-  return JK_CORRIDORS.filter(
+  if (!query || !query.trim()) return corridors;
+  const q = query.toLowerCase().trim();
+  return corridors.filter(
     (c) =>
+      c.id.toLowerCase().includes(q) ||
       c.name.toLowerCase().includes(q) ||
-      c.stages.some((s) => s.stopName.toLowerCase().includes(q)) ||
-      c.highway.toLowerCase().includes(q)
+      c.stages.some((s) => s.stopName.toLowerCase().includes(q))
   );
 }
 
-/**
- * Get fare between two stops on a corridor
- * @param {TransitCorridor} corridor
- * @param {string} fromStopId
- * @param {string} toStopId
- * @returns {{ fare: number, distanceKm: number }|null}
- */
-export function getStageFare(corridor, fromStopId, toStopId) {
-  const fromStage = corridor.stages.find((s) => s.stopId === fromStopId);
-  const toStage = corridor.stages.find((s) => s.stopId === toStopId);
-  if (!fromStage || !toStage) return null;
-  const distanceKm = Math.abs(toStage.kmFromSource - fromStage.kmFromSource);
-  const fare = Math.abs(toStage.statutoryFare - fromStage.statutoryFare);
-  return { fare: Math.max(10, fare), distanceKm };
+export function getStageFare(corridorId, stopId) {
+  const corridor = corridors.find((c) => c.id === corridorId);
+  if (!corridor) return null;
+  const stage = corridor.stages.find((s) => s.stopId === stopId);
+  return stage ? stage.statutoryFare : null;
 }
-
-/** Map occupancy tier to display label */
-export const OCCUPANCY_LABELS = {
-  low: "Seats Available",
-  moderate: "Filling Fast",
-  high: "High Rush",
-};
-
-/** Map occupancy tier to hex color */
-export const OCCUPANCY_COLORS = {
-  low: "#16a34a",
-  moderate: "#d97706",
-  high: "#dc2626",
-};

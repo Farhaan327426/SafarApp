@@ -1,545 +1,104 @@
-import React, { useState, useMemo } from "react";
-import { MapPin, Bus, Clock, ArrowRight, Search, ChevronDown, ChevronUp, Navigation } from "lucide-react";
-import { JK_CORRIDORS, searchCorridors, getStageFare } from "../data/corridors.js";
-import OccupancyBadge from "./OccupancyBadge.jsx";
+import React, { useState } from 'react';
+import { corridors } from '../data/corridors';
+import OccupancyBadge from './OccupancyBadge';
 
-const VEHICLE_TYPE_LABELS = {
-  bus:        "🚌 Bus",
-  matador:    "🚌 Matador",
-  sumo:       "🚙 Sumo",
-  "shared-cab": "🚙 Shared Cab",
-  "tata-magic": "🚐 Tata Magic",
-  "e-rickshaw": "⚡ E-Rickshaw",
-  taxi:       "🚕 Taxi",
-  "suv-taxi": "🚙 SUV Taxi",
-};
-
-/** Chronological stop timeline for a single corridor */
-function StageTimeline({ stages }) {
-  return (
-    <div style={{ position: "relative", paddingLeft: 24, marginTop: 8 }}>
-      {/* Vertical connector line */}
-      <div
-        style={{
-          position: "absolute",
-          left: 10,
-          top: 8,
-          bottom: 8,
-          width: 2,
-          background: "linear-gradient(to bottom, #234b4c, #d36b3d)",
-          borderRadius: 2,
-        }}
-      />
-      {stages.map((stage, idx) => {
-        const isFirst = idx === 0;
-        const isLast = idx === stages.length - 1;
-        return (
-          <div
-            key={stage.stopId}
-            style={{
-              position: "relative",
-              display: "flex",
-              alignItems: "flex-start",
-              gap: 12,
-              marginBottom: isLast ? 0 : 16,
-            }}
-          >
-            {/* Stop dot */}
-            <div
-              style={{
-                position: "absolute",
-                left: -20,
-                top: 4,
-                width: 12,
-                height: 12,
-                borderRadius: "50%",
-                background: isFirst ? "#234b4c" : isLast ? "#d36b3d" : "#ffffff",
-                border: `2px solid ${isFirst ? "#234b4c" : isLast ? "#d36b3d" : "#234b4c"}`,
-                boxShadow: isFirst || isLast ? "0 0 0 3px rgba(35,75,76,0.12)" : "none",
-                zIndex: 1,
-                flexShrink: 0,
-              }}
-            />
-            <div style={{ flex: 1 }}>
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  flexWrap: "wrap",
-                  gap: 4,
-                }}
-              >
-                <span
-                  style={{
-                    fontSize: "0.8rem",
-                    fontWeight: isFirst || isLast ? 700 : 600,
-                    color: isFirst || isLast ? "#234b4c" : "#345657",
-                  }}
-                >
-                  {stage.stopName}
-                </span>
-                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  <span style={{ fontSize: "0.68rem", color: "#78908a", fontWeight: 500 }}>
-                    {stage.kmFromSource} km
-                  </span>
-                  {stage.statutoryFare > 0 && (
-                    <span
-                      style={{
-                        fontSize: "0.72rem",
-                        fontWeight: 700,
-                        color: "#234b4c",
-                        background: "#eaf0e9",
-                        border: "1px solid #d8e3d8",
-                        borderRadius: 8,
-                        padding: "1px 7px",
-                      }}
-                    >
-                      ₹{stage.statutoryFare}
-                    </span>
-                  )}
-                  {stage.statutoryFare === 0 && (
-                    <span
-                      style={{
-                        fontSize: "0.68rem",
-                        color: "#16a34a",
-                        fontWeight: 700,
-                        background: "#dcfce7",
-                        border: "1px solid #bbf7d0",
-                        borderRadius: 8,
-                        padding: "1px 7px",
-                      }}
-                    >
-                      Origin
-                    </span>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
-        );
-      })}
-    </div>
-  );
-}
-
-/** Single corridor card */
-function CorridorCard({ corridor, onUseRoute }) {
-  const [expanded, setExpanded] = useState(false);
-
-  const lastStop = corridor.stages[corridor.stages.length - 1];
-  const totalDistance = lastStop?.kmFromSource ?? 0;
-  const totalFare = lastStop?.statutoryFare ?? 0;
-
-  return (
-    <div
-      style={{
-        background: "#fbfcf8",
-        border: "1px solid #dce5dc",
-        borderRadius: 20,
-        overflow: "hidden",
-        boxShadow: "0 1px 6px rgba(35,75,76,0.06)",
-        transition: "box-shadow 0.2s",
-      }}
-    >
-      {/* Card Header */}
-      <div style={{ padding: "16px 18px" }}>
-        <div style={{ display: "flex", alignItems: "flex-start", gap: 10, marginBottom: 10 }}>
-          <div
-            style={{
-              width: 36,
-              height: 36,
-              borderRadius: 12,
-              background: "#234b4c",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              flexShrink: 0,
-            }}
-          >
-            <Bus size={18} color="#f2bd70" />
-          </div>
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
-              <span
-                style={{
-                  fontSize: "0.6rem",
-                  fontWeight: 700,
-                  color: "#557b72",
-                  background: "#eaf0e9",
-                  border: "1px solid #d8e3d8",
-                  borderRadius: 6,
-                  padding: "1px 6px",
-                  letterSpacing: "0.04em",
-                  textTransform: "uppercase",
-                }}
-              >
-                {corridor.id}
-              </span>
-              <OccupancyBadge tier={corridor.occupancyTier} />
-            </div>
-            <h3
-              style={{
-                fontSize: "0.875rem",
-                fontWeight: 700,
-                color: "#234b4c",
-                margin: "4px 0 2px",
-                lineHeight: 1.3,
-              }}
-            >
-              {corridor.name}
-            </h3>
-            <p style={{ fontSize: "0.7rem", color: "#78908a", margin: 0 }}>
-              {corridor.highway}
-            </p>
-          </div>
-        </div>
-
-        {/* Stats row */}
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(3, 1fr)",
-            gap: 8,
-            marginBottom: 10,
-          }}
-        >
-          {[
-            { icon: <Clock size={12} />, label: "First Trip", value: corridor.firstTrip },
-            { icon: <Navigation size={12} />, label: "Distance", value: `${totalDistance} km` },
-            { icon: <ArrowRight size={12} />, label: "Frequency", value: corridor.frequencyText },
-          ].map(({ icon, label, value }) => (
-            <div
-              key={label}
-              style={{
-                background: "#f5f7f3",
-                border: "1px solid #e5ece3",
-                borderRadius: 10,
-                padding: "6px 8px",
-                textAlign: "center",
-              }}
-            >
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  gap: 3,
-                  color: "#557b72",
-                  marginBottom: 2,
-                }}
-              >
-                {icon}
-                <span style={{ fontSize: "0.6rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.04em" }}>
-                  {label}
-                </span>
-              </div>
-              <span style={{ fontSize: "0.75rem", fontWeight: 700, color: "#234b4c" }}>{value}</span>
-            </div>
-          ))}
-        </div>
-
-        {/* Vehicle types */}
-        <div style={{ display: "flex", flexWrap: "wrap", gap: 5, marginBottom: 12 }}>
-          {corridor.vehicleTypes.map((vt) => (
-            <span
-              key={vt}
-              style={{
-                fontSize: "0.65rem",
-                fontWeight: 600,
-                color: "#345657",
-                background: "#edf3eb",
-                border: "1px solid #d2e4d4",
-                borderRadius: 8,
-                padding: "2px 8px",
-              }}
-            >
-              {VEHICLE_TYPE_LABELS[vt] ?? vt}
-            </span>
-          ))}
-        </div>
-
-        {/* Full route fare highlight */}
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            background: "linear-gradient(135deg, #eaf0e9, #f5f7f3)",
-            border: "1px solid #d8e3d8",
-            borderRadius: 12,
-            padding: "8px 12px",
-            marginBottom: 10,
-          }}
-        >
-          <div>
-            <p style={{ fontSize: "0.62rem", color: "#78908a", fontWeight: 600, margin: 0, textTransform: "uppercase", letterSpacing: "0.04em" }}>
-              Full Route Fare (SRO-97)
-            </p>
-            <p style={{ fontSize: "1rem", fontWeight: 800, color: "#234b4c", margin: "1px 0 0" }}>
-              ₹{totalFare}{" "}
-              <span style={{ fontSize: "0.68rem", fontWeight: 500, color: "#78908a" }}>per seat</span>
-            </p>
-          </div>
-          <div style={{ textAlign: "right" }}>
-            <p style={{ fontSize: "0.62rem", color: "#78908a", fontWeight: 600, margin: 0 }}>Last Trip</p>
-            <p style={{ fontSize: "0.82rem", fontWeight: 700, color: "#557b72", margin: "1px 0 0" }}>
-              {corridor.lastTrip}
-            </p>
-          </div>
-        </div>
-
-        {/* Action buttons */}
-        <div style={{ display: "flex", gap: 8 }}>
-          <button
-            onClick={() => setExpanded((e) => !e)}
-            style={{
-              flex: 1,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: 5,
-              padding: "8px 12px",
-              borderRadius: 12,
-              border: "1px solid #dce5dc",
-              background: "#f0f4ee",
-              fontSize: "0.72rem",
-              fontWeight: 700,
-              color: "#345657",
-              cursor: "pointer",
-              transition: "background 0.15s",
-            }}
-          >
-            {expanded ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
-            {expanded ? "Hide Stops" : `All ${corridor.stages.length} Stops`}
-          </button>
-          {onUseRoute && (
-            <button
-              onClick={() =>
-                onUseRoute({
-                  from: corridor.stages[0]?.stopName,
-                  to: corridor.stages[corridor.stages.length - 1]?.stopName,
-                  distance: totalDistance,
-                })
-              }
-              style={{
-                flex: 1,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: 5,
-                padding: "8px 12px",
-                borderRadius: 12,
-                border: "1px solid #234b4c",
-                background: "#234b4c",
-                fontSize: "0.72rem",
-                fontWeight: 700,
-                color: "#f4f6ed",
-                cursor: "pointer",
-                transition: "background 0.15s",
-              }}
-            >
-              <MapPin size={13} />
-              Calculate Fare
-            </button>
-          )}
-        </div>
-      </div>
-
-      {/* Expandable stage timeline */}
-      {expanded && (
-        <div
-          style={{
-            borderTop: "1px solid #e5ece3",
-            padding: "14px 18px 18px",
-            background: "#f9fbf8",
-          }}
-        >
-          <p
-            style={{
-              fontSize: "0.68rem",
-              fontWeight: 700,
-              color: "#557b72",
-              textTransform: "uppercase",
-              letterSpacing: "0.06em",
-              marginBottom: 12,
-            }}
-          >
-            Stage-by-Stage Stops & Fares
-          </p>
-          <StageTimeline stages={corridor.stages} />
-          <p
-            style={{
-              fontSize: "0.62rem",
-              color: "#78908a",
-              marginTop: 12,
-              fontStyle: "italic",
-            }}
-          >
-            ₹ fares are per-seat official SRO-97 ceiling rates from route origin.
-            Alight at any intermediate stage for proportional fare.
-          </p>
-        </div>
-      )}
-    </div>
-  );
-}
-
-/**
- * StageExplorer — Interactive corridor search and stop visualizer.
- * Chalo-style Route & Stages tab.
- */
 export default function StageExplorer({ onUseRoute }) {
-  const [query, setQuery] = useState("");
-  const filteredCorridors = useMemo(() => searchCorridors(query), [query]);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCorridorId, setSelectedCorridorId] = useState(corridors[0]?.id || '');
+
+  const filteredCorridors = corridors.filter(c =>
+    c.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    c.id.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const activeCorridor = corridors.find(c => c.id === selectedCorridorId) || filteredCorridors[0];
 
   return (
-    <div>
-      {/* Hero */}
-      <section
-        style={{
-          background: "linear-gradient(135deg, #234b4c 0%, #2c5b5c 60%, #345657 100%)",
-          borderRadius: 24,
-          padding: "24px 24px 28px",
-          color: "#f4f6ed",
-          marginBottom: 20,
-          position: "relative",
-          overflow: "hidden",
-        }}
-      >
-        <div style={{ position: "relative", zIndex: 1 }}>
-          <h2 style={{ fontSize: "1.4rem", fontWeight: 800, margin: "0 0 4px", letterSpacing: "-0.01em" }}>
-            Routes & Stage Stops
-          </h2>
-          <p style={{ fontSize: "0.8rem", color: "#c7dad0", margin: "0 0 18px" }}>
-            Verified J&K corridors with stop-by-stop SRO-97 statutory fares
-          </p>
-          {/* Search input */}
-          <div style={{ position: "relative" }}>
-            <Search
-              size={16}
-              style={{
-                position: "absolute",
-                left: 14,
-                top: "50%",
-                transform: "translateY(-50%)",
-                color: "#78908a",
-              }}
-            />
-            <input
-              type="text"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search corridors, stops or highways…"
-              style={{
-                width: "100%",
-                boxSizing: "border-box",
-                padding: "10px 14px 10px 40px",
-                borderRadius: 14,
-                border: "1.5px solid rgba(255,255,255,0.15)",
-                background: "rgba(255,255,255,0.12)",
-                color: "#f4f6ed",
-                fontSize: "0.85rem",
-                outline: "none",
-                backdropFilter: "blur(4px)",
-              }}
-            />
-          </div>
+    <div className="space-y-6">
+      <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
+        <div>
+          <h2 className="text-xl font-bold text-slate-900 dark:text-white">Corridor & Stage Explorer</h2>
+          <p className="text-sm text-slate-500 dark:text-slate-400">Hierarchical transit routes & stage-by-stage statutory fares</p>
         </div>
-        {/* Decorative mountain silhouette */}
-        <div
-          aria-hidden
-          style={{
-            position: "absolute",
-            bottom: 0,
-            right: 0,
-            width: 180,
-            height: 80,
-            opacity: 0.07,
-            background:
-              "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 80'%3E%3Cpolygon points='0,80 60,10 100,40 140,5 180,80' fill='white'/%3E%3C/svg%3E\") no-repeat bottom right",
-            backgroundSize: "cover",
-          }}
+        <input
+          type="text"
+          placeholder="Search corridors..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="w-full sm:w-64 px-3 py-2 border rounded-lg bg-slate-50 dark:bg-slate-800 dark:border-slate-700 text-sm focus:outline-none focus:ring-2 focus:ring-slate-900"
         />
-      </section>
-
-      {/* Results count */}
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          marginBottom: 14,
-        }}
-      >
-        <p style={{ fontSize: "0.75rem", color: "#78908a", fontWeight: 600, margin: 0 }}>
-          {filteredCorridors.length} corridor{filteredCorridors.length !== 1 ? "s" : ""} found
-        </p>
-        {query && (
-          <button
-            onClick={() => setQuery("")}
-            style={{
-              fontSize: "0.7rem",
-              color: "#d36b3d",
-              background: "none",
-              border: "none",
-              cursor: "pointer",
-              fontWeight: 700,
-              padding: 0,
-            }}
-          >
-            Clear search
-          </button>
-        )}
       </div>
 
-      {/* Corridor grid */}
-      {filteredCorridors.length === 0 ? (
-        <div
-          style={{
-            textAlign: "center",
-            padding: "48px 24px",
-            background: "#fbfcf8",
-            borderRadius: 20,
-            border: "1px solid #dce5dc",
-          }}
-        >
-          <MapPin size={32} style={{ color: "#d36b3d", marginBottom: 12 }} />
-          <h3 style={{ fontSize: "1rem", fontWeight: 700, color: "#234b4c", margin: "0 0 6px" }}>
-            No corridors found
-          </h3>
-          <p style={{ fontSize: "0.8rem", color: "#78908a", margin: 0 }}>
-            Try searching for a stop name like "Pampore" or a route like "Baramulla"
-          </p>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="space-y-2 border-r dark:border-slate-800 pr-0 md:pr-4">
+          <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">Corridors ({filteredCorridors.length})</span>
+          <div className="space-y-1">
+            {filteredCorridors.map((c) => (
+              <button
+                key={c.id}
+                onClick={() => setSelectedCorridorId(c.id)}
+                className={`w-full text-left p-3 rounded-lg border text-sm transition-all ${
+                  c.id === activeCorridor?.id
+                    ? 'border-slate-900 bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900'
+                    : 'border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800'
+                }`}
+              >
+                <div className="font-semibold">{c.id}</div>
+                <div className="text-xs opacity-80 truncate">{c.name}</div>
+              </button>
+            ))}
+          </div>
         </div>
-      ) : (
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 360px), 1fr))",
-            gap: 16,
-          }}
-        >
-          {filteredCorridors.map((corridor) => (
-            <CorridorCard key={corridor.id} corridor={corridor} onUseRoute={onUseRoute} />
-          ))}
-        </div>
-      )}
 
-      {/* Statutory notice */}
-      <div
-        style={{
-          marginTop: 20,
-          padding: "10px 16px",
-          borderRadius: 12,
-          background: "#eaf0e9",
-          border: "1px solid #d2e4d4",
-          fontSize: "0.68rem",
-          color: "#426a54",
-          fontWeight: 500,
-        }}
-      >
-        ✅ All fares are per-seat maximum ceiling rates under <strong>J&K Motor Vehicles Rules (SRO-97)</strong>. Drivers cannot legally charge above these amounts.
+        {activeCorridor && (
+          <div className="md:col-span-2 space-y-6">
+            <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 space-y-3">
+              <div className="flex justify-between items-start">
+                <div>
+                  <h3 className="text-lg font-bold text-slate-900 dark:text-white">{activeCorridor.name}</h3>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">ID: {activeCorridor.id} • Frequency: {activeCorridor.frequencyText}</p>
+                </div>
+                <OccupancyBadge tier={activeCorridor.occupancyTier} />
+              </div>
+              <div className="flex flex-wrap gap-4 text-xs text-slate-600 dark:text-slate-300">
+                <div><span className="font-semibold">First Trip:</span> {activeCorridor.firstTrip}</div>
+                <div><span className="font-semibold">Last Trip:</span> {activeCorridor.lastTrip}</div>
+                <div><span className="font-semibold">Vehicles:</span> {activeCorridor.vehicleTypes.join(', ')}</div>
+              </div>
+              {onUseRoute && (
+                <div className="pt-2 border-t border-slate-200 dark:border-slate-700">
+                  <button
+                    onClick={() => {
+                      const first = activeCorridor.stages[0]?.stopName || '';
+                      const last = activeCorridor.stages[activeCorridor.stages.length - 1]?.stopName || '';
+                      const dist = activeCorridor.stages[activeCorridor.stages.length - 1]?.kmFromSource || 0;
+                      onUseRoute({ from: first, to: last, distance: dist });
+                    }}
+                    className="px-3 py-1.5 rounded-lg bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900 text-xs font-semibold hover:opacity-90 transition-opacity"
+                  >
+                    Calculate Fare on this Corridor ➔
+                  </button>
+                </div>
+              )}
+            </div>
+
+            <div className="relative pl-6 space-y-6 before:absolute before:left-2 before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-300 dark:before:bg-slate-700">
+              {activeCorridor.stages.map((stage, idx) => (
+                <div key={stage.stopId} className="relative flex items-center justify-between p-3 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 timeline-stop">
+                  <span className="absolute -left-6 top-1/2 -translate-y-1/2 w-2.5 h-2.5 rounded-full bg-slate-900 dark:bg-slate-100 ring-4 ring-white dark:ring-slate-900" />
+                  <div>
+                    <span className="text-xs font-mono text-slate-400">Stage {idx + 1}</span>
+                    <div className="font-medium text-slate-900 dark:text-white text-sm">{stage.stopName}</div>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-xs text-slate-500">{stage.kmFromSource} km</div>
+                    <div className="text-sm font-bold text-slate-900 dark:text-white">₹{stage.statutoryFare}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
