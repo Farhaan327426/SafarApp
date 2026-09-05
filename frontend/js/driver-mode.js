@@ -4,6 +4,7 @@
  * File: frontend/js/driver-mode.js
  * Architecture: Offline-first PWA, SafeStorage, Drive Safe Lock,
  * QR Dispute Resolution, Expense Ledger, Net Profit & Multi-Tab Sync.
+ * Styled to mirror Page 1 (Fare Calculator) visual design system.
  */
 
 const SafarDriverMode = (() => {
@@ -61,7 +62,6 @@ const SafarDriverMode = (() => {
     { name: 'Women Helpline J&K', number: '181', badge: 'Safety & Protection', icon: '🚺' },
   ];
 
-  // Seat status
   const S = { VACANT: 0, UNPAID: 1, PAID: 2 };
   const SEAT_CLASSES = ['vacant', 'unpaid', 'paid'];
   const SEAT_ICONS   = ['○',      '₹',      '✓'  ];
@@ -72,14 +72,13 @@ const SafarDriverMode = (() => {
   const MAX_UNDO_STACK     = 20;
 
   /* ─────────────────────────────────────────────────────────────────
-     SAFESTORAGE ENGINE (Debounced, Corrupted JSON & Quota Resilient)
+     SAFESTORAGE ENGINE
   ───────────────────────────────────────────────────────────────── */
 
   class SafeStorageEngine {
     constructor() {
       this.debounceTimer = null;
       this.debounceDelay = 400; // ms
-      this.isSaving = false;
     }
 
     save(key, data) {
@@ -88,12 +87,11 @@ const SafarDriverMode = (() => {
         try {
           const serialized = JSON.stringify(data);
           localStorage.setItem(key, serialized);
-          // Notify other tabs
           window.dispatchEvent(new CustomEvent('safar-driver-sync', {
             detail: { key, timestamp: Date.now() }
           }));
         } catch (err) {
-          console.warn('[SafeStorage] Save failed:', err);
+          console.warn('[SafeStorage] Save error:', err);
           if (err && err.name === 'QuotaExceededError') {
             this.pruneHistory(STORAGE_KEY_TRIPS, 50);
           }
@@ -106,7 +104,6 @@ const SafarDriverMode = (() => {
         const raw = localStorage.getItem(key);
         if (!raw) return defaultValue;
         const parsed = JSON.parse(raw);
-        // Prototype pollution guard
         if (parsed && typeof parsed === 'object') {
           if ('__proto__' in parsed || 'constructor' in parsed || 'prototype' in parsed) {
             throw new Error('Unsafe object structure');
@@ -114,8 +111,7 @@ const SafarDriverMode = (() => {
         }
         return parsed;
       } catch (err) {
-        console.warn('[SafeStorage] Recovery triggered for key:', key, err);
-        showToast('Storage state recovered safely.');
+        console.warn('[SafeStorage] Recovery for key:', key, err);
         return defaultValue;
       }
     }
@@ -127,7 +123,7 @@ const SafarDriverMode = (() => {
         try {
           localStorage.setItem(key, JSON.stringify(pruned));
         } catch (e) {
-          // Silent fallback
+          // Silent pass
         }
         return pruned;
       }
@@ -138,7 +134,7 @@ const SafarDriverMode = (() => {
   const storage = new SafeStorageEngine();
 
   /* ─────────────────────────────────────────────────────────────────
-     BATTERY & HAPTICS MANAGERS
+     BATTERY & HAPTICS
   ───────────────────────────────────────────────────────────────── */
 
   class BatteryController {
@@ -156,7 +152,7 @@ const SafarDriverMode = (() => {
           this.battery.addEventListener('levelchange', () => this.evaluate());
           this.battery.addEventListener('chargingchange', () => this.evaluate());
         } catch (e) {
-          // Battery API not permitted/supported
+          // Silent pass
         }
       }
     }
@@ -164,7 +160,7 @@ const SafarDriverMode = (() => {
     evaluate() {
       if (this.battery && this.battery.level < 0.20 && !this.battery.charging) {
         this.lowPowerMode = true;
-        storage.debounceDelay = 800; // Stretch write debounce
+        storage.debounceDelay = 800;
         document.body.classList.add('driver-low-power');
       } else {
         this.lowPowerMode = false;
@@ -185,7 +181,6 @@ const SafarDriverMode = (() => {
         // Silent pass
       }
     } else {
-      // Visual feedback pulse for iOS Safari / desktop
       const pulse = document.createElement('div');
       pulse.className = 'driver-haptic-pulse';
       document.body.appendChild(pulse);
@@ -194,7 +189,7 @@ const SafarDriverMode = (() => {
   }
 
   /* ─────────────────────────────────────────────────────────────────
-     STATE MANAGEMENT & UNDO STACK
+     STATE
   ───────────────────────────────────────────────────────────────── */
 
   const state = {
@@ -421,65 +416,55 @@ const SafarDriverMode = (() => {
   }
 
   /* ─────────────────────────────────────────────────────────────────
-     OFFLINE QR GENERATOR (Version 5/6, Level M with Fallback)
+     QR GENERATOR (Level M, Version 5/6 with Fallback)
   ───────────────────────────────────────────────────────────────── */
 
   function generateTariffQR(routeId, fare, capacity) {
     const payload = `https://farhaan327426.github.io/SafarApp/?v=${encodeURIComponent(routeId)}&f=${fare}&c=${capacity}`;
     const textRef = `REF: SRO97-${String(routeId).toUpperCase()}-${fare}`;
 
-    // If qrcode generator library is available
     if (typeof window !== 'undefined' && typeof window.qrcode === 'function') {
       try {
-        // Enforce minimum Version 5 (37x37), Level M (15% error recovery)
         const qr = window.qrcode(5, 'M');
         qr.addData(payload);
         qr.make();
-        const svgString = qr.createSvgTag(5, 4);
-        return { svg: svgString, textRef, payload };
+        return { svg: qr.createSvgTag(5, 4), textRef, payload };
       } catch (err) {
         try {
-          // Version 6 fallback if payload expands
           const qr6 = window.qrcode(6, 'M');
           qr6.addData(payload);
           qr6.make();
           return { svg: qr6.createSvgTag(5, 4), textRef, payload };
         } catch (e) {
-          console.warn('[QRCode] Generator fallback:', e);
+          console.warn('[QRCode] Fallback:', e);
         }
       }
     }
 
-    // High-contrast clean SVG fallback if offline library script is blocked
     const fallbackSVG = `<svg viewBox="0 0 160 160" width="160" height="160" xmlns="http://www.w3.org/2000/svg" style="background:#fff;border-radius:8px;padding:8px">
       <rect width="160" height="160" fill="#ffffff"/>
-      <!-- Finder Pattern Top-Left -->
-      <rect x="16" y="16" width="36" height="36" fill="#0A1118"/>
+      <rect x="16" y="16" width="36" height="36" fill="#234b4c"/>
       <rect x="22" y="22" width="24" height="24" fill="#ffffff"/>
-      <rect x="28" y="28" width="12" height="12" fill="#0A1118"/>
-      <!-- Finder Pattern Top-Right -->
-      <rect x="108" y="16" width="36" height="36" fill="#0A1118"/>
+      <rect x="28" y="28" width="12" height="12" fill="#234b4c"/>
+      <rect x="108" y="16" width="36" height="36" fill="#234b4c"/>
       <rect x="114" y="22" width="24" height="24" fill="#ffffff"/>
-      <rect x="120" y="28" width="12" height="12" fill="#0A1118"/>
-      <!-- Finder Pattern Bottom-Left -->
-      <rect x="16" y="108" width="36" height="36" fill="#0A1118"/>
+      <rect x="120" y="28" width="12" height="12" fill="#234b4c"/>
+      <rect x="16" y="108" width="36" height="36" fill="#234b4c"/>
       <rect x="22" y="114" width="24" height="24" fill="#ffffff"/>
-      <rect x="28" y="120" width="12" height="12" fill="#0A1118"/>
-      <!-- Data modules -->
-      <circle cx="80" cy="80" r="14" fill="#E08A3C"/>
+      <rect x="28" y="120" width="12" height="12" fill="#234b4c"/>
+      <circle cx="80" cy="80" r="14" fill="#d36b3d"/>
       <text x="80" y="85" font-family="sans-serif" font-size="10" font-weight="900" fill="#fff" text-anchor="middle">SRO</text>
-      <text x="80" y="152" font-family="sans-serif" font-size="8" font-weight="700" fill="#0A1118" text-anchor="middle">SCAN OR VERIFY</text>
+      <text x="80" y="152" font-family="sans-serif" font-size="8" font-weight="700" fill="#234b4c" text-anchor="middle">OFFICIAL TARIFF</text>
     </svg>`;
     return { svg: fallbackSVG, textRef, payload };
   }
 
   /* ─────────────────────────────────────────────────────────────────
-     CSV EXPORT & JSON IMPORT WITH SECURITY
+     CSV EXPORT & JSON IMPORT
   ───────────────────────────────────────────────────────────────── */
 
   function sanitizeCSVCell(value) {
     const str = String(value == null ? '' : value).trim();
-    // Neutralize formula execution in Excel / Google Sheets
     if (/^[=+\-@]/.test(str)) {
       return `"'${str.replace(/"/g, '""')}"`;
     }
@@ -497,18 +482,9 @@ const SafarDriverMode = (() => {
     }
 
     const headers = [
-      'Date (ISO)',
-      'Route',
-      'Vehicle',
-      'Passengers',
-      'Luggage Bags',
-      'Parcels',
-      'Gross Collection (INR)',
-      'Fuel Expense (INR)',
-      'Tolls (INR)',
-      'Adda Commission (INR)',
-      'Total Expenses (INR)',
-      'Net In-Pocket (INR)'
+      'Date (ISO)', 'Route', 'Vehicle', 'Passengers', 'Luggage Bags', 'Parcels', 
+      'Gross Collection (INR)', 'Fuel (INR)', 'Tolls (INR)', 'Adda Fee (INR)', 
+      'Total Expenses (INR)', 'Net In-Pocket (INR)'
     ];
 
     const rows = trips.map(t => [
@@ -531,7 +507,7 @@ const SafarDriverMode = (() => {
       ...rows.map(r => r.map(sanitizeCSVCell).join(','))
     ].join('\r\n');
 
-    const csvContent = '\uFEFF' + csvBody; // UTF-8 BOM
+    const csvContent = '\uFEFF' + csvBody;
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -587,7 +563,6 @@ const SafarDriverMode = (() => {
         const text = e.target.result;
         const data = JSON.parse(text);
 
-        // Security guards
         if (!data || typeof data !== 'object') throw new Error('Invalid JSON format');
         if ('__proto__' in data || 'constructor' in data || 'prototype' in data) {
           throw new Error('Malicious payload detected');
@@ -597,7 +572,6 @@ const SafarDriverMode = (() => {
           throw new Error('Missing "trips" array in backup file.');
         }
 
-        // Validate trip records
         const sanitizedTrips = [];
         for (const t of data.trips) {
           if (!t || typeof t !== 'object') continue;
@@ -632,7 +606,6 @@ const SafarDriverMode = (() => {
           return;
         }
 
-        // Show pre-commit confirmation preview modal
         renderImportPreviewModal(sanitizedTrips);
       } catch (err) {
         alert('Import failed: ' + (err.message || 'Corrupted file'));
@@ -653,7 +626,7 @@ const SafarDriverMode = (() => {
   }
 
   /* ─────────────────────────────────────────────────────────────────
-     HTML BUILDERS
+     HTML BUILDERS (Mirrored directly from Tab 1 style language)
   ───────────────────────────────────────────────────────────────── */
 
   function buildVehicleOptions() {
@@ -674,6 +647,14 @@ const SafarDriverMode = (() => {
     return ROUTES.map(r =>
       `<option value="${r.id}"${r.id === state.routeId ? ' selected' : ''}>${r.name}</option>`
     ).join('');
+  }
+
+  function buildQuickCorridorPills() {
+    return ROUTES.filter(r => r.id !== 'custom').slice(0, 6).map(r => `
+      <button class="corridor-pill${r.id === state.routeId ? ' active' : ''}" data-corridor-id="${r.id}" type="button">
+        ${r.name}
+      </button>
+    `).join('');
   }
 
   function buildSeatGrid() {
@@ -748,7 +729,7 @@ const SafarDriverMode = (() => {
     </div>`;
   }
 
-  /* Main dashboard HTML — rendered into #tab-content-driver */
+  /* Main dashboard HTML — formatted directly like Tab 1 (Fare Calculator) */
   function buildDashboard() {
     const t         = computeTotals();
     const fare      = getBasePerSeatFare();
@@ -775,7 +756,6 @@ const SafarDriverMode = (() => {
   <div class="driver-overlay-route" id="overlay-route-name">${routeName}</div>
   <div class="driver-overlay-vehicle" id="overlay-vehicle-name">${vehicle.label}</div>
 
-  <!-- Dynamic Offline QR Container -->
   <div class="driver-qr-container">
     <div id="driver-qr-svg-wrap"></div>
     <div class="driver-qr-ref" id="driver-qr-ref-code">REF: SRO97-${String(state.routeId).toUpperCase()}-${fare}</div>
@@ -816,28 +796,28 @@ const SafarDriverMode = (() => {
     </div>
     <div class="driver-modal-content">
       <div class="driver-field">
-        <span class="driver-field-label">Fuel (Diesel / Petrol) ₹</span>
+        <label class="field-label">Fuel (Diesel / Petrol) ₹</label>
         <input class="driver-input" type="number" id="exp-fuel" value="${state.expenses.fuel || ''}" placeholder="0" min="0">
       </div>
-      <div class="driver-field">
-        <span class="driver-field-label">NH-44 Toll Plazas (Chenani/Banihal) ₹</span>
+      <div class="driver-field" style="margin-top:10px;">
+        <label class="field-label">NH-44 Toll Plazas (Chenani/Banihal) ₹</label>
         <input class="driver-input" type="number" id="exp-tolls" value="${state.expenses.tolls || ''}" placeholder="0" min="0">
       </div>
-      <div class="driver-field">
-        <span class="driver-field-label">Adda / Union Fee &amp; Commission ₹</span>
+      <div class="driver-field" style="margin-top:10px;">
+        <label class="field-label">Adda / Union Fee &amp; Commission ₹</label>
         <input class="driver-input" type="number" id="exp-adda" value="${state.expenses.addaFees || ''}" placeholder="0" min="0">
       </div>
-      <div class="driver-field">
-        <span class="driver-field-label">Tea, Meals &amp; Refreshments ₹</span>
+      <div class="driver-field" style="margin-top:10px;">
+        <label class="field-label">Tea, Meals &amp; Refreshments ₹</label>
         <input class="driver-input" type="number" id="exp-meals" value="${state.expenses.meals || ''}" placeholder="0" min="0">
       </div>
-      <div class="driver-field">
-        <span class="driver-field-label">Maintenance / Challan / Misc ₹</span>
+      <div class="driver-field" style="margin-top:10px;">
+        <label class="field-label">Maintenance / Challan / Misc ₹</label>
         <input class="driver-input" type="number" id="exp-misc" value="${state.expenses.miscellaneous || ''}" placeholder="0" min="0">
       </div>
       <div class="expense-summary-box">
         <div class="exp-sum-row">
-          <span>Total Expenses:</span>
+          <span>Total Outgoings:</span>
           <strong id="exp-modal-total">${inr(t.totalExpenses)}</strong>
         </div>
         <div class="exp-sum-row highlight">
@@ -860,9 +840,7 @@ const SafarDriverMode = (() => {
       </div>
       <button class="driver-modal-close" id="close-shift-modal-btn" type="button">✕</button>
     </div>
-    <div class="driver-modal-content" id="shift-modal-body">
-      <!-- Injected dynamically -->
-    </div>
+    <div class="driver-modal-content" id="shift-modal-body"></div>
   </div>
 </div>
 
@@ -876,241 +854,342 @@ const SafarDriverMode = (() => {
       </div>
       <button class="driver-modal-close" id="close-import-modal-btn" type="button">✕</button>
     </div>
-    <div class="driver-modal-content" id="import-modal-body">
-      <!-- Injected dynamically -->
-    </div>
+    <div class="driver-modal-content" id="import-modal-body"></div>
   </div>
 </div>
 
-<!-- ── Dashboard Main View ─────────────────────────────────────── -->
-<div class="driver-dashboard">
-
-  <!-- Drive Safe Lock Active Shield Banner -->
-  <div class="driver-safety-banner${state.driveLock ? ' active' : ''}" id="driver-safety-banner">
-    <div class="safety-banner-content">
-      <span class="shield-icon">🔒</span>
-      <div>
-        <strong>DRIVE SAFE LOCK ACTIVE</strong>
-        <p>Seat taps disabled to prevent accidental touches on mountain road bumps.</p>
-      </div>
+<!-- ── Hero Header Card (Mirrors Page 1 Hero) ──────────────────── -->
+<div class="hero-card driver-hero">
+  <div class="hero-content">
+    <div class="hero-tag">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <circle cx="12" cy="12" r="10"></circle>
+        <polyline points="12 6 12 12 16 14"></polyline>
+      </svg>
+      <span>SRO-97 Verified · J&amp;K Driver &amp; Conductor Console</span>
     </div>
-    <button class="driver-unlock-btn" id="driver-unlock-btn" type="button">
-      🔓 Tap to Unlock at Stand
-    </button>
-  </div>
-
-  <!-- Overload Alert Banner (MVA Section 194A Advisory) -->
-  <div class="driver-overload-banner${isOverload ? ' visible' : ''}" id="driver-overload-banner" role="alert">
-    <span class="caution-icon">⚠️</span>
-    <div class="overload-text">
-      <strong>Permit Capacity Exceeded (+${overloadDiff} seats above RTO rating)</strong>
-      <p>MVA Section 194A advisory: carriage of excess passengers risks ₹200/excess passenger challan.</p>
+    <h1>Kashmir Transit Driver Console</h1>
+    <p>Statutory J&amp;K SRTA tariffs, live conductor seat tally, cargo tracking &amp; net in-pocket shift ledger.</p>
+    <div class="hero-subchip-row">
+      <span class="hero-subchip gold" dir="rtl" lang="ur" style="font-weight:700">منزل سے بہتر ہے سفر</span>
+      <span class="hero-subchip">100% Offline PWA</span>
+      <span class="hero-subchip">MVA Sec 194A Advisory</span>
     </div>
   </div>
+  <div class="hero-mountain-bg"></div>
+</div>
 
-  <!-- Pre-Trip Readiness Checklist -->
-  ${buildPreTripCard()}
+<!-- ── Quick Corridor Pills Bar (Mirrors Page 1 Popular Trips) ─── -->
+<div class="quick-corridors-bar">
+  <span class="corridors-label">Popular Corridors:</span>
+  <div class="corridors-scroll" id="driver-quick-corridors">
+    ${buildQuickCorridorPills()}
+  </div>
+</div>
 
-  <!-- Action Toolbar (Bulk Paid, Undo, Expenses, Shift Ledger, Emergency) -->
-  <div class="driver-action-toolbar">
-    <button class="toolbar-btn primary" id="driver-all-paid-btn" type="button" title="Mark all passengers as paid">
-      ✓ All Paid
-    </button>
-    <button class="toolbar-btn secondary" id="driver-undo-btn" type="button" title="Undo last seat tap" ${state.undoStack.length === 0 ? 'disabled style="opacity:0.45"' : ''}>
-      ↺ Undo
-    </button>
-    <button class="toolbar-btn outline" id="driver-open-expenses-btn" type="button">
-      ⛽ Expenses
-    </button>
-    <button class="toolbar-btn outline" id="driver-open-shift-btn" type="button">
-      📋 Shift Ledger
-    </button>
-    <button class="toolbar-btn danger" id="driver-open-emergency-btn" type="button">
-      🚨 Emergency
-    </button>
-    <button class="toolbar-btn lock-btn${state.driveLock ? ' active' : ''}" id="driver-lock-toggle-btn" type="button" title="Toggle driving bump lock">
-      ${state.driveLock ? '🔒 Locked' : '🔓 Lock Driving'}
-    </button>
+<!-- ── Main 2-Column Calculator Grid (Mirrors Page 1 Layout) ───── -->
+<div class="calculator-grid driver-grid">
+
+  <!-- Left Column: Inputs & Tallies (7 cols) -->
+  <div class="calc-inputs-col">
+
+    <!-- Step 1: Vehicle & Route Configuration -->
+    <div class="card-box">
+      <div class="card-header">
+        <div class="step-badge">1</div>
+        <div class="header-titles">
+          <h2>Vehicle &amp; Route Configuration</h2>
+          <p>Commercial vehicle mode and authorized adda corridor</p>
+        </div>
+        <span class="chip-sm">Commercial Permit</span>
+      </div>
+
+      <!-- Overload Alert Banner (if capacity > standard) -->
+      <div class="driver-overload-banner${isOverload ? ' visible' : ''}" id="driver-overload-banner" role="alert">
+        <span class="caution-icon">⚠️</span>
+        <div class="overload-text">
+          <strong>Permit Capacity Exceeded (+${overloadDiff} seats above RTO rating)</strong>
+          <p>MVA Section 194A advisory: carriage of excess passengers risks ₹200/excess passenger challan.</p>
+        </div>
+      </div>
+
+      <div class="route-input-row" style="margin-bottom: 12px;">
+        <div class="input-field">
+          <label class="field-label origin"><span class="dot-orange"></span> Vehicle Mode</label>
+          <div class="input-icon-wrap">
+            <select class="driver-select" id="driver-vehicle-sel" aria-label="Select vehicle type">
+              ${buildVehicleOptions()}
+            </select>
+          </div>
+        </div>
+
+        <div class="input-field">
+          <label class="field-label dest"><span class="dot-green"></span> Seating Capacity</label>
+          <div class="input-icon-wrap">
+            <select class="driver-select" id="driver-capacity-sel" aria-label="Select seat capacity">
+              ${buildCapacityOptions()}
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="input-field" style="margin-top: 14px;">
+        <label class="field-label dest"><span class="dot-green"></span> Route Corridor (اڈہ / Adda)</label>
+        <div class="input-icon-wrap">
+          <select class="driver-select" id="driver-route-sel" aria-label="Select route corridor">
+            ${buildRouteOptions()}
+          </select>
+        </div>
+      </div>
+
+      <div class="driver-custom-fare-row${state.routeId === 'custom' ? ' visible' : ''}" id="driver-custom-row" style="margin-top: 12px;">
+        <label class="field-label">Custom Per-Seat Fare (₹)</label>
+        <div class="input-icon-wrap">
+          <input class="driver-input" type="number" id="driver-custom-fare"
+                 placeholder="Enter per-seat fare" inputmode="numeric" min="0"
+                 value="${state.customFare || ''}">
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 2: Passenger Seat Tally & Cargo -->
+    <div class="card-box">
+      <div class="card-header">
+        <div class="step-badge">2</div>
+        <div class="header-titles">
+          <h2>Passenger Seat Tally &amp; Cargo</h2>
+          <p>Tap seats to cycle status: Empty → Due → Paid (سواری)</p>
+        </div>
+        <button class="lock-toggle-pill${state.driveLock ? ' active' : ''}" id="driver-lock-toggle-btn" type="button">
+          ${state.driveLock ? '🔒 Drive Locked' : '🔓 Tap to Lock'}
+        </button>
+      </div>
+
+      <!-- Drive Safe Lock Active Shield Banner -->
+      <div class="driver-safety-banner${state.driveLock ? ' active' : ''}" id="driver-safety-banner">
+        <div class="safety-banner-content">
+          <span class="shield-icon">🔒</span>
+          <div>
+            <strong>DRIVE SAFE LOCK ACTIVE</strong>
+            <p>Seat taps disabled to avoid accidental touches on mountain road bumps.</p>
+          </div>
+        </div>
+        <button class="driver-unlock-btn" id="driver-unlock-btn" type="button">
+          🔓 Tap to Unlock at Stand
+        </button>
+      </div>
+
+      <!-- Conductor Seat Tally Section -->
+      <div class="driver-seat-section">
+        <div class="driver-seat-header">
+          <span class="driver-seat-title">Conductor Tally</span>
+          <div class="driver-seat-legend" aria-hidden="true">
+            <span class="driver-legend-item"><span class="driver-legend-dot paid"></span>Paid (وصول)</span>
+            <span class="driver-legend-item"><span class="driver-legend-dot unpaid"></span>Due (بقایا)</span>
+            <span class="driver-legend-item"><span class="driver-legend-dot vacant"></span>Empty (خالی)</span>
+          </div>
+        </div>
+
+        <div class="driver-seat-grid" id="driver-seat-grid" data-capacity="${state.capacity}">
+          ${buildSeatGrid()}
+        </div>
+
+        <div class="driver-totals-bar">
+          <div class="driver-total-stat">
+            <span class="driver-total-value green" id="dt-paid">${t.paid}/${t.capacity}</span>
+            <span class="driver-total-label">Paid Seats</span>
+          </div>
+          <div class="driver-total-stat">
+            <span class="driver-total-value amber" id="dt-unpaid">${t.unpaid}</span>
+            <span class="driver-total-label">Due (Pending)</span>
+          </div>
+          <div class="driver-total-stat">
+            <span class="driver-total-value" id="dt-vacant">${t.vacant}</span>
+            <span class="driver-total-label">Vacant</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Cargo Addons & Mountain Surcharge Bar -->
+      <div class="driver-cargo-bar" style="margin-top: 18px;">
+        <div class="cargo-item">
+          <span class="cargo-label">🧳 Luggage (+₹15/bag)</span>
+          <div class="cargo-stepper">
+            <button type="button" class="stepper-btn" id="luggage-dec">−</button>
+            <span class="stepper-val" id="luggage-val">${state.luggageCount}</span>
+            <button type="button" class="stepper-btn" id="luggage-inc">+</button>
+          </div>
+        </div>
+        <div class="cargo-item">
+          <span class="cargo-label">📦 Parcels (+₹40/box)</span>
+          <div class="cargo-stepper">
+            <button type="button" class="stepper-btn" id="parcel-dec">−</button>
+            <span class="stepper-val" id="parcel-val">${state.parcelCount}</span>
+            <button type="button" class="stepper-btn" id="parcel-inc">+</button>
+          </div>
+        </div>
+        <div class="cargo-item switch-item">
+          <label class="switch-wrap">
+            <input type="checkbox" id="night-surcharge-toggle" ${state.nightSurcharge ? 'checked' : ''}>
+            <span class="switch-slider"></span>
+            <span class="switch-text">🌙 Night/Snow (+20%)</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Pre-Trip Readiness Checklist -->
+      <div style="margin-top: 16px;">
+        ${buildPreTripCard()}
+      </div>
+
+    </div>
+
   </div>
 
-  <!-- Controls (Vehicle, Capacity, Route Corridor) -->
-  <div class="driver-header">
-    <div class="driver-header-row">
-      <div class="driver-field">
-        <span class="driver-field-label">Vehicle Type</span>
-        <select class="driver-select" id="driver-vehicle-sel" aria-label="Select vehicle type">
-          ${buildVehicleOptions()}
-        </select>
-      </div>
-      <div class="driver-field">
-        <span class="driver-field-label">Capacity</span>
-        <select class="driver-select" id="driver-capacity-sel" aria-label="Select seat capacity">
-          ${buildCapacityOptions()}
-        </select>
-      </div>
-    </div>
-    <div class="driver-field">
-      <span class="driver-field-label">Route Corridor (اڈہ / Adda)</span>
-      <select class="driver-select" id="driver-route-sel" aria-label="Select route">
-        ${buildRouteOptions()}
-      </select>
-    </div>
-    <div class="driver-custom-fare-row${state.routeId === 'custom' ? ' visible' : ''}" id="driver-custom-row">
-      <span class="driver-field-label" style="white-space:nowrap;min-width:64px">₹ / Seat</span>
-      <input class="driver-input" type="number" id="driver-custom-fare"
-             placeholder="Enter per-seat fare"
-             inputmode="numeric" min="0"
-             value="${state.customFare || ''}"
-             aria-label="Custom fare per seat">
-    </div>
-  </div>
+  <!-- Right Column: Statutory Tariff & Net Profit Ledger (5 cols) -->
+  <div class="calc-results-col">
 
-  <!-- Cargo Addons & Mountain Surcharge Bar -->
-  <div class="driver-cargo-bar">
-    <div class="cargo-item">
-      <span class="cargo-label">🧳 Luggage (+₹15/bag)</span>
-      <div class="cargo-stepper">
-        <button type="button" class="stepper-btn" id="luggage-dec">−</button>
-        <span class="stepper-val" id="luggage-val">${state.luggageCount}</span>
-        <button type="button" class="stepper-btn" id="luggage-inc">+</button>
+    <!-- Evergreen Fare Hero Card (Styled exactly like Page 1) -->
+    <div class="fare-hero-card">
+      <div class="fare-hero-header">
+        <div class="guidance-tag">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"></circle>
+            <polyline points="12 6 12 12 14 10"></polyline>
+          </svg>
+          <span>SRO-97 Statutory Tariff</span>
+        </div>
+        <span class="verified-pill">Official Rate</span>
       </div>
-    </div>
-    <div class="cargo-item">
-      <span class="cargo-label">📦 Parcels (+₹40/box)</span>
-      <div class="cargo-stepper">
-        <button type="button" class="stepper-btn" id="parcel-dec">−</button>
-        <span class="stepper-val" id="parcel-val">${state.parcelCount}</span>
-        <button type="button" class="stepper-btn" id="parcel-inc">+</button>
-      </div>
-    </div>
-    <div class="cargo-item switch-item">
-      <label class="switch-wrap">
-        <input type="checkbox" id="night-surcharge-toggle" ${state.nightSurcharge ? 'checked' : ''}>
-        <span class="switch-slider"></span>
-        <span class="switch-text">🌙 Night/Snow (+20%)</span>
-      </label>
-    </div>
-  </div>
 
-  <!-- SRO-97 Statutory Tariff Slip -->
-  <div class="driver-tariff-slip" role="region" aria-label="Official statutory tariff card">
-    <div class="tariff-header">
-      <div class="tariff-statutory-badge">
-        <span class="statutory-dot"></span>
-        <span>J&amp;K SRTA Statutory Tariff</span>
-      </div>
-      <div class="tariff-sro-chip">SRO-97 Verified</div>
-    </div>
-    <div class="tariff-body">
-      <div class="tariff-fare-label">Official Statutory Fare — Per Seat (کرایہ)</div>
-      <div class="tariff-fare-number" id="tariff-fare-number">${fareStr}</div>
-      <div class="tariff-fare-suffix">per passenger / per seat ${state.nightSurcharge ? '(includes +20% snow/night surcharge)' : ''}</div>
-      <div class="tariff-route-name" id="tariff-route-name">${routeName}</div>
-      <div class="tariff-vehicle-name" id="tariff-vehicle-name">${vehicle.label}</div>
-    </div>
-    <div class="tariff-footer">
-      <div class="tariff-footer-legal">
-        Citing J&amp;K Motor Vehicles Rules / SRO-97.<br>
-        Overcharging is punishable under Motor Vehicles Act.
-      </div>
-      <button class="tariff-show-btn" id="driver-show-tariff-btn" type="button">
-        Show Passenger ↗
-      </button>
-    </div>
-  </div>
+      <p class="route-summary-text" id="fare-route-summary" style="display: block;">${routeName}</p>
 
-  <!-- Conductor Seat Tally -->
-  <div class="driver-seat-section" role="region" aria-label="Passenger seat tally">
-    <div class="driver-seat-header">
-      <span class="driver-seat-title">Conductor Tally (سواری)</span>
-      <div class="driver-seat-legend" aria-hidden="true">
-        <span class="driver-legend-item">
-          <span class="driver-legend-dot paid"></span>Paid (وصول)
-        </span>
-        <span class="driver-legend-item">
-          <span class="driver-legend-dot unpaid"></span>Due (بقایا)
-        </span>
-        <span class="driver-legend-item">
-          <span class="driver-legend-dot vacant"></span>Empty (خالی)
-        </span>
+      <div class="big-price-wrap">
+        <small class="price-caption">Official Statutory Fare</small>
+        <div class="price-num-row">
+          <span class="main-price-val" id="tariff-fare-number">${fareStr}</span>
+          <span class="price-basis-label">(Per Passenger)</span>
+        </div>
       </div>
-    </div>
-    <div class="driver-seat-grid" id="driver-seat-grid" data-capacity="${state.capacity}">
-      ${buildSeatGrid()}
-    </div>
-    <div class="driver-totals-bar" aria-live="polite" aria-atomic="true">
-      <div class="driver-total-stat">
-        <span class="driver-total-value green" id="dt-paid">${t.paid}/${t.capacity}</span>
-        <span class="driver-total-label">Paid Seats</span>
-      </div>
-      <div class="driver-total-stat">
-        <span class="driver-total-value amber" id="dt-unpaid">${t.unpaid}</span>
-        <span class="driver-total-label">Due (Pending)</span>
-      </div>
-      <div class="driver-total-stat">
-        <span class="driver-total-value" id="dt-vacant">${t.vacant}</span>
-        <span class="driver-total-label">Vacant</span>
-      </div>
-    </div>
-  </div>
 
-  <!-- Cash & Net Profit Summary -->
-  <div class="driver-cash-summary" role="region" aria-label="Cash summary" aria-live="polite">
-    <div class="driver-cash-top-row">
-      <div class="driver-cash-stat">
-        <span class="driver-cash-label">Fares Collected</span>
-        <span class="driver-cash-value collected" id="dc-collected">${inr(t.cashCollected)}</span>
+      <div class="specs-grid">
+        <div class="spec-box">
+          <span class="spec-lbl">Vehicle</span>
+          <strong class="spec-val" id="tariff-vehicle-name">${vehicle.label}</strong>
+        </div>
+        <div class="spec-box">
+          <span class="spec-lbl">Route Corridor</span>
+          <strong class="spec-val" id="tariff-route-name">${routeName}</strong>
+        </div>
       </div>
-      <div class="driver-cash-stat">
-        <span class="driver-cash-label">Pending Fare</span>
-        <span class="driver-cash-value due" id="dc-due">${inr(t.cashDue)}</span>
-      </div>
-      <div class="driver-cash-stat">
-        <span class="driver-cash-label">Full Load Potential</span>
-        <span class="driver-cash-value potential" id="dc-potential">${inr(t.tripPotential)}</span>
+
+      <div class="fare-actions-row">
+        <button id="driver-show-tariff-btn" class="share-btn" type="button">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+            <polyline points="15 3 21 3 21 9"></polyline>
+            <line x1="10" y1="14" x2="21" y2="3"></line>
+          </svg>
+          <span>Show Passenger ↗</span>
+        </button>
+        <button id="driver-open-emergency-btn" class="helpline-btn" type="button" title="Emergency Contacts">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
+          </svg>
+        </button>
       </div>
     </div>
-    <div class="driver-net-profit-bar">
-      <div class="net-left">
-        <span class="net-label">Net In-Pocket Profit (منافع):</span>
-        <span class="net-value" id="dc-net-profit">${inr(t.netProfit)}</span>
-        <span class="net-sub">(Gross: ${inr(t.grossCollection)} − Expenses: ${inr(t.totalExpenses)})</span>
+
+    <!-- Step 3: Shift Cash & Net Profit Ledger -->
+    <div class="card-box">
+      <div class="card-header">
+        <div class="step-badge">3</div>
+        <div class="header-titles">
+          <h3>Shift Cash &amp; Net Profit</h3>
+          <p>Real-time outgoings &amp; net earnings (منافع)</p>
+        </div>
+        <button class="privacy-toggle-btn" id="driver-privacy-toggle-btn" type="button" title="Toggle privacy mask">
+          ${state.privacyMode ? '👁️ Show' : '👁️ Mask'}
+        </button>
       </div>
-      <button class="privacy-toggle-btn" id="driver-privacy-toggle-btn" type="button" title="Toggle privacy mask">
-        ${state.privacyMode ? '👁️ Show' : '👁️ Mask'}
-      </button>
+
+      <div class="driver-cash-top-row">
+        <div class="driver-cash-stat">
+          <span class="driver-cash-label">Fares Collected</span>
+          <span class="driver-cash-value collected" id="dc-collected">${inr(t.cashCollected)}</span>
+        </div>
+        <div class="driver-cash-stat">
+          <span class="driver-cash-label">Pending Fare</span>
+          <span class="driver-cash-value due" id="dc-due">${inr(t.cashDue)}</span>
+        </div>
+        <div class="driver-cash-stat">
+          <span class="driver-cash-label">Full Load</span>
+          <span class="driver-cash-value potential" id="dc-potential">${inr(t.tripPotential)}</span>
+        </div>
+      </div>
+
+      <div class="driver-net-profit-bar">
+        <div class="net-left">
+          <span class="net-label">Net In-Pocket Profit:</span>
+          <span class="net-value" id="dc-net-profit">${inr(t.netProfit)}</span>
+          <span class="net-sub">(Gross: ${inr(t.grossCollection)} − Expenses: ${inr(t.totalExpenses)})</span>
+        </div>
+      </div>
+
+      <div class="driver-action-toolbar" style="margin-top: 14px;">
+        <button class="toolbar-btn primary" id="driver-all-paid-btn" type="button" title="Mark all passengers as paid">
+          ✓ All Paid
+        </button>
+        <button class="toolbar-btn secondary" id="driver-undo-btn" type="button" title="Undo last seat tap" ${state.undoStack.length === 0 ? 'disabled style="opacity:0.45"' : ''}>
+          ↺ Undo
+        </button>
+        <button class="toolbar-btn outline" id="driver-open-expenses-btn" type="button">
+          ⛽ Expenses
+        </button>
+        <button class="toolbar-btn outline" id="driver-open-shift-btn" type="button">
+          📋 Shift Log
+        </button>
+      </div>
+
+      <div class="driver-trip-actions-row" style="margin-top: 12px;">
+        <button class="driver-save-trip-btn" id="driver-save-trip-btn" type="button">
+          💾 End Trip &amp; Save
+        </button>
+        <button class="driver-new-trip-btn" id="driver-new-trip-btn" type="button">
+          ↺ Reset Seats
+        </button>
+      </div>
     </div>
-  </div>
 
-  <!-- Stage Fare Slab Reference -->
-  <div class="driver-slab-section" role="region" aria-label="Stage fare reference">
-    <div class="driver-slab-header">Stage Fare Reference — SRO-97 / J&amp;K SRTA</div>
-    <table class="driver-slab-table">
-      <thead>
-        <tr>
-          <th scope="col">Distance</th>
-          <th scope="col">Fare</th>
-        </tr>
-      </thead>
-      <tbody>${buildSlabRows()}</tbody>
-    </table>
-  </div>
+    <!-- Stage Fare Slab Reference -->
+    <div class="card-box">
+      <div class="card-header">
+        <div class="header-titles">
+          <h3>Stage Fare Reference — SRO-97</h3>
+          <p>Official per-kilometer rate slabs for non-corridor drops</p>
+        </div>
+        <span class="chip-sm">J&amp;K SRTA</span>
+      </div>
+      <div style="max-height: 200px; overflow-y: auto;">
+        <table class="driver-slab-table">
+          <thead>
+            <tr>
+              <th scope="col">Distance</th>
+              <th scope="col">Fare</th>
+            </tr>
+          </thead>
+          <tbody>${buildSlabRows()}</tbody>
+        </table>
+      </div>
+    </div>
 
-  <!-- End Trip & Reset Buttons -->
-  <div class="driver-trip-actions-row">
-    <button class="driver-save-trip-btn" id="driver-save-trip-btn" type="button">
-      💾 End Trip &amp; Save to Ledger
-    </button>
-    <button class="driver-new-trip-btn" id="driver-new-trip-btn" type="button">
-      ↺ Reset Seats
-    </button>
   </div>
 
 </div>`;
   }
 
   /* ─────────────────────────────────────────────────────────────────
-     DOM PATCHING (Surgical Updates)
+     DOM PATCHING
   ───────────────────────────────────────────────────────────────── */
 
   function setText(id, val) {
@@ -1131,6 +1210,7 @@ const SafarDriverMode = (() => {
     setText('overlay-fare-amount', fareStr);
     setText('overlay-route-name',  routeName);
     setText('overlay-vehicle-name',vehicle.label);
+    setText('fare-route-summary',  routeName);
 
     const isOverload = state.capacity > vehicle.standardCapacity;
     const banner = document.getElementById('driver-overload-banner');
@@ -1218,7 +1298,6 @@ const SafarDriverMode = (() => {
       }
     }
     if (updated === 0) {
-      // If all were vacant, mark all seats as paid
       state.seats.fill(S.PAID);
     }
     triggerHaptic(30);
@@ -1236,7 +1315,7 @@ const SafarDriverMode = (() => {
     if (banner) banner.classList.toggle('active', state.driveLock);
     if (lockBtn) {
       lockBtn.classList.toggle('active', state.driveLock);
-      lockBtn.textContent = state.driveLock ? '🔒 Locked' : '🔓 Lock Driving';
+      lockBtn.textContent = state.driveLock ? '🔒 Drive Locked' : '🔓 Tap to Lock';
     }
     patchSeatGrid();
     persistActiveTrip();
@@ -1269,7 +1348,6 @@ const SafarDriverMode = (() => {
 
     showToast('Trip saved to Daily Shift Ledger!');
 
-    // Reset active trip for next run
     initSeats();
     state.luggageCount = 0;
     state.parcelCount = 0;
@@ -1373,15 +1451,15 @@ const SafarDriverMode = (() => {
 
     let rowsHtml = '';
     if (trips.length === 0) {
-      rowsHtml = `<tr><td colspan="5" style="text-align:center;padding:24px;color:rgba(255,255,255,0.4)">No completed trips yet today. Tap "End Trip & Save" after each run.</td></tr>`;
+      rowsHtml = `<tr><td colspan="5" style="text-align:center;padding:24px;color:var(--color-text-muted)">No completed trips yet today. Tap "End Trip &amp; Save" after each run.</td></tr>`;
     } else {
       rowsHtml = trips.slice().reverse().map(t => `
         <tr>
           <td>${new Date(t.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</td>
-          <td><strong>${t.route}</strong><br><small style="color:rgba(255,255,255,0.45)">${t.vehicle}</small></td>
+          <td><strong>${t.route}</strong><br><small style="color:var(--color-text-muted)">${t.vehicle}</small></td>
           <td>${t.passengerCount} pax</td>
           <td>${inr(t.grossCollection)}</td>
-          <td class="slab-fare">${inr(t.netProfit)}</td>
+          <td class="slab-fare" style="color:var(--color-primary);font-weight:800">${inr(t.netProfit)}</td>
         </tr>
       `).join('');
     }
@@ -1397,7 +1475,7 @@ const SafarDriverMode = (() => {
           <span class="stat-lbl">Passengers Carried</span>
         </div>
         <div class="shift-stat-box highlight">
-          <span class="stat-num">${inr(totalEarnings)}</span>
+          <span class="stat-num" style="color:var(--color-primary);">${inr(totalEarnings)}</span>
           <span class="stat-lbl">Net Cumulative Profit</span>
         </div>
       </div>
@@ -1432,7 +1510,6 @@ const SafarDriverMode = (() => {
     modal.removeAttribute('hidden');
     modal.classList.add('active');
 
-    // Attach shift modal action listeners
     const csvBtn = document.getElementById('export-shift-csv-btn');
     const jsonBtn = document.getElementById('export-backup-json-btn');
     const importInput = document.getElementById('import-backup-file-input');
@@ -1461,10 +1538,10 @@ const SafarDriverMode = (() => {
     const totalProfit = trips.reduce((sum, t) => sum + t.netProfit, 0);
 
     body.innerHTML = `
-      <div style="padding:16px 0;font-size:14px;line-height:1.5;">
+      <div style="padding:16px 0;font-size:14px;line-height:1.5;color:var(--color-text-main);">
         <p>Found <strong>${trips.length} trips</strong> spanning from <strong>${minDate}</strong> to <strong>${maxDate}</strong>.</p>
         <p style="margin-top:8px;">Cumulative Net Profit: <strong>${inr(totalProfit)}</strong></p>
-        <p style="margin-top:12px;color:rgba(255,255,255,0.6);font-size:12px;">New records will be merged with your current history without deleting existing trips.</p>
+        <p style="margin-top:12px;color:var(--color-text-muted);font-size:12px;">New records will be merged with your current history without deleting existing trips.</p>
       </div>
       <div style="display:flex;gap:10px;margin-top:16px;">
         <button class="primary-btn full-width" id="confirm-import-btn" type="button">Confirm &amp; Merge</button>
@@ -1490,10 +1567,27 @@ const SafarDriverMode = (() => {
   }
 
   /* ─────────────────────────────────────────────────────────────────
-     EVENT DELEGATION (All Handlers)
+     EVENT DELEGATION
   ───────────────────────────────────────────────────────────────── */
 
   function handleClick(e) {
+    // Quick corridor pill tap
+    const corridorPill = e.target.closest('[data-corridor-id]');
+    if (corridorPill) {
+      const routeId = corridorPill.dataset.corridorId;
+      state.routeId = routeId;
+      const sel = document.getElementById('driver-route-sel');
+      if (sel) sel.value = routeId;
+      document.querySelectorAll('#driver-quick-corridors .corridor-pill').forEach(p => {
+        p.classList.toggle('active', p.dataset.corridorId === routeId);
+      });
+      patchTariffCard();
+      patchTotals();
+      persistActiveTrip();
+      showToast(`Loaded corridor: ${getRoute()?.name || routeId}`);
+      return;
+    }
+
     const seatBtn = e.target.closest('[data-seat-index]');
     if (seatBtn) {
       cycleSeat(parseInt(seatBtn.dataset.seatIndex, 10));
@@ -1522,7 +1616,6 @@ const SafarDriverMode = (() => {
 
     if (e.target.closest('#close-import-modal-btn'))    { closeImportPreviewModal(); return; }
 
-    // Privacy toggle
     if (e.target.closest('#driver-privacy-toggle-btn')) {
       state.privacyMode = !state.privacyMode;
       const btn = document.getElementById('driver-privacy-toggle-btn');
@@ -1532,7 +1625,6 @@ const SafarDriverMode = (() => {
       return;
     }
 
-    // Pre-trip checklist toggle
     if (e.target.closest('#driver-pretrip-toggle')) {
       state.preTripExpanded = !state.preTripExpanded;
       const body = document.querySelector('.driver-pretrip-body');
@@ -1585,7 +1677,6 @@ const SafarDriverMode = (() => {
       return;
     }
 
-    // Save expense modal inputs
     if (e.target.closest('#save-expense-btn')) {
       const fuelVal = Number(document.getElementById('exp-fuel')?.value) || 0;
       const tollsVal = Number(document.getElementById('exp-tolls')?.value) || 0;
@@ -1638,6 +1729,9 @@ const SafarDriverMode = (() => {
       state.routeId = value;
       const customRow = document.getElementById('driver-custom-row');
       if (customRow) customRow.classList.toggle('visible', value === 'custom');
+      document.querySelectorAll('#driver-quick-corridors .corridor-pill').forEach(p => {
+        p.classList.toggle('active', p.dataset.corridorId === value);
+      });
       patchTariffCard();
       patchTotals();
       persistActiveTrip();
@@ -1654,7 +1748,6 @@ const SafarDriverMode = (() => {
       return;
     }
 
-    // Checkboxes in pre-trip check
     if (id === 'check-docs')  { state.preTripCheck.docs  = e.target.checked; persistActiveTrip(); }
     if (id === 'check-tyres') { state.preTripCheck.tyres = e.target.checked; persistActiveTrip(); }
     if (id === 'check-fuel')  { state.preTripCheck.fuel  = e.target.checked; persistActiveTrip(); }
@@ -1680,7 +1773,6 @@ const SafarDriverMode = (() => {
     }
   }
 
-  // Cross-tab synchronization
   function handleStorageSync(e) {
     if (e.key === STORAGE_KEY_ACTIVE || e.type === 'safar-driver-sync') {
       restoreActiveTrip();
@@ -1690,10 +1782,6 @@ const SafarDriverMode = (() => {
       patchCargo();
     }
   }
-
-  /* ─────────────────────────────────────────────────────────────────
-     BIND ALL LISTENERS
-  ───────────────────────────────────────────────────────────────── */
 
   function bindAll() {
     const root = document.getElementById('tab-content-driver');
@@ -1716,10 +1804,6 @@ const SafarDriverMode = (() => {
     window.addEventListener('safar-driver-sync', handleStorageSync);
   }
 
-  /* ─────────────────────────────────────────────────────────────────
-     PUBLIC API
-  ───────────────────────────────────────────────────────────────── */
-
   function init() {
     const wrapper = document.getElementById('tab-content-driver');
     if (!wrapper) {
@@ -1727,7 +1811,6 @@ const SafarDriverMode = (() => {
       return;
     }
 
-    // Restore from persistent storage or initialize
     if (!state.initialized) {
       const restored = restoreActiveTrip();
       if (!restored || state.seats.length !== state.capacity) {
