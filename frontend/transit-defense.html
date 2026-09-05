@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#0F1B2D">
+  <meta name="description" content="SafarApp — J&K Transit Defense: Fare disputes, occupancy telemetry, evidence locker, RTO dispatch.">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="stylesheet" href="css/defense.css">
+  <title>SafarApp — J&K Transit Defense</title>
+</head>
+<body>
+
+<div id="app">
+
+  <!-- Top bar back to main portal -->
+  <div class="app-top-nav">
+    <a href="index.html" id="back-to-safar-btn" aria-label="Return to Safar Fare Guide">
+      <span aria-hidden="true">‹</span> Safar Main Guide
+    </a>
+    <span style="color:var(--c-text-3);">SRO-97 Statutory Shield</span>
+  </div>
+
+  <!-- ── Header ─────────────────────────────────────────────────── -->
+  <header class="app-header" role="banner">
+    <div>
+      <div class="app-header__logo">Safar</div>
+      <div class="app-header__sub">J&amp;K Transit Defense</div>
+    </div>
+    <button
+      class="app-header__voice-btn"
+      id="global-voice-btn"
+      aria-label="Start voice input"
+      aria-pressed="false"
+    >
+      <span id="voice-btn-icon" aria-hidden="true">🎙</span>
+      <span id="voice-btn-label">Speak</span>
+    </button>
+  </header>
+
+  <!-- ── Tab Navigation ─────────────────────────────────────────── -->
+  <nav class="tab-nav" role="tablist" aria-label="Main navigation">
+    <button class="tab-btn" role="tab" id="tab-dispute"  aria-controls="panel-dispute"  aria-selected="true"  onclick="switchTab('dispute')">Dispute</button>
+    <button class="tab-btn" role="tab" id="tab-crowd"    aria-controls="panel-crowd"    aria-selected="false" onclick="switchTab('crowd')">Crowd</button>
+    <button class="tab-btn" role="tab" id="tab-radar"    aria-controls="panel-radar"    aria-selected="false" onclick="switchTab('radar')">Radar</button>
+    <button class="tab-btn" role="tab" id="tab-evidence" aria-controls="panel-evidence" aria-selected="false" onclick="switchTab('evidence')">Evidence</button>
+  </nav>
+
+  <!-- ── Main Content Area ──────────────────────────────────────── -->
+  <main id="main-content">
+
+    <!-- Panel: Dispute -->
+    <div class="tab-panel active" id="panel-dispute" role="tabpanel" aria-labelledby="tab-dispute">
+
+      <!-- Voice transcript readback -->
+      <div class="voice-transcript" id="voice-transcript" aria-live="polite">
+        Tap "Speak" or fill fields below to check your fare.
+      </div>
+
+      <!-- Dispute card injection target -->
+      <div id="dispute-output"></div>
+
+      <!-- Manual dispute entry -->
+      <div class="dispute-entry">
+        <div class="section-head">FARE DISPUTE CHECKER</div>
+
+        <div class="dispute-fields">
+          <input
+            type="text"
+            id="field-from"
+            placeholder="From (e.g. Lal Chowk)"
+            aria-label="Origin stop"
+            list="stops-list"
+            autocomplete="off"
+          >
+          <input
+            type="text"
+            id="field-to"
+            placeholder="To (e.g. Batamaloo)"
+            aria-label="Destination stop"
+            list="stops-list"
+            autocomplete="off"
+          >
+          <input
+            type="number"
+            id="field-charged"
+            placeholder="Amount driver charged (₹)"
+            aria-label="Amount charged by driver"
+            min="1"
+            max="9999"
+            inputmode="numeric"
+          >
+        </div>
+
+        <datalist id="stops-list">
+          <option value="Lal Chowk">
+          <option value="Batamaloo">
+          <option value="Dalgate">
+          <option value="Hazratbal">
+          <option value="Hyderpora">
+          <option value="Pantha Chowk">
+          <option value="Budgam">
+          <option value="Baramulla">
+          <option value="Sopore">
+          <option value="Anantnag">
+          <option value="Bijbehara">
+          <option value="Pahalgam">
+          <option value="Shopian">
+          <option value="Kupwara">
+          <option value="Pulwama">
+          <option value="Jammu">
+          <option value="RS Pura">
+          <option value="Akhnoor">
+          <option value="Katra">
+          <option value="Udhampur">
+          <option value="Banihal">
+          <option value="Bishnah">
+          <option value="Jewel Chowk">
+        </datalist>
+
+        <button class="btn btn--primary" id="btn-check-fare" onclick="checkFare()">
+          Check Official Fare
+        </button>
+
+        <!-- Distance fallback (shown when route not in matrix) -->
+        <div id="distance-fallback" class="hidden" style="margin-top:12px;">
+          <div class="section-head" style="margin-top:8px">ROUTE NOT IN DATABASE — ENTER DISTANCE</div>
+          <div class="dispute-fields">
+            <input type="number" id="field-distance" placeholder="Distance in km" min="1" max="999" inputmode="numeric">
+          </div>
+          <button class="btn btn--primary" onclick="checkFareByDistance()">Calculate by Distance</button>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Panel: Crowd / Occupancy -->
+    <div class="tab-panel" id="panel-crowd" role="tabpanel" aria-labelledby="tab-crowd">
+
+      <div class="section-head">REPORT VEHICLE OCCUPANCY</div>
+      <p style="font-size:0.875rem;color:var(--c-text-2);margin-bottom:16px;">
+        One tap tells the next commuter what to expect. Reports expire after 10 minutes.
+      </p>
+
+      <div class="dispute-fields" style="margin-bottom:16px;">
+        <input type="text" id="crowd-vehicle-id" placeholder="Vehicle Reg (JK01 AB 1234) — optional" autocomplete="off" inputmode="text">
+        <input type="text" id="crowd-route-id"   placeholder="Route (e.g. lal-chowk_batamaloo) — optional" autocomplete="off">
+      </div>
+
+      <div id="occupancy-bar-container"></div>
+      <div id="occupancy-report-status" aria-live="polite" style="font-size:0.875rem;color:var(--c-text-2);margin-top:8px;"></div>
+
+      <div style="margin-top:24px;" class="section-head">FLAG VEHICLE — MVA §194A</div>
+      <div class="dispute-fields">
+        <input type="text" id="flag-reg" placeholder="JK01 AB 1234" inputmode="text" autocomplete="off">
+        <select id="flag-violation">
+          <option value="OVERLOAD">Overloading (120%+)</option>
+          <option value="FARE_GOUGE">Fare Gouging</option>
+          <option value="ROUTE_ABANDON">Route Abandonment</option>
+          <option value="RASH_DRIVING">Rash Driving</option>
+        </select>
+      </div>
+      <button class="btn btn--primary" onclick="flagVehicle()">Flag Vehicle</button>
+      <div id="flag-status" aria-live="polite" style="font-size:0.75rem;margin-top:8px;color:var(--c-text-2);"></div>
+
+    </div>
+
+    <!-- Panel: Evening Radar -->
+    <div class="tab-panel" id="panel-radar" role="tabpanel" aria-labelledby="tab-radar">
+
+      <div id="evening-radar-container"></div>
+
+      <div style="margin-top:24px;" class="section-head">HUB POOL MATCHING</div>
+      <div class="dispute-fields">
+        <select id="pool-hub">
+          <option value="">Select your hub...</option>
+          <option value="jahangir-chowk">Jahangir Chowk, Srinagar</option>
+          <option value="trc">TRC Srinagar</option>
+          <option value="batamaloo">Batamaloo Stand</option>
+          <option value="lal-chowk">Lal Chowk</option>
+          <option value="jewel-chowk">Jewel Chowk, Jammu</option>
+          <option value="general-bus-stand">General Bus Stand, Jammu</option>
+        </select>
+        <input type="text" id="pool-destination" placeholder="Going to (e.g. Budgam, RS Pura)" inputmode="text">
+        <input type="number" id="pool-seats" placeholder="Seats needed" min="1" max="7" value="1" inputmode="numeric">
+      </div>
+      <button class="btn btn--primary" onclick="registerPool()">Find Pool Match</button>
+      <div id="pool-result" aria-live="polite" style="font-size:0.875rem;margin-top:12px;color:var(--c-text-2);"></div>
+
+    </div>
+
+    <!-- Panel: Evidence Locker -->
+    <div class="tab-panel" id="panel-evidence" role="tabpanel" aria-labelledby="tab-evidence">
+      <div id="evidence-locker-form"></div>
+    </div>
+
+  </main>
+
+</div>
+
+<!-- ── Evidence Locker Modal ──────────────────────────────────── -->
+<div class="modal-overlay hidden" id="locker-modal" role="dialog" aria-modal="true" aria-labelledby="locker-modal-title" aria-hidden="true">
+  <div class="modal-sheet">
+    <button class="modal-sheet__close" onclick="EvidenceLocker.closeModal()" aria-label="Close evidence locker">✕</button>
+    <div id="locker-modal-body"></div>
+  </div>
+</div>
+
+<script src="js/dispute-engine.js"></script>
+<script src="js/crowd-radar.js"></script>
+<script src="js/evidence-locker.js"></script>
+<script>
+'use strict';
+
+// ─── Tab Switching ────────────────────────────────────────────────────────────
+
+function switchTab(name) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => {
+    b.setAttribute('aria-selected', b.id === `tab-${name}` ? 'true' : 'false');
+  });
+  document.getElementById(`panel-${name}`)?.classList.add('active');
+
+  // Lazy-init radar panel on first activation
+  if (name === 'radar') {
+    CrowdRadar.renderEveningRadar(document.getElementById('evening-radar-container'));
+  }
+}
+
+// ─── Voice Input ──────────────────────────────────────────────────────────────
+
+const voiceBtn   = document.getElementById('global-voice-btn');
+const voiceIcon  = document.getElementById('voice-btn-icon');
+const voiceLabel = document.getElementById('voice-btn-label');
+const transcript = document.getElementById('voice-transcript');
+
+if (voiceBtn) {
+  voiceBtn.addEventListener('click', () => {
+    if (DisputeEngine.SpeechAPI.isListening) {
+      DisputeEngine.stopVoiceInput();
+      return;
+    }
+
+    // Pick lang based on active tab (fare dispute = Urdu, else Hi)
+    const lang = 'ur-IN';
+
+    voiceBtn.classList.add('listening');
+    voiceBtn.setAttribute('aria-pressed', 'true');
+    voiceIcon.textContent = '⏹';
+    voiceLabel.textContent = 'Stop';
+    transcript.textContent = 'Listening…';
+    transcript.classList.add('active');
+
+    DisputeEngine.startVoiceInput({
+      lang,
+      onResult(text) {
+        transcript.textContent = text;
+        transcript.classList.remove('active');
+
+        const intent = DisputeEngine.classifyIntent(text);
+
+        if (intent.intent === 'FARE_DISPUTE') {
+          const parsed = DisputeEngine.parseFareStatement(text);
+          if (parsed.from) document.getElementById('field-from').value = parsed.from;
+          if (parsed.to)   document.getElementById('field-to').value   = parsed.to;
+          if (parsed.chargedFare) document.getElementById('field-charged').value = parsed.chargedFare;
+          checkFare();
+          if (document.getElementById('panel-dispute').classList.contains('active') === false) {
+            switchTab('dispute');
+          }
+        } else if (intent.intent === 'GRIEVANCE') {
+          switchTab('evidence');
+        }
+      },
+      onError(msg) {
+        transcript.textContent = msg;
+        transcript.classList.add('error');
+        transcript.classList.remove('active');
+      },
+      onEnd() {
+        voiceBtn.classList.remove('listening');
+        voiceBtn.setAttribute('aria-pressed', 'false');
+        voiceIcon.textContent = '🎙';
+        voiceLabel.textContent = 'Speak';
+      },
+    });
+  });
+}
+
+// ─── Dispute Panel Logic ──────────────────────────────────────────────────────
+
+function checkFare() {
+  const from       = document.getElementById('field-from').value.trim();
+  const to         = document.getElementById('field-to').value.trim();
+  const chargedRaw = document.getElementById('field-charged').value.trim();
+  const charged    = parseInt(chargedRaw, 10);
+  const output     = document.getElementById('dispute-output');
+  const fallback   = document.getElementById('distance-fallback');
+
+  if (!chargedRaw || isNaN(charged) || charged < 1) {
+    output.innerHTML = `<p style="color:var(--c-red);font-size:.875rem;margin-bottom:12px;">Enter the amount the driver charged.</p>`;
+    return;
+  }
+
+  const result = DisputeEngine.process({
+    fromLocation: from,
+    toLocation:   to,
+    chargedFare:  charged,
+    containerEl:  output,
+  });
+
+  if (result.error && result.hint) {
+    // Route not in matrix — show distance fallback
+    fallback.classList.remove('hidden');
+    output.innerHTML = `<p style="color:var(--c-text-2);font-size:.875rem;margin-bottom:12px;">${result.error} ${result.hint}</p>`;
+  } else {
+    fallback.classList.add('hidden');
+  }
+}
+
+function checkFareByDistance() {
+  const distRaw  = document.getElementById('field-distance').value.trim();
+  const dist     = parseFloat(distRaw);
+  const charged  = parseInt(document.getElementById('field-charged').value.trim(), 10);
+  const output   = document.getElementById('dispute-output');
+
+  if (isNaN(dist) || dist <= 0) {
+    output.innerHTML = `<p style="color:var(--c-red);font-size:.875rem;">Enter a valid distance in km.</p>`;
+    return;
+  }
+
+  DisputeEngine.processWithDistance({ chargedFare: charged, distanceKm: dist, containerEl: output });
+  document.getElementById('distance-fallback').classList.add('hidden');
+}
+
+// ─── Crowd Panel Logic ────────────────────────────────────────────────────────
+
+const occBar = document.getElementById('occupancy-bar-container');
+if (occBar) {
+  CrowdRadar.renderOccupancyBar(occBar, { vehicleId: 'UNKNOWN', routeId: 'UNKNOWN' });
+
+  occBar.addEventListener('occupancy:reported', e => {
+    const { status } = e.detail;
+    const statusEl = document.getElementById('occupancy-report-status');
+    if (statusEl) {
+      statusEl.textContent = `Reported: ${status.label} — Thank you. Report valid for 10 min.`;
+      statusEl.style.color = status.color;
+    }
+  });
+
+  // Re-bind occupancy bar when vehicle/route inputs change
+  ['crowd-vehicle-id','crowd-route-id'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.addEventListener('change', () => {
+        const vehicleId = document.getElementById('crowd-vehicle-id').value.trim() || 'UNKNOWN';
+        const routeId   = document.getElementById('crowd-route-id').value.trim()   || 'UNKNOWN';
+        CrowdRadar.renderOccupancyBar(occBar, { vehicleId, routeId });
+      });
+    }
+  });
+}
+
+function flagVehicle() {
+  const regNo     = document.getElementById('flag-reg').value.trim();
+  const violation = document.getElementById('flag-violation').value;
+  const statusEl  = document.getElementById('flag-status');
+
+  const result = CrowdRadar.flagVehicle({ regNo, violation });
+
+  if (result.error) {
+    statusEl.textContent = result.error;
+    statusEl.style.color = 'var(--c-red)';
+  } else {
+    statusEl.textContent = `Flagged ${result.regNo} — MVA §${result.mvaSec} — Penalty: ${result.penalty}`;
+    statusEl.style.color = 'var(--c-green)';
+    // Offer to open evidence locker pre-populated
+    setTimeout(() => {
+      EvidenceLocker.openWithDispute(null);
+      const modal = document.getElementById('locker-modal');
+      EvidenceLocker.renderLockerForm(
+        document.getElementById('locker-modal-body'),
+        { regNo: result.regNo, routeId: '' }
+      );
+      modal.classList.remove('hidden');
+    }, 800);
+  }
+}
+
+// ─── Pool Matching ─────────────────────────────────────────────────────────────
+
+function registerPool() {
+  const hubKey      = document.getElementById('pool-hub').value;
+  const destination = document.getElementById('pool-destination').value.trim();
+  const seats       = parseInt(document.getElementById('pool-seats').value, 10) || 1;
+  const resultEl    = document.getElementById('pool-result');
+
+  if (!hubKey || !destination) {
+    resultEl.textContent = 'Select a hub and enter your destination.';
+    resultEl.style.color = 'var(--c-red)';
+    return;
+  }
+
+  const match = CrowdRadar.registerPoolRequest({ hubKey, destination, seats });
+
+  if (match.error) {
+    resultEl.textContent = match.error;
+    resultEl.style.color = 'var(--c-red)';
+    return;
+  }
+
+  let msg = `Request registered (${match.request.id}). `;
+  if (match.matchCount > 0) {
+    msg += `${match.matchCount} other commuter(s) waiting for same route. `;
+    msg += match.canFillSumo
+      ? 'Enough for a full Sumo — coordinate to depart now.'
+      : `${7 - match.totalSeats} more seats needed to fill a Sumo.`;
+  } else {
+    msg += 'No matches yet. Your request is visible to others at this hub.';
+  }
+
+  if (match.nightFareNote) msg += `\n\n${match.nightFareNote}`;
+
+  resultEl.textContent = msg;
+  resultEl.style.color = match.matchCount > 0 ? 'var(--c-green)' : 'var(--c-text-2)';
+}
+
+// ─── Evidence Panel Init ──────────────────────────────────────────────────────
+
+const evidenceContainer = document.getElementById('evidence-locker-form');
+if (evidenceContainer) {
+  EvidenceLocker.renderLockerForm(evidenceContainer);
+}
+
+// ─── Service Worker Registration ──────────────────────────────────────────────
+
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js')
+      .then(reg => {
+        console.log('[SafarApp] SW registered, scope:', reg.scope);
+      })
+      .catch(err => console.warn('[SafarApp] SW registration failed:', err));
+
+    navigator.serviceWorker.addEventListener('message', event => {
+      if (event.data?.type === 'SYNC_EVIDENCE_QUEUE') {
+        console.log('[SafarApp] Background sync: flushing evidence queue.');
+      }
+    });
+  });
+}
+</script>
+
+</body>
+</html>

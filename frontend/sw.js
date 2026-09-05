@@ -20,6 +20,8 @@ const PRECACHE_ASSETS = [
   './js/qrcode.js',
   './js/vehicle-illustrations.js?v=1.0.7',
   './manifest.webmanifest',
+  './transit-defense.html',
+  './css/defense.css',
   './icons/icon-192x192.png',
   './icons/icon-512x512.png',
   './icons/apple-touch-icon.png'
