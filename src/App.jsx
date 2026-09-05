@@ -1490,7 +1490,6 @@ export default function App() {
           <nav className="hidden lg:flex items-center gap-1.5 bg-[#eaf0e9]/80 p-1 rounded-2xl border border-[#dce5dc]">
             {[
               { label: "Fare calculator", icon: Calculator },
-              { label: "Route guide", icon: Route },
               { label: "Recent estimates", icon: Clock3 },
               { label: "Official rate card", icon: FileText },
             ].map((item) => {
@@ -1564,7 +1563,6 @@ export default function App() {
             <nav className="mt-6 space-y-1.5 flex-1">
               {[
                 { label: "Fare calculator", icon: Calculator, desc: "Instant trip cost estimate" },
-                { label: "Route guide", icon: Route, desc: "Popular corridors & highway info" },
                 { label: "Recent estimates", icon: Clock3, desc: "Your recent route calculations" },
                 { label: "Official rate card", icon: FileText, desc: "Government SRO rules & rights" },
               ].map((item) => {
@@ -2700,16 +2698,6 @@ export default function App() {
               </div>
             </div>
           </div>
-        )}
-
-        {/* Stage Explorer Tab */}
-        {activeNav === "Route guide" && (
-          <StageExplorer
-            onUseRoute={(preset) => {
-              handleSelectPreset(preset);
-              setActiveNav("Fare calculator");
-            }}
-          />
         )}
 
         {activeNav === "Recent estimates" && (
