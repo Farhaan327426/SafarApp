@@ -2024,7 +2024,16 @@ function attachListeners() {
     }
   };
 
-  if (helpModalTrigger) helpModalTrigger.addEventListener("click", showModal);
+  const toggleModal = () => {
+    if (!helpModal) return;
+    if (helpModal.hidden) {
+      showModal();
+    } else {
+      hideModal();
+    }
+  };
+
+  if (helpModalTrigger) helpModalTrigger.addEventListener("click", toggleModal);
   if (footerHelpTrigger) footerHelpTrigger.addEventListener("click", showModal);
   if (closeModalBtn) closeModalBtn.addEventListener("click", hideModal);
   if (modalCloseActionBtn) modalCloseActionBtn.addEventListener("click", hideModal);

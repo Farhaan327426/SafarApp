@@ -1526,24 +1526,15 @@ export default function App() {
               <span>2026 Revised Rates</span>
             </div>
 
+            {/* Unified Help & Passenger Rights Toggle */}
             <button
-              onClick={() => setShowHelpModal(true)}
-              className="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-xl text-[#345657] bg-[#f0f4ee] hover:bg-[#e4ece2] border border-[#dce5dc] transition"
-              title="How Safar Works"
+              id="helpModalTriggerBtn"
+              onClick={() => setShowHelpModal((prev) => !prev)}
+              className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold rounded-xl text-[#345657] bg-[#f0f4ee] hover:bg-[#e4ece2] border border-[#dce5dc] transition cursor-pointer shadow-xs"
+              title="Help, Passenger Rights & Helplines"
             >
               <CircleHelp size={16} className="text-[#d36b3d]" />
-              <span className="hidden sm:inline">Help</span>
-            </button>
-
-            {/* Passenger Hub — replaces Defense Suite & notifications */}
-            <button
-              id="passengerRightsBtn"
-              onClick={() => setShowHelpModal(true)}
-              className="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-xl text-[#345657] bg-[#f0f4ee] hover:bg-[#e4ece2] border border-[#dce5dc] transition"
-              title="Passenger Rights & Helplines"
-            >
-              <ShieldCheck size={16} className="text-[#557b72]" />
-              <span className="hidden sm:inline">Rights</span>
+              <span>Help</span>
             </button>
           </div>
         </div>
@@ -3021,18 +3012,18 @@ export default function App() {
                 <Navigation size={20} />
               </div>
               <div>
-                <h3 className="font-bold text-lg text-[#234b4c]">How Safar Works</h3>
-                <p className="text-xs text-[#78908a]">3 Simple Steps to Check Your Fare</p>
+                <h3 className="font-bold text-lg text-[#234b4c]">SAFAR Help &amp; Passenger Rights</h3>
+                <p className="text-xs text-[#78908a]">How Safar works &amp; J&amp;K statutory protections (SRO-97)</p>
               </div>
             </div>
 
-            <div className="space-y-3.5 text-xs text-[#345657] mt-4">
+            <div className="space-y-3.5 text-xs text-[#345657] mt-4 max-h-[65vh] overflow-y-auto pr-1">
               <div className="flex items-start gap-3 p-3 rounded-2xl bg-[#f8faf6] border border-[#e2eae0]">
                 <span className="w-6 h-6 rounded-full bg-[#234b4c] text-[#f4f6ed] flex items-center justify-center font-bold text-xs shrink-0">
                   1
                 </span>
                 <div>
-                  <h4 className="font-bold text-[#234b4c]">Pick Your Route & Terrain</h4>
+                  <h4 className="font-bold text-[#234b4c]">Pick Your Route &amp; Terrain</h4>
                   <p className="text-[#78908a] mt-0.5">
                     Enter your start point and destination or click any quick corridor pill (like Srinagar ➔ Gulmarg).
                   </p>
@@ -3044,7 +3035,7 @@ export default function App() {
                   2
                 </span>
                 <div>
-                  <h4 className="font-bold text-[#234b4c]">Select Vehicle (9 J&K Categories)</h4>
+                  <h4 className="font-bold text-[#234b4c]">Select Vehicle (9 J&amp;K Categories)</h4>
                   <p className="text-[#78908a] mt-0.5">
                     Choose from E-Rickshaws, E-Autos, Stage-wise Tata Magic, Matadors, Buses, or Contract Taxis.
                   </p>
@@ -3058,17 +3049,36 @@ export default function App() {
                 <div>
                   <h4 className="font-bold text-[#234b4c]">Know Before You Board</h4>
                   <p className="text-[#78908a] mt-0.5">
-                    See the transparent rate calculated according to official J&K Transport Department rules so you are never overcharged.
+                    See the transparent rate calculated according to official J&amp;K Transport Department rules so you are never overcharged.
                   </p>
+                </div>
+              </div>
+
+              {/* Passenger Rights Section */}
+              <div className="p-3.5 rounded-2xl bg-[#eaf0e9] border border-[#d2e4d4] space-y-2">
+                <div className="flex items-center gap-1.5 font-bold text-[#234b4c]">
+                  <ShieldCheck size={16} className="text-[#16a34a]" />
+                  <span>Your Rights as a Commuter (SRO-97)</span>
+                </div>
+                <ul className="list-disc pl-4 space-y-1 text-[#345657] text-[11px] leading-relaxed">
+                  <li>Drivers cannot legally demand fares above the notified statutory ceiling (Section 192A MVA).</li>
+                  <li>Stage carriage passengers are only liable for fares up to their destination stop.</li>
+                  <li>In case of overcharging or refusal, quote official SRO-97 tariff or generate an offline Fare Pass.</li>
+                </ul>
+                <div className="pt-2 border-t border-[#d2e4d4] flex flex-wrap gap-2 text-[10px] font-bold text-[#234b4c]">
+                  <span className="px-2 py-0.5 rounded-full bg-white border border-[#c3d8c6]">🚨 Police: 112</span>
+                  <span className="px-2 py-0.5 rounded-full bg-white border border-[#c3d8c6]">🛣️ NH-44: 1033</span>
+                  <span className="px-2 py-0.5 rounded-full bg-white border border-[#c3d8c6]">🚑 Medical: 108</span>
+                  <span className="px-2 py-0.5 rounded-full bg-white border border-[#c3d8c6]">🚺 Women: 181</span>
                 </div>
               </div>
             </div>
 
             <button
               onClick={() => setShowHelpModal(false)}
-              className="w-full mt-6 py-3 rounded-2xl bg-[#234b4c] text-[#f4f6ed] font-bold text-xs hover:bg-[#1a3839] transition"
+              className="w-full mt-5 py-3 rounded-2xl bg-[#234b4c] text-[#f4f6ed] font-bold text-xs hover:bg-[#1a3839] transition cursor-pointer"
             >
-              Got it, let's calculate!
+              Got it, close help!
             </button>
           </div>
         </div>
