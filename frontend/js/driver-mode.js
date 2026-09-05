@@ -783,40 +783,6 @@ const SafarDriverMode = (() => {
     `).join('');
   }
 
-  function buildPreTripCard() {
-    const c = state.preTripCheck;
-    return `
-    <div class="driver-pretrip-card">
-      <div class="driver-pretrip-header" id="driver-pretrip-toggle">
-        <div class="pretrip-title-wrap">
-          <span class="pretrip-icon">📋</span>
-          <strong>Pre-Trip Vehicle Readiness Checklist</strong>
-        </div>
-        <span class="pretrip-toggle-icon">${state.preTripExpanded ? '▲' : '▼'}</span>
-      </div>
-      <div class="driver-pretrip-body${state.preTripExpanded ? ' expanded' : ''}">
-        <label class="driver-check-item">
-          <input type="checkbox" id="check-docs" ${c.docs ? 'checked' : ''}>
-          <span>RC, Insurance &amp; Route Permit in vehicle</span>
-        </label>
-        <label class="driver-check-item">
-          <input type="checkbox" id="check-tyres" ${c.tyres ? 'checked' : ''}>
-          <span>Tyre pressure &amp; Spare wheel inspected</span>
-        </label>
-        <label class="driver-check-item">
-          <input type="checkbox" id="check-fuel" ${c.fuel ? 'checked' : ''}>
-          <span>Fuel adequate &amp; Snow chains onboard (winter)</span>
-        </label>
-        <label class="driver-check-item">
-          <input type="checkbox" id="check-float" ${c.float ? 'checked' : ''}>
-          <span>Cash change float ready (₹10 / ₹20 notes)</span>
-        </label>
-        <div class="driver-pretrip-disclaimer">
-          ⚠️ <em>Basic operator guidance aid — not a substitute for statutory RTO inspection or certified mechanical fitness.</em>
-        </div>
-      </div>
-    </div>`;
-  }
 
   /* Main dashboard HTML — formatted directly like Tab 1 (Fare Calculator) */
   function buildDashboard() {
@@ -1124,14 +1090,7 @@ const SafarDriverMode = (() => {
           </label>
         </div>
       </div>
-
-      <!-- Pre-Trip Readiness Checklist -->
-      <div style="margin-top: 16px;">
-        ${buildPreTripCard()}
-      </div>
-
     </div>
-
   </div>
 
   <!-- Right Column: Stage Fare Reference (5 cols) -->
