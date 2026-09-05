@@ -1159,17 +1159,12 @@ function renderVehicleCards() {
     const hallmarkText = visualMeta?.name || v.label;
 
     card.innerHTML = `
+      <div class="vehicle-card-header">
+        <span class="vehicle-badge">${v.badge}</span>
+        ${fareBadge}
+      </div>
       <div class="vehicle-illustration-showcase">
         ${illustrationSvg}
-        <div class="showcase-badge-left">
-          <span class="vehicle-badge">${v.badge}</span>
-        </div>
-        <div class="showcase-badge-right">
-          ${fareBadge}
-        </div>
-        <div class="showcase-hallmark-tag" title="${hallmarkText}">
-          ${hallmarkText}
-        </div>
       </div>
       <div class="vehicle-card-meta">
         <div class="vehicle-title-row">

@@ -4,21 +4,21 @@
  * Architecture: Cache-first for core assets, stale-while-revalidate for navigation
  */
 
-const CACHE_VERSION = 'v1.0.6';
+const CACHE_VERSION = 'v1.0.7';
 const CACHE_NAME = `safar-app-core-${CACHE_VERSION}`;
 
 const PRECACHE_ASSETS = [
   './',
   './index.html',
-  './css/style.css',
+  './css/style.css?v=1.0.7',
   './js/dispute-engine.js',
   './js/crowd-radar.js',
   './js/evidence-locker.js',
-  './js/help-assistant.js?v=1.0.6',
-  './js/main.js?v=1.0.6',
-  './js/driver-mode.js?v=1.0.6',
+  './js/help-assistant.js?v=1.0.7',
+  './js/main.js?v=1.0.7',
+  './js/driver-mode.js?v=1.0.7',
   './js/qrcode.js',
-  './js/vehicle-illustrations.js',
+  './js/vehicle-illustrations.js?v=1.0.7',
   './manifest.webmanifest',
   './icons/icon-192x192.png',
   './icons/icon-512x512.png',

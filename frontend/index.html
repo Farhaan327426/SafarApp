@@ -13,7 +13,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
     rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/style.css?v=1.0.7">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" type="image/x-icon" href="favicon.ico">
   <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
@@ -670,14 +670,14 @@
     </div>
   </div>
 
-  <script src="js/vehicle-illustrations.js"></script>
+  <script src="js/vehicle-illustrations.js?v=1.0.7"></script>
   <script src="js/qrcode.js"></script>
   <script src="js/dispute-engine.js"></script>
   <script src="js/crowd-radar.js"></script>
   <script src="js/evidence-locker.js"></script>
-  <script src="js/help-assistant.js?v=1.0.6"></script>
-  <script src="js/driver-mode.js?v=1.0.6"></script>
-  <script src="js/main.js?v=1.0.6"></script>
+  <script src="js/help-assistant.js?v=1.0.7"></script>
+  <script src="js/driver-mode.js?v=1.0.7"></script>
+  <script src="js/main.js?v=1.0.7"></script>
   <script>
     // Commuter Defense Layer DOM Bindings & Radar Initialization
     document.addEventListener("DOMContentLoaded", () => {
@@ -873,7 +873,7 @@
 
     if ('serviceWorker' in navigator && (window.location.protocol === 'http:' || window.location.protocol === 'https:')) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js?v=1.0.6').catch((err) => {
+        navigator.serviceWorker.register('./sw.js?v=1.0.7').catch((err) => {
           console.warn('[SW] Registration note:', err);
         });
       });
