@@ -1,14 +1,29 @@
 {
-  "name": "SAFAR",
-  "short_name": "SAFAR",
-  "start_url": "/",
+  "name": "SAFAR Driver & Conductor Mode",
+  "short_name": "SafarDriver",
+  "description": "J&K Transit tariff guide, conductor seat tally & cash ledger",
+  "start_url": "./index.html",
+  "scope": "./",
   "display": "standalone",
-  "background_color": "#F6F5F0",
-  "theme_color": "#FF7B00",
+  "orientation": "portrait",
+  "background_color": "#0A1118",
+  "theme_color": "#0A1118",
   "icons": [
     {
-      "src": "/icon-192x192.png",
+      "src": "icons/icon-192x192.png",
       "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icons/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icons/apple-touch-icon.png",
+      "sizes": "180x180",
       "type": "image/png"
     }
   ]

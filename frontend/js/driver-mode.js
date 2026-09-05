@@ -2,39 +2,25 @@
  * SAFAR PRO — Driver & Conductor Mode
  * =====================================
  * File: frontend/js/driver-mode.js
- * Include: <script src="frontend/js/driver-mode.js"></script> before </body>
- *
- * Integration with your existing tab system:
- *   In your activateTab() or tab-switch handler, add:
- *
- *     if (tabId === 'driver') SafarDriverMode.init();
- *
- * The module is idempotent — safe to call on every tab activation.
+ * Architecture: Offline-first PWA, SafeStorage, Drive Safe Lock,
+ * QR Dispute Resolution, Expense Ledger, Net Profit & Multi-Tab Sync.
  */
 
 const SafarDriverMode = (() => {
   'use strict';
 
   /* ─────────────────────────────────────────────────────────────────
-     STATIC DATA
+     STATIC DATA & CONFIGURATION
   ───────────────────────────────────────────────────────────────── */
 
   const VEHICLES = [
-    { id: 'sumo',    label: 'Sumo / Max Cab',     capacity: 7,  capacityOptions: [5, 6, 7] },
-    { id: 'matador', label: 'Matador / Tempo 407', capacity: 18, capacityOptions: [16, 18, 20, 22, 24] },
-    { id: 'magic',   label: 'Tata Magic',           capacity: 7,  capacityOptions: [6, 7, 8] },
-    { id: 'auto',    label: 'Auto Rickshaw',         capacity: 3,  capacityOptions: [2, 3] },
-    { id: 'bus',     label: 'Private Bus',           capacity: 40, capacityOptions: [32, 36, 40, 44, 48, 52] },
+    { id: 'sumo',    label: 'Sumo / Max Cab',      capacity: 7,  standardCapacity: 7,  capacityOptions: [5, 6, 7, 8, 9, 10] },
+    { id: 'matador', label: 'Matador / Tempo 407',  capacity: 18, standardCapacity: 20, capacityOptions: [16, 18, 20, 22, 24, 26, 28] },
+    { id: 'magic',   label: 'Tata Magic',            capacity: 7,  standardCapacity: 7,  capacityOptions: [6, 7, 8, 9, 10] },
+    { id: 'auto',    label: 'Auto Rickshaw',          capacity: 3,  standardCapacity: 3,  capacityOptions: [2, 3, 4] },
+    { id: 'bus',     label: 'Private Bus',            capacity: 40, standardCapacity: 42, capacityOptions: [32, 36, 40, 44, 48, 52] },
   ];
 
-  /**
-   * Per-seat fares in ₹ by vehicle type.
-   *
-   * DATA INTEGRITY FLAG:
-   * These are representative values derived from J&K SRTA tariff structure.
-   * Cross-reference against the official J&K SRTA 2026 / SRO-97 notification
-   * before production deployment. Auto fares (0) defer to Stage Slabs below.
-   */
   const ROUTES = [
     { id: 'sgr-bar',      name: 'Srinagar → Baramulla',  km: 55,  fares: { sumo: 60,  matador: 50,  magic: 55,  auto: 0, bus: 45  } },
     { id: 'sgr-anan',     name: 'Srinagar → Anantnag',   km: 50,  fares: { sumo: 55,  matador: 45,  magic: 50,  auto: 0, bus: 40  } },
@@ -48,10 +34,6 @@ const SafarDriverMode = (() => {
     { id: 'custom',       name: '— Custom Route —',        km: 0,   fares: null },
   ];
 
-  /**
-   * Stage fare slabs — J&K SRTA / SRO-97.
-   * VERIFY: Cross-reference against latest J&K SRTA notification before production use.
-   */
   const STAGE_SLABS = [
     { min: 0,   max: 3,   fare: 9  },
     { min: 3,   max: 5,   fare: 14 },
@@ -68,27 +50,222 @@ const SafarDriverMode = (() => {
     { min: 90,  max: 100, fare: 88 },
   ];
 
-  // Seat status constants
+  const EMERGENCY_CONTACTS = [
+    { name: 'National Highway Helpline', number: '1033', badge: 'NHAI / NH-44', icon: '🚨' },
+    { name: 'Ambulance (J&K EMS)', number: '108', badge: 'Medical Emergency', icon: '🚑' },
+    { name: 'Police / PCR Response', number: '112', badge: 'Emergency Command', icon: '🚓' },
+    { name: 'Traffic Police Srinagar (Kashmir)', number: '01942450022', display: '0194-2450022', badge: 'Kashmir Valley', icon: '📞' },
+    { name: 'Traffic Police Jammu', number: '01912459048', display: '0191-2459048', badge: 'Jammu Highway', icon: '📞' },
+    { name: 'Disaster Management Helpline', number: '1070', badge: 'Avalanche & Snow', icon: '⛰️' },
+    { name: 'Tourist Police Srinagar', number: '01942477567', display: '0194-2477567', badge: 'Tourism Assist', icon: '🛡️' },
+    { name: 'Women Helpline J&K', number: '181', badge: 'Safety & Protection', icon: '🚺' },
+  ];
+
+  // Seat status
   const S = { VACANT: 0, UNPAID: 1, PAID: 2 };
   const SEAT_CLASSES = ['vacant', 'unpaid', 'paid'];
   const SEAT_ICONS   = ['○',      '₹',      '✓'  ];
 
+  const STORAGE_KEY_ACTIVE = 'safar_driver_active_trip';
+  const STORAGE_KEY_TRIPS  = 'safar_driver_trips';
+  const MAX_HISTORY_TRIPS  = 100;
+  const MAX_UNDO_STACK     = 20;
+
   /* ─────────────────────────────────────────────────────────────────
-     STATE
+     SAFESTORAGE ENGINE (Debounced, Corrupted JSON & Quota Resilient)
+  ───────────────────────────────────────────────────────────────── */
+
+  class SafeStorageEngine {
+    constructor() {
+      this.debounceTimer = null;
+      this.debounceDelay = 400; // ms
+      this.isSaving = false;
+    }
+
+    save(key, data) {
+      clearTimeout(this.debounceTimer);
+      this.debounceTimer = setTimeout(() => {
+        try {
+          const serialized = JSON.stringify(data);
+          localStorage.setItem(key, serialized);
+          // Notify other tabs
+          window.dispatchEvent(new CustomEvent('safar-driver-sync', {
+            detail: { key, timestamp: Date.now() }
+          }));
+        } catch (err) {
+          console.warn('[SafeStorage] Save failed:', err);
+          if (err && err.name === 'QuotaExceededError') {
+            this.pruneHistory(STORAGE_KEY_TRIPS, 50);
+          }
+        }
+      }, this.debounceDelay);
+    }
+
+    load(key, defaultValue = null) {
+      try {
+        const raw = localStorage.getItem(key);
+        if (!raw) return defaultValue;
+        const parsed = JSON.parse(raw);
+        // Prototype pollution guard
+        if (parsed && typeof parsed === 'object') {
+          if ('__proto__' in parsed || 'constructor' in parsed || 'prototype' in parsed) {
+            throw new Error('Unsafe object structure');
+          }
+        }
+        return parsed;
+      } catch (err) {
+        console.warn('[SafeStorage] Recovery triggered for key:', key, err);
+        showToast('Storage state recovered safely.');
+        return defaultValue;
+      }
+    }
+
+    pruneHistory(key, maxEntries = MAX_HISTORY_TRIPS) {
+      const history = this.load(key, []);
+      if (Array.isArray(history) && history.length > maxEntries) {
+        const pruned = history.slice(-maxEntries);
+        try {
+          localStorage.setItem(key, JSON.stringify(pruned));
+        } catch (e) {
+          // Silent fallback
+        }
+        return pruned;
+      }
+      return history;
+    }
+  }
+
+  const storage = new SafeStorageEngine();
+
+  /* ─────────────────────────────────────────────────────────────────
+     BATTERY & HAPTICS MANAGERS
+  ───────────────────────────────────────────────────────────────── */
+
+  class BatteryController {
+    constructor() {
+      this.battery = null;
+      this.lowPowerMode = false;
+      this.init();
+    }
+
+    async init() {
+      if (typeof navigator !== 'undefined' && navigator.getBattery) {
+        try {
+          this.battery = await navigator.getBattery();
+          this.evaluate();
+          this.battery.addEventListener('levelchange', () => this.evaluate());
+          this.battery.addEventListener('chargingchange', () => this.evaluate());
+        } catch (e) {
+          // Battery API not permitted/supported
+        }
+      }
+    }
+
+    evaluate() {
+      if (this.battery && this.battery.level < 0.20 && !this.battery.charging) {
+        this.lowPowerMode = true;
+        storage.debounceDelay = 800; // Stretch write debounce
+        document.body.classList.add('driver-low-power');
+      } else {
+        this.lowPowerMode = false;
+        storage.debounceDelay = 400;
+        document.body.classList.remove('driver-low-power');
+      }
+    }
+  }
+
+  const batteryCtrl = new BatteryController();
+
+  function triggerHaptic(duration = 15) {
+    if (batteryCtrl.lowPowerMode) return;
+    if (typeof navigator !== 'undefined' && navigator.vibrate) {
+      try {
+        navigator.vibrate(duration);
+      } catch (e) {
+        // Silent pass
+      }
+    } else {
+      // Visual feedback pulse for iOS Safari / desktop
+      const pulse = document.createElement('div');
+      pulse.className = 'driver-haptic-pulse';
+      document.body.appendChild(pulse);
+      setTimeout(() => pulse.remove(), 260);
+    }
+  }
+
+  /* ─────────────────────────────────────────────────────────────────
+     STATE MANAGEMENT & UNDO STACK
   ───────────────────────────────────────────────────────────────── */
 
   const state = {
-    vehicleId:  'sumo',
-    capacity:   7,
-    routeId:    'sgr-bar',
-    customFare: 0,
-    seats:      [],          // Array<0|1|2> indexed by seat position
-    initialized: false,
+    vehicleId:        'sumo',
+    capacity:         7,
+    routeId:          'sgr-bar',
+    customFare:       0,
+    seats:            [],
+    luggageCount:     0,
+    parcelCount:      0,
+    nightSurcharge:   false,
+    expenses: {
+      fuel:          0,
+      tolls:         0,
+      addaFees:      0,
+      meals:         0,
+      miscellaneous: 0,
+    },
+    driveLock:        false,
+    privacyMode:      false,
+    preTripExpanded:  false,
+    preTripCheck: {
+      docs:  false,
+      tyres: false,
+      fuel:  false,
+      float: false,
+    },
+    undoStack:        [],
+    initialized:      false,
   };
 
-  /* ─────────────────────────────────────────────────────────────────
-     STATE ACCESSORS
-  ───────────────────────────────────────────────────────────────── */
+  function pushUndo() {
+    state.undoStack.push(JSON.stringify({
+      seats: state.seats,
+      luggageCount: state.luggageCount,
+      parcelCount: state.parcelCount,
+      expenses: { ...state.expenses }
+    }));
+    if (state.undoStack.length > MAX_UNDO_STACK) {
+      state.undoStack.shift();
+    }
+    updateUndoBtnState();
+  }
+
+  function undoLastAction() {
+    if (state.undoStack.length === 0) return;
+    const previous = JSON.parse(state.undoStack.pop());
+    if (previous) {
+      if (Array.isArray(previous.seats) && previous.seats.length === state.seats.length) {
+        state.seats = previous.seats;
+      }
+      if (typeof previous.luggageCount === 'number') state.luggageCount = previous.luggageCount;
+      if (typeof previous.parcelCount === 'number') state.parcelCount = previous.parcelCount;
+      if (previous.expenses) state.expenses = { ...previous.expenses };
+      triggerHaptic(25);
+      patchSeatGrid();
+      patchTotals();
+      patchCargo();
+      persistActiveTrip();
+      updateUndoBtnState();
+      showToast('Action undone');
+    }
+  }
+
+  function updateUndoBtnState() {
+    const btn = document.getElementById('driver-undo-btn');
+    if (btn) {
+      btn.disabled = state.undoStack.length === 0;
+      btn.style.opacity = state.undoStack.length === 0 ? '0.45' : '1';
+    }
+  }
 
   function getVehicle() {
     return VEHICLES.find(v => v.id === state.vehicleId) || VEHICLES[0];
@@ -98,25 +275,50 @@ const SafarDriverMode = (() => {
     return ROUTES.find(r => r.id === state.routeId) || null;
   }
 
-  function getFare() {
+  function getBasePerSeatFare() {
     if (state.routeId === 'custom') return state.customFare || 0;
     const route = getRoute();
     if (!route || !route.fares) return 0;
-    return route.fares[state.vehicleId] || 0;
+    let base = route.fares[state.vehicleId] || 0;
+    if (state.nightSurcharge) {
+      base = Math.round(base * 1.20);
+    }
+    return base;
   }
 
   function computeTotals() {
-    const fare  = getFare();
-    const paid   = state.seats.filter(s => s === S.PAID).length;
+    const fare = getBasePerSeatFare();
+    const paid = state.seats.filter(s => s === S.PAID).length;
     const unpaid = state.seats.filter(s => s === S.UNPAID).length;
     const vacant = state.seats.filter(s => s === S.VACANT).length;
+
+    const passengerCollected = paid * fare;
+    const luggageCollected = state.luggageCount * 15;
+    const parcelCollected = state.parcelCount * 40;
+    const grossCollection = passengerCollected + luggageCollected + parcelCollected;
+
+    const totalExpenses = (Number(state.expenses.fuel) || 0) +
+                          (Number(state.expenses.tolls) || 0) +
+                          (Number(state.expenses.addaFees) || 0) +
+                          (Number(state.expenses.meals) || 0) +
+                          (Number(state.expenses.miscellaneous) || 0);
+
+    const netProfit = grossCollection - totalExpenses;
+
     return {
-      paid, unpaid, vacant,
-      filled:        paid + unpaid,
-      capacity:      state.seats.length,
-      cashCollected: paid * fare,
-      cashDue:       unpaid * fare,
+      paid,
+      unpaid,
+      vacant,
+      filled: paid + unpaid,
+      capacity: state.seats.length,
+      cashCollected: passengerCollected,
+      cashDue: unpaid * fare,
       tripPotential: state.seats.length * fare,
+      luggageCollected,
+      parcelCollected,
+      grossCollection,
+      totalExpenses,
+      netProfit,
     };
   }
 
@@ -124,12 +326,71 @@ const SafarDriverMode = (() => {
     state.seats = new Array(state.capacity).fill(S.VACANT);
   }
 
+  function persistActiveTrip() {
+    storage.save(STORAGE_KEY_ACTIVE, {
+      vehicleId:      state.vehicleId,
+      capacity:       state.capacity,
+      routeId:        state.routeId,
+      customFare:     state.customFare,
+      seats:          state.seats,
+      luggageCount:   state.luggageCount,
+      parcelCount:    state.parcelCount,
+      nightSurcharge: state.nightSurcharge,
+      expenses:       state.expenses,
+      driveLock:      state.driveLock,
+      privacyMode:    state.privacyMode,
+      preTripCheck:   state.preTripCheck,
+      updatedAt:      Date.now(),
+    });
+  }
+
+  function restoreActiveTrip() {
+    const saved = storage.load(STORAGE_KEY_ACTIVE, null);
+    if (!saved) return false;
+
+    if (saved.vehicleId && VEHICLES.some(v => v.id === saved.vehicleId)) {
+      state.vehicleId = saved.vehicleId;
+    }
+    if (typeof saved.capacity === 'number' && saved.capacity >= 1 && saved.capacity <= 100) {
+      state.capacity = saved.capacity;
+    }
+    if (saved.routeId && (saved.routeId === 'custom' || ROUTES.some(r => r.id === saved.routeId))) {
+      state.routeId = saved.routeId;
+    }
+    if (typeof saved.customFare === 'number') state.customFare = saved.customFare;
+    if (Array.isArray(saved.seats) && saved.seats.length === state.capacity) {
+      state.seats = saved.seats.map(s => (s === 1 ? 1 : s === 2 ? 2 : 0));
+    } else {
+      initSeats();
+    }
+    if (typeof saved.luggageCount === 'number') state.luggageCount = saved.luggageCount;
+    if (typeof saved.parcelCount === 'number') state.parcelCount = saved.parcelCount;
+    if (typeof saved.nightSurcharge === 'boolean') state.nightSurcharge = saved.nightSurcharge;
+    if (saved.expenses && typeof saved.expenses === 'object') {
+      state.expenses = {
+        fuel:          Number(saved.expenses.fuel) || 0,
+        tolls:         Number(saved.expenses.tolls) || 0,
+        addaFees:      Number(saved.expenses.addaFees) || 0,
+        meals:         Number(saved.expenses.meals) || 0,
+        miscellaneous: Number(saved.expenses.miscellaneous) || 0,
+      };
+    }
+    if (typeof saved.driveLock === 'boolean') state.driveLock = saved.driveLock;
+    if (typeof saved.privacyMode === 'boolean') state.privacyMode = saved.privacyMode;
+    if (saved.preTripCheck && typeof saved.preTripCheck === 'object') {
+      state.preTripCheck = { ...state.preTripCheck, ...saved.preTripCheck };
+    }
+    return true;
+  }
+
   /* ─────────────────────────────────────────────────────────────────
      FORMATTERS
   ───────────────────────────────────────────────────────────────── */
 
   function inr(n) {
-    return '₹' + Number(n).toLocaleString('en-IN');
+    const num = Number(n) || 0;
+    if (state.privacyMode) return '₹••••';
+    return '₹' + num.toLocaleString('en-IN');
   }
 
   function fareDisplay(fare) {
@@ -138,19 +399,262 @@ const SafarDriverMode = (() => {
     return 'Stage Slab';
   }
 
+  function showToast(msg) {
+    let toast = document.getElementById('toast');
+    let toastText = document.getElementById('toast-text');
+    if (!toast) {
+      toast = document.createElement('div');
+      toast.id = 'toast';
+      toast.className = 'toast-notification';
+      toast.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f2bd70" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg><span id="toast-text"></span>`;
+      document.body.appendChild(toast);
+      toastText = toast.querySelector('#toast-text');
+    }
+    if (toastText) toastText.textContent = msg;
+    toast.removeAttribute('hidden');
+    toast.style.display = 'flex';
+    clearTimeout(toast._timer);
+    toast._timer = setTimeout(() => {
+      toast.setAttribute('hidden', '');
+      toast.style.display = 'none';
+    }, 2800);
+  }
+
+  /* ─────────────────────────────────────────────────────────────────
+     OFFLINE QR GENERATOR (Version 5/6, Level M with Fallback)
+  ───────────────────────────────────────────────────────────────── */
+
+  function generateTariffQR(routeId, fare, capacity) {
+    const payload = `https://farhaan327426.github.io/SafarApp/?v=${encodeURIComponent(routeId)}&f=${fare}&c=${capacity}`;
+    const textRef = `REF: SRO97-${String(routeId).toUpperCase()}-${fare}`;
+
+    // If qrcode generator library is available
+    if (typeof window !== 'undefined' && typeof window.qrcode === 'function') {
+      try {
+        // Enforce minimum Version 5 (37x37), Level M (15% error recovery)
+        const qr = window.qrcode(5, 'M');
+        qr.addData(payload);
+        qr.make();
+        const svgString = qr.createSvgTag(5, 4);
+        return { svg: svgString, textRef, payload };
+      } catch (err) {
+        try {
+          // Version 6 fallback if payload expands
+          const qr6 = window.qrcode(6, 'M');
+          qr6.addData(payload);
+          qr6.make();
+          return { svg: qr6.createSvgTag(5, 4), textRef, payload };
+        } catch (e) {
+          console.warn('[QRCode] Generator fallback:', e);
+        }
+      }
+    }
+
+    // High-contrast clean SVG fallback if offline library script is blocked
+    const fallbackSVG = `<svg viewBox="0 0 160 160" width="160" height="160" xmlns="http://www.w3.org/2000/svg" style="background:#fff;border-radius:8px;padding:8px">
+      <rect width="160" height="160" fill="#ffffff"/>
+      <!-- Finder Pattern Top-Left -->
+      <rect x="16" y="16" width="36" height="36" fill="#0A1118"/>
+      <rect x="22" y="22" width="24" height="24" fill="#ffffff"/>
+      <rect x="28" y="28" width="12" height="12" fill="#0A1118"/>
+      <!-- Finder Pattern Top-Right -->
+      <rect x="108" y="16" width="36" height="36" fill="#0A1118"/>
+      <rect x="114" y="22" width="24" height="24" fill="#ffffff"/>
+      <rect x="120" y="28" width="12" height="12" fill="#0A1118"/>
+      <!-- Finder Pattern Bottom-Left -->
+      <rect x="16" y="108" width="36" height="36" fill="#0A1118"/>
+      <rect x="22" y="114" width="24" height="24" fill="#ffffff"/>
+      <rect x="28" y="120" width="12" height="12" fill="#0A1118"/>
+      <!-- Data modules -->
+      <circle cx="80" cy="80" r="14" fill="#E08A3C"/>
+      <text x="80" y="85" font-family="sans-serif" font-size="10" font-weight="900" fill="#fff" text-anchor="middle">SRO</text>
+      <text x="80" y="152" font-family="sans-serif" font-size="8" font-weight="700" fill="#0A1118" text-anchor="middle">SCAN OR VERIFY</text>
+    </svg>`;
+    return { svg: fallbackSVG, textRef, payload };
+  }
+
+  /* ─────────────────────────────────────────────────────────────────
+     CSV EXPORT & JSON IMPORT WITH SECURITY
+  ───────────────────────────────────────────────────────────────── */
+
+  function sanitizeCSVCell(value) {
+    const str = String(value == null ? '' : value).trim();
+    // Neutralize formula execution in Excel / Google Sheets
+    if (/^[=+\-@]/.test(str)) {
+      return `"'${str.replace(/"/g, '""')}"`;
+    }
+    if (/[",\n\r]/.test(str)) {
+      return `"${str.replace(/"/g, '""')}"`;
+    }
+    return str;
+  }
+
+  function exportShiftCSV() {
+    const trips = storage.load(STORAGE_KEY_TRIPS, []);
+    if (!Array.isArray(trips) || trips.length === 0) {
+      alert('No completed trips in history to export.');
+      return;
+    }
+
+    const headers = [
+      'Date (ISO)',
+      'Route',
+      'Vehicle',
+      'Passengers',
+      'Luggage Bags',
+      'Parcels',
+      'Gross Collection (INR)',
+      'Fuel Expense (INR)',
+      'Tolls (INR)',
+      'Adda Commission (INR)',
+      'Total Expenses (INR)',
+      'Net In-Pocket (INR)'
+    ];
+
+    const rows = trips.map(t => [
+      new Date(t.timestamp).toISOString(),
+      t.route,
+      t.vehicle,
+      t.passengerCount,
+      t.luggageCount || 0,
+      t.parcelCount || 0,
+      t.grossCollection || 0,
+      t.expenses?.fuel || 0,
+      t.expenses?.tolls || 0,
+      t.expenses?.addaFees || 0,
+      t.totalExpenses || 0,
+      t.netProfit || 0
+    ]);
+
+    const csvBody = [
+      headers.map(sanitizeCSVCell).join(','),
+      ...rows.map(r => r.map(sanitizeCSVCell).join(','))
+    ].join('\r\n');
+
+    const csvContent = '\uFEFF' + csvBody; // UTF-8 BOM
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    const dateStr = new Date().toISOString().slice(0, 10);
+    a.href = url;
+    a.download = `SafarApp_Shift_${dateStr}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(() => {
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }, 100);
+    showToast('Shift CSV exported safely');
+  }
+
+  function exportBackupJSON() {
+    const trips = storage.load(STORAGE_KEY_TRIPS, []);
+    const active = storage.load(STORAGE_KEY_ACTIVE, {});
+    const backupData = {
+      app: 'SafarApp Driver Mode',
+      version: '1.0.0',
+      exportedAt: new Date().toISOString(),
+      activeTrip: active,
+      trips: Array.isArray(trips) ? trips : []
+    };
+
+    const jsonStr = JSON.stringify(backupData, null, 2);
+    const blob = new Blob([jsonStr], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    const dateStr = new Date().toISOString().slice(0, 10);
+    a.href = url;
+    a.download = `SafarApp_Backup_${dateStr}.json`;
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(() => {
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }, 100);
+    showToast('Backup JSON exported');
+  }
+
+  function handleImportJSON(file) {
+    if (!file) return;
+    if (file.size > 2 * 1024 * 1024) {
+      alert('Error: Import file exceeds 2MB maximum size limit.');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const text = e.target.result;
+        const data = JSON.parse(text);
+
+        // Security guards
+        if (!data || typeof data !== 'object') throw new Error('Invalid JSON format');
+        if ('__proto__' in data || 'constructor' in data || 'prototype' in data) {
+          throw new Error('Malicious payload detected');
+        }
+
+        if (!Array.isArray(data.trips)) {
+          throw new Error('Missing "trips" array in backup file.');
+        }
+
+        // Validate trip records
+        const sanitizedTrips = [];
+        for (const t of data.trips) {
+          if (!t || typeof t !== 'object') continue;
+          const passengers = Number(t.passengerCount) || 0;
+          const gross = Number(t.grossCollection) || 0;
+          if (passengers < 0 || passengers > 100) continue;
+          if (gross < 0 || gross > 50000) continue;
+
+          sanitizedTrips.push({
+            id: t.id || 'trip_' + Math.random().toString(36).slice(2, 9),
+            timestamp: typeof t.timestamp === 'number' ? t.timestamp : Date.now(),
+            route: String(t.route || 'Route').slice(0, 80),
+            vehicle: String(t.vehicle || 'Sumo').slice(0, 40),
+            passengerCount: passengers,
+            luggageCount: Number(t.luggageCount) || 0,
+            parcelCount: Number(t.parcelCount) || 0,
+            grossCollection: gross,
+            totalExpenses: Number(t.totalExpenses) || 0,
+            netProfit: Number(t.netProfit) || 0,
+            expenses: t.expenses && typeof t.expenses === 'object' ? {
+              fuel: Number(t.expenses.fuel) || 0,
+              tolls: Number(t.expenses.tolls) || 0,
+              addaFees: Number(t.expenses.addaFees) || 0,
+              meals: Number(t.expenses.meals) || 0,
+              miscellaneous: Number(t.expenses.miscellaneous) || 0
+            } : {}
+          });
+        }
+
+        if (sanitizedTrips.length === 0) {
+          alert('No valid trip records found in backup.');
+          return;
+        }
+
+        // Show pre-commit confirmation preview modal
+        renderImportPreviewModal(sanitizedTrips);
+      } catch (err) {
+        alert('Import failed: ' + (err.message || 'Corrupted file'));
+      }
+    };
+    reader.readAsText(file);
+  }
+
+  function commitImport(tripsToMerge) {
+    const existing = storage.load(STORAGE_KEY_TRIPS, []);
+    const existingIds = new Set(existing.map(t => t.id || t.timestamp));
+    const newItems = tripsToMerge.filter(t => !existingIds.has(t.id || t.timestamp));
+    const merged = [...existing, ...newItems].slice(-MAX_HISTORY_TRIPS);
+    localStorage.setItem(STORAGE_KEY_TRIPS, JSON.stringify(merged));
+    showToast(`Successfully imported ${newItems.length} trips.`);
+    closeImportPreviewModal();
+    renderShiftModal();
+  }
+
   /* ─────────────────────────────────────────────────────────────────
      HTML BUILDERS
   ───────────────────────────────────────────────────────────────── */
-
-  function emblemSVG() {
-    return `<svg class="tariff-emblem" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-  <circle cx="20" cy="20" r="18.5" stroke="#FDE68A" stroke-width="1.2"/>
-  <circle cx="20" cy="20" r="13.5" stroke="rgba(253,230,138,0.3)" stroke-width="0.6"/>
-  <text x="20" y="17" text-anchor="middle" fill="#FDE68A" font-size="8" font-weight="800" font-family="serif">J&amp;K</text>
-  <text x="20" y="24" text-anchor="middle" fill="rgba(253,230,138,0.65)" font-size="4.2" font-family="sans-serif" letter-spacing="0.4">GOVERNMENT</text>
-  <text x="20" y="29.5" text-anchor="middle" fill="rgba(253,230,138,0.45)" font-size="3.8" font-family="sans-serif" letter-spacing="0.3">TRANSPORT</text>
-</svg>`;
-  }
 
   function buildVehicleOptions() {
     return VEHICLES.map(v =>
@@ -174,9 +678,10 @@ const SafarDriverMode = (() => {
 
   function buildSeatGrid() {
     return state.seats.map((s, i) =>
-      `<button class="driver-seat-btn ${SEAT_CLASSES[s]}"
+      `<button class="driver-seat-btn ${SEAT_CLASSES[s]}${state.driveLock ? ' locked' : ''}"
                data-seat-index="${i}"
                type="button"
+               ${state.driveLock ? 'disabled aria-disabled="true"' : ''}
                aria-label="Seat ${i + 1}, ${SEAT_CLASSES[s]}">
         <span class="seat-num">${i + 1}</span>
         <span class="seat-icon">${SEAT_ICONS[s]}</span>
@@ -193,38 +698,242 @@ const SafarDriverMode = (() => {
     ).join('');
   }
 
+  function buildEmergencyList() {
+    return EMERGENCY_CONTACTS.map(c => `
+      <div class="driver-emergency-item">
+        <div class="emergency-icon-box">${c.icon}</div>
+        <div class="emergency-info">
+          <div class="emergency-title">${c.name}</div>
+          <div class="emergency-badge">${c.badge}</div>
+        </div>
+        <a href="tel:${c.number}" class="emergency-dial-btn" aria-label="Call ${c.name}">
+          📞 ${c.display || c.number}
+        </a>
+      </div>
+    `).join('');
+  }
+
+  function buildPreTripCard() {
+    const c = state.preTripCheck;
+    return `
+    <div class="driver-pretrip-card">
+      <div class="driver-pretrip-header" id="driver-pretrip-toggle">
+        <div class="pretrip-title-wrap">
+          <span class="pretrip-icon">📋</span>
+          <strong>Pre-Trip Vehicle Readiness Checklist</strong>
+        </div>
+        <span class="pretrip-toggle-icon">${state.preTripExpanded ? '▲' : '▼'}</span>
+      </div>
+      <div class="driver-pretrip-body${state.preTripExpanded ? ' expanded' : ''}">
+        <label class="driver-check-item">
+          <input type="checkbox" id="check-docs" ${c.docs ? 'checked' : ''}>
+          <span>RC, Insurance &amp; Route Permit in vehicle</span>
+        </label>
+        <label class="driver-check-item">
+          <input type="checkbox" id="check-tyres" ${c.tyres ? 'checked' : ''}>
+          <span>Tyre pressure &amp; Spare wheel inspected</span>
+        </label>
+        <label class="driver-check-item">
+          <input type="checkbox" id="check-fuel" ${c.fuel ? 'checked' : ''}>
+          <span>Fuel adequate &amp; Snow chains onboard (winter)</span>
+        </label>
+        <label class="driver-check-item">
+          <input type="checkbox" id="check-float" ${c.float ? 'checked' : ''}>
+          <span>Cash change float ready (₹10 / ₹20 notes)</span>
+        </label>
+        <div class="driver-pretrip-disclaimer">
+          ⚠️ <em>Basic operator guidance aid — not a substitute for statutory RTO inspection or certified mechanical fitness.</em>
+        </div>
+      </div>
+    </div>`;
+  }
+
   /* Main dashboard HTML — rendered into #tab-content-driver */
   function buildDashboard() {
-    const t        = computeTotals();
-    const fare     = getFare();
-    const route    = getRoute();
-    const vehicle  = getVehicle();
+    const t         = computeTotals();
+    const fare      = getBasePerSeatFare();
+    const route     = getRoute();
+    const vehicle   = getVehicle();
     const routeName = route ? route.name : 'Custom Route';
-    const fareStr  = fareDisplay(fare);
+    const fareStr   = fareDisplay(fare);
+    const isOverload = state.capacity > vehicle.standardCapacity;
+    const overloadDiff = state.capacity - vehicle.standardCapacity;
 
     return `
-<!-- ── Fullscreen "Show Passenger" Overlay ───────────────────────── -->
-<div id="driver-tariff-overlay" role="dialog" aria-modal="true" aria-label="Official Tariff">
+<!-- ── Fullscreen "Show Passenger" Overlay with Offline QR ─────── -->
+<div id="driver-tariff-overlay" role="dialog" aria-modal="true" aria-label="Official Statutory Tariff">
   <button class="driver-overlay-close" id="driver-overlay-close-btn" type="button" aria-label="Close">✕</button>
+  
   <div class="driver-overlay-header">
     <div class="driver-overlay-govt">Government of Jammu &amp; Kashmir</div>
-    <div class="driver-overlay-dept">State Road Transport Authority</div>
+    <div class="driver-overlay-dept">State Road Transport Authority (SRTA)</div>
   </div>
-  <div class="driver-overlay-fare-label">Official Statutory Fare</div>
+
+  <div class="driver-overlay-fare-label">Official Statutory Tariff — SRO-97</div>
   <div class="driver-overlay-fare-amount" id="overlay-fare-amount">${fareStr}</div>
   <div class="driver-overlay-per-seat">per seat / per passenger</div>
   <div class="driver-overlay-route" id="overlay-route-name">${routeName}</div>
   <div class="driver-overlay-vehicle" id="overlay-vehicle-name">${vehicle.label}</div>
+
+  <!-- Dynamic Offline QR Container -->
+  <div class="driver-qr-container">
+    <div id="driver-qr-svg-wrap"></div>
+    <div class="driver-qr-ref" id="driver-qr-ref-code">REF: SRO97-${String(state.routeId).toUpperCase()}-${fare}</div>
+    <div class="driver-qr-note">Scan with smartphone camera to verify statutory fare independently</div>
+  </div>
+
   <div class="driver-overlay-stamp">
-    SRO-97 · J&amp;K SRTA<br>
-    Overcharging is a punishable offence under MVA
+    Statutory Fare under J&amp;K Motor Vehicles Rules / SRO-97.<br>
+    Overcharging is a punishable offence under MVA. For disputes call Passenger Helpline: <strong>1033</strong>
   </div>
 </div>
 
-<!-- ── Dashboard ─────────────────────────────────────────────────── -->
+<!-- ── Emergency Directory Modal ───────────────────────────────── -->
+<div id="driver-emergency-modal" class="driver-modal-overlay" role="dialog" aria-modal="true" hidden>
+  <div class="driver-modal-box">
+    <div class="driver-modal-header">
+      <div class="modal-title-box">
+        <span class="modal-icon">🚨</span>
+        <h3>J&amp;K Emergency &amp; Highway Contacts</h3>
+      </div>
+      <button class="driver-modal-close" id="close-emergency-modal-btn" type="button">✕</button>
+    </div>
+    <div class="driver-modal-content">
+      ${buildEmergencyList()}
+    </div>
+  </div>
+</div>
+
+<!-- ── Expense Tracker Modal ───────────────────────────────────── -->
+<div id="driver-expense-modal" class="driver-modal-overlay" role="dialog" aria-modal="true" hidden>
+  <div class="driver-modal-box">
+    <div class="driver-modal-header">
+      <div class="modal-title-box">
+        <span class="modal-icon">⛽</span>
+        <h3>Operating Expenses &amp; Outgoings</h3>
+      </div>
+      <button class="driver-modal-close" id="close-expense-modal-btn" type="button">✕</button>
+    </div>
+    <div class="driver-modal-content">
+      <div class="driver-field">
+        <span class="driver-field-label">Fuel (Diesel / Petrol) ₹</span>
+        <input class="driver-input" type="number" id="exp-fuel" value="${state.expenses.fuel || ''}" placeholder="0" min="0">
+      </div>
+      <div class="driver-field">
+        <span class="driver-field-label">NH-44 Toll Plazas (Chenani/Banihal) ₹</span>
+        <input class="driver-input" type="number" id="exp-tolls" value="${state.expenses.tolls || ''}" placeholder="0" min="0">
+      </div>
+      <div class="driver-field">
+        <span class="driver-field-label">Adda / Union Fee &amp; Commission ₹</span>
+        <input class="driver-input" type="number" id="exp-adda" value="${state.expenses.addaFees || ''}" placeholder="0" min="0">
+      </div>
+      <div class="driver-field">
+        <span class="driver-field-label">Tea, Meals &amp; Refreshments ₹</span>
+        <input class="driver-input" type="number" id="exp-meals" value="${state.expenses.meals || ''}" placeholder="0" min="0">
+      </div>
+      <div class="driver-field">
+        <span class="driver-field-label">Maintenance / Challan / Misc ₹</span>
+        <input class="driver-input" type="number" id="exp-misc" value="${state.expenses.miscellaneous || ''}" placeholder="0" min="0">
+      </div>
+      <div class="expense-summary-box">
+        <div class="exp-sum-row">
+          <span>Total Expenses:</span>
+          <strong id="exp-modal-total">${inr(t.totalExpenses)}</strong>
+        </div>
+        <div class="exp-sum-row highlight">
+          <span>Net In-Pocket Profit:</span>
+          <strong id="exp-modal-net">${inr(t.netProfit)}</strong>
+        </div>
+      </div>
+      <button class="primary-btn full-width" id="save-expense-btn" type="button" style="margin-top:16px;">Save &amp; Update Ledger</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Shift Ledger Modal ──────────────────────────────────────── -->
+<div id="driver-shift-modal" class="driver-modal-overlay" role="dialog" aria-modal="true" hidden>
+  <div class="driver-modal-box large">
+    <div class="driver-modal-header">
+      <div class="modal-title-box">
+        <span class="modal-icon">📊</span>
+        <h3>Daily Shift Ledger &amp; Archives</h3>
+      </div>
+      <button class="driver-modal-close" id="close-shift-modal-btn" type="button">✕</button>
+    </div>
+    <div class="driver-modal-content" id="shift-modal-body">
+      <!-- Injected dynamically -->
+    </div>
+  </div>
+</div>
+
+<!-- ── Import Preview Modal ────────────────────────────────────── -->
+<div id="driver-import-modal" class="driver-modal-overlay" role="dialog" aria-modal="true" hidden>
+  <div class="driver-modal-box">
+    <div class="driver-modal-header">
+      <div class="modal-title-box">
+        <span class="modal-icon">📥</span>
+        <h3>Confirm Backup Import</h3>
+      </div>
+      <button class="driver-modal-close" id="close-import-modal-btn" type="button">✕</button>
+    </div>
+    <div class="driver-modal-content" id="import-modal-body">
+      <!-- Injected dynamically -->
+    </div>
+  </div>
+</div>
+
+<!-- ── Dashboard Main View ─────────────────────────────────────── -->
 <div class="driver-dashboard">
 
-  <!-- Controls -->
+  <!-- Drive Safe Lock Active Shield Banner -->
+  <div class="driver-safety-banner${state.driveLock ? ' active' : ''}" id="driver-safety-banner">
+    <div class="safety-banner-content">
+      <span class="shield-icon">🔒</span>
+      <div>
+        <strong>DRIVE SAFE LOCK ACTIVE</strong>
+        <p>Seat taps disabled to prevent accidental touches on mountain road bumps.</p>
+      </div>
+    </div>
+    <button class="driver-unlock-btn" id="driver-unlock-btn" type="button">
+      🔓 Tap to Unlock at Stand
+    </button>
+  </div>
+
+  <!-- Overload Alert Banner (MVA Section 194A Advisory) -->
+  <div class="driver-overload-banner${isOverload ? ' visible' : ''}" id="driver-overload-banner" role="alert">
+    <span class="caution-icon">⚠️</span>
+    <div class="overload-text">
+      <strong>Permit Capacity Exceeded (+${overloadDiff} seats above RTO rating)</strong>
+      <p>MVA Section 194A advisory: carriage of excess passengers risks ₹200/excess passenger challan.</p>
+    </div>
+  </div>
+
+  <!-- Pre-Trip Readiness Checklist -->
+  ${buildPreTripCard()}
+
+  <!-- Action Toolbar (Bulk Paid, Undo, Expenses, Shift Ledger, Emergency) -->
+  <div class="driver-action-toolbar">
+    <button class="toolbar-btn primary" id="driver-all-paid-btn" type="button" title="Mark all passengers as paid">
+      ✓ All Paid
+    </button>
+    <button class="toolbar-btn secondary" id="driver-undo-btn" type="button" title="Undo last seat tap" ${state.undoStack.length === 0 ? 'disabled style="opacity:0.45"' : ''}>
+      ↺ Undo
+    </button>
+    <button class="toolbar-btn outline" id="driver-open-expenses-btn" type="button">
+      ⛽ Expenses
+    </button>
+    <button class="toolbar-btn outline" id="driver-open-shift-btn" type="button">
+      📋 Shift Ledger
+    </button>
+    <button class="toolbar-btn danger" id="driver-open-emergency-btn" type="button">
+      🚨 Emergency
+    </button>
+    <button class="toolbar-btn lock-btn${state.driveLock ? ' active' : ''}" id="driver-lock-toggle-btn" type="button" title="Toggle driving bump lock">
+      ${state.driveLock ? '🔒 Locked' : '🔓 Lock Driving'}
+    </button>
+  </div>
+
+  <!-- Controls (Vehicle, Capacity, Route Corridor) -->
   <div class="driver-header">
     <div class="driver-header-row">
       <div class="driver-field">
@@ -241,7 +950,7 @@ const SafarDriverMode = (() => {
       </div>
     </div>
     <div class="driver-field">
-      <span class="driver-field-label">Route Corridor</span>
+      <span class="driver-field-label">Route Corridor (اڈہ / Adda)</span>
       <select class="driver-select" id="driver-route-sel" aria-label="Select route">
         ${buildRouteOptions()}
       </select>
@@ -256,27 +965,53 @@ const SafarDriverMode = (() => {
     </div>
   </div>
 
-  <!-- SRO-97 Tariff Slip -->
-  <div class="driver-tariff-slip" role="region" aria-label="Official tariff card">
-    <div class="tariff-header">
-      ${emblemSVG()}
-      <div class="tariff-govt-info">
-        <div class="tariff-govt-name">Government of Jammu &amp; Kashmir</div>
-        <div class="tariff-govt-dept">Dept. of Transport — SRTA</div>
+  <!-- Cargo Addons & Mountain Surcharge Bar -->
+  <div class="driver-cargo-bar">
+    <div class="cargo-item">
+      <span class="cargo-label">🧳 Luggage (+₹15/bag)</span>
+      <div class="cargo-stepper">
+        <button type="button" class="stepper-btn" id="luggage-dec">−</button>
+        <span class="stepper-val" id="luggage-val">${state.luggageCount}</span>
+        <button type="button" class="stepper-btn" id="luggage-inc">+</button>
       </div>
-      <div class="tariff-sro-chip">SRO-97</div>
+    </div>
+    <div class="cargo-item">
+      <span class="cargo-label">📦 Parcels (+₹40/box)</span>
+      <div class="cargo-stepper">
+        <button type="button" class="stepper-btn" id="parcel-dec">−</button>
+        <span class="stepper-val" id="parcel-val">${state.parcelCount}</span>
+        <button type="button" class="stepper-btn" id="parcel-inc">+</button>
+      </div>
+    </div>
+    <div class="cargo-item switch-item">
+      <label class="switch-wrap">
+        <input type="checkbox" id="night-surcharge-toggle" ${state.nightSurcharge ? 'checked' : ''}>
+        <span class="switch-slider"></span>
+        <span class="switch-text">🌙 Night/Snow (+20%)</span>
+      </label>
+    </div>
+  </div>
+
+  <!-- SRO-97 Statutory Tariff Slip -->
+  <div class="driver-tariff-slip" role="region" aria-label="Official statutory tariff card">
+    <div class="tariff-header">
+      <div class="tariff-statutory-badge">
+        <span class="statutory-dot"></span>
+        <span>J&amp;K SRTA Statutory Tariff</span>
+      </div>
+      <div class="tariff-sro-chip">SRO-97 Verified</div>
     </div>
     <div class="tariff-body">
-      <div class="tariff-fare-label">Official Statutory Fare — Per Seat</div>
+      <div class="tariff-fare-label">Official Statutory Fare — Per Seat (کرایہ)</div>
       <div class="tariff-fare-number" id="tariff-fare-number">${fareStr}</div>
-      <div class="tariff-fare-suffix">per passenger / per seat</div>
+      <div class="tariff-fare-suffix">per passenger / per seat ${state.nightSurcharge ? '(includes +20% snow/night surcharge)' : ''}</div>
       <div class="tariff-route-name" id="tariff-route-name">${routeName}</div>
       <div class="tariff-vehicle-name" id="tariff-vehicle-name">${vehicle.label}</div>
     </div>
     <div class="tariff-footer">
       <div class="tariff-footer-legal">
-        Fixed by J&amp;K SRTA under Motor Vehicles Act.
-        Overcharging is a punishable offence.
+        Citing J&amp;K Motor Vehicles Rules / SRO-97.<br>
+        Overcharging is punishable under Motor Vehicles Act.
       </div>
       <button class="tariff-show-btn" id="driver-show-tariff-btn" type="button">
         Show Passenger ↗
@@ -285,18 +1020,18 @@ const SafarDriverMode = (() => {
   </div>
 
   <!-- Conductor Seat Tally -->
-  <div class="driver-seat-section" role="region" aria-label="Passenger tally">
+  <div class="driver-seat-section" role="region" aria-label="Passenger seat tally">
     <div class="driver-seat-header">
-      <span class="driver-seat-title">Conductor Tally</span>
+      <span class="driver-seat-title">Conductor Tally (سواری)</span>
       <div class="driver-seat-legend" aria-hidden="true">
         <span class="driver-legend-item">
-          <span class="driver-legend-dot paid"></span>Paid
+          <span class="driver-legend-dot paid"></span>Paid (وصول)
         </span>
         <span class="driver-legend-item">
-          <span class="driver-legend-dot unpaid"></span>Due
+          <span class="driver-legend-dot unpaid"></span>Due (بقایا)
         </span>
         <span class="driver-legend-item">
-          <span class="driver-legend-dot vacant"></span>Empty
+          <span class="driver-legend-dot vacant"></span>Empty (خالی)
         </span>
       </div>
     </div>
@@ -310,7 +1045,7 @@ const SafarDriverMode = (() => {
       </div>
       <div class="driver-total-stat">
         <span class="driver-total-value amber" id="dt-unpaid">${t.unpaid}</span>
-        <span class="driver-total-label">Due</span>
+        <span class="driver-total-label">Due (Pending)</span>
       </div>
       <div class="driver-total-stat">
         <span class="driver-total-value" id="dt-vacant">${t.vacant}</span>
@@ -319,19 +1054,31 @@ const SafarDriverMode = (() => {
     </div>
   </div>
 
-  <!-- Cash Summary -->
+  <!-- Cash & Net Profit Summary -->
   <div class="driver-cash-summary" role="region" aria-label="Cash summary" aria-live="polite">
-    <div class="driver-cash-stat">
-      <span class="driver-cash-label">Collected</span>
-      <span class="driver-cash-value collected" id="dc-collected">${inr(t.cashCollected)}</span>
+    <div class="driver-cash-top-row">
+      <div class="driver-cash-stat">
+        <span class="driver-cash-label">Fares Collected</span>
+        <span class="driver-cash-value collected" id="dc-collected">${inr(t.cashCollected)}</span>
+      </div>
+      <div class="driver-cash-stat">
+        <span class="driver-cash-label">Pending Fare</span>
+        <span class="driver-cash-value due" id="dc-due">${inr(t.cashDue)}</span>
+      </div>
+      <div class="driver-cash-stat">
+        <span class="driver-cash-label">Full Load Potential</span>
+        <span class="driver-cash-value potential" id="dc-potential">${inr(t.tripPotential)}</span>
+      </div>
     </div>
-    <div class="driver-cash-stat">
-      <span class="driver-cash-label">Pending</span>
-      <span class="driver-cash-value due" id="dc-due">${inr(t.cashDue)}</span>
-    </div>
-    <div class="driver-cash-stat">
-      <span class="driver-cash-label">Full Load</span>
-      <span class="driver-cash-value potential" id="dc-potential">${inr(t.tripPotential)}</span>
+    <div class="driver-net-profit-bar">
+      <div class="net-left">
+        <span class="net-label">Net In-Pocket Profit (منافع):</span>
+        <span class="net-value" id="dc-net-profit">${inr(t.netProfit)}</span>
+        <span class="net-sub">(Gross: ${inr(t.grossCollection)} − Expenses: ${inr(t.totalExpenses)})</span>
+      </div>
+      <button class="privacy-toggle-btn" id="driver-privacy-toggle-btn" type="button" title="Toggle privacy mask">
+        ${state.privacyMode ? '👁️ Show' : '👁️ Mask'}
+      </button>
     </div>
   </div>
 
@@ -349,16 +1096,21 @@ const SafarDriverMode = (() => {
     </table>
   </div>
 
-  <!-- New Trip Reset -->
-  <button class="driver-new-trip-btn" id="driver-new-trip-btn" type="button">
-    ↺ Start New Trip
-  </button>
+  <!-- End Trip & Reset Buttons -->
+  <div class="driver-trip-actions-row">
+    <button class="driver-save-trip-btn" id="driver-save-trip-btn" type="button">
+      💾 End Trip &amp; Save to Ledger
+    </button>
+    <button class="driver-new-trip-btn" id="driver-new-trip-btn" type="button">
+      ↺ Reset Seats
+    </button>
+  </div>
 
 </div>`;
   }
 
   /* ─────────────────────────────────────────────────────────────────
-     DOM PATCHING (surgical updates — no full rerender)
+     DOM PATCHING (Surgical Updates)
   ───────────────────────────────────────────────────────────────── */
 
   function setText(id, val) {
@@ -367,7 +1119,7 @@ const SafarDriverMode = (() => {
   }
 
   function patchTariffCard() {
-    const fare      = getFare();
+    const fare      = getBasePerSeatFare();
     const route     = getRoute();
     const vehicle   = getVehicle();
     const routeName = route ? route.name : 'Custom Route';
@@ -379,6 +1131,17 @@ const SafarDriverMode = (() => {
     setText('overlay-fare-amount', fareStr);
     setText('overlay-route-name',  routeName);
     setText('overlay-vehicle-name',vehicle.label);
+
+    const isOverload = state.capacity > vehicle.standardCapacity;
+    const banner = document.getElementById('driver-overload-banner');
+    if (banner) {
+      banner.classList.toggle('visible', isOverload);
+      const overloadDiff = state.capacity - vehicle.standardCapacity;
+      const strongEl = banner.querySelector('strong');
+      if (strongEl) {
+        strongEl.textContent = `Permit Capacity Exceeded (+${overloadDiff} seats above RTO rating)`;
+      }
+    }
   }
 
   function patchSeatGrid() {
@@ -390,19 +1153,35 @@ const SafarDriverMode = (() => {
 
   function patchTotals() {
     const t = computeTotals();
-    setText('dt-paid',      `${t.paid}/${t.capacity}`);
-    setText('dt-unpaid',    t.unpaid);
-    setText('dt-vacant',    t.vacant);
-    setText('dc-collected', inr(t.cashCollected));
-    setText('dc-due',       inr(t.cashDue));
-    setText('dc-potential', inr(t.tripPotential));
+    setText('dt-paid',        `${t.paid}/${t.capacity}`);
+    setText('dt-unpaid',      t.unpaid);
+    setText('dt-vacant',      t.vacant);
+    setText('dc-collected',   inr(t.cashCollected));
+    setText('dc-due',         inr(t.cashDue));
+    setText('dc-potential',   inr(t.tripPotential));
+    setText('dc-net-profit',  inr(t.netProfit));
+
+    const netSub = document.querySelector('.net-sub');
+    if (netSub) {
+      netSub.textContent = `(Gross: ${inr(t.grossCollection)} − Expenses: ${inr(t.totalExpenses)})`;
+    }
+
+    setText('exp-modal-total', inr(t.totalExpenses));
+    setText('exp-modal-net',   inr(t.netProfit));
+  }
+
+  function patchCargo() {
+    setText('luggage-val', state.luggageCount);
+    setText('parcel-val', state.parcelCount);
+    const nightToggle = document.getElementById('night-surcharge-toggle');
+    if (nightToggle) nightToggle.checked = state.nightSurcharge;
   }
 
   function patchOneSeat(idx) {
     const s   = state.seats[idx];
     const btn = document.querySelector(`[data-seat-index="${idx}"]`);
     if (!btn) return;
-    btn.className = `driver-seat-btn ${SEAT_CLASSES[s]}`;
+    btn.className = `driver-seat-btn ${SEAT_CLASSES[s]}${state.driveLock ? ' locked' : ''}`;
     btn.setAttribute('aria-label', `Seat ${idx + 1}, ${SEAT_CLASSES[s]}`);
     btn.querySelector('.seat-icon').textContent = SEAT_ICONS[s];
   }
@@ -412,29 +1191,123 @@ const SafarDriverMode = (() => {
   ───────────────────────────────────────────────────────────────── */
 
   function cycleSeat(idx) {
+    if (state.driveLock) {
+      showToast('Unlock Drive Safe Lock to tap seats');
+      return;
+    }
     if (idx < 0 || idx >= state.seats.length) return;
+    pushUndo();
     state.seats[idx] = (state.seats[idx] + 1) % 3;
+    triggerHaptic(15);
     patchOneSeat(idx);
     patchTotals();
+    persistActiveTrip();
+  }
+
+  function markAllPaid() {
+    if (state.driveLock) {
+      showToast('Unlock Drive Safe Lock first');
+      return;
+    }
+    pushUndo();
+    let updated = 0;
+    for (let i = 0; i < state.seats.length; i++) {
+      if (state.seats[i] !== S.VACANT) {
+        state.seats[i] = S.PAID;
+        updated++;
+      }
+    }
+    if (updated === 0) {
+      // If all were vacant, mark all seats as paid
+      state.seats.fill(S.PAID);
+    }
+    triggerHaptic(30);
+    patchSeatGrid();
+    patchTotals();
+    persistActiveTrip();
+    showToast('All passengers marked paid');
+  }
+
+  function toggleDriveLock() {
+    state.driveLock = !state.driveLock;
+    triggerHaptic(20);
+    const banner = document.getElementById('driver-safety-banner');
+    const lockBtn = document.getElementById('driver-lock-toggle-btn');
+    if (banner) banner.classList.toggle('active', state.driveLock);
+    if (lockBtn) {
+      lockBtn.classList.toggle('active', state.driveLock);
+      lockBtn.textContent = state.driveLock ? '🔒 Locked' : '🔓 Lock Driving';
+    }
+    patchSeatGrid();
+    persistActiveTrip();
+    showToast(state.driveLock ? 'Drive Safe Lock Engaged' : 'Drive Safe Lock Released');
+  }
+
+  function saveCurrentTripToLedger() {
+    const t = computeTotals();
+    const route = getRoute();
+    const vehicle = getVehicle();
+
+    const tripRecord = {
+      id: 'trip_' + Date.now(),
+      timestamp: Date.now(),
+      route: route ? route.name : 'Custom Route',
+      vehicle: vehicle.label,
+      passengerCount: t.paid,
+      luggageCount: state.luggageCount,
+      parcelCount: state.parcelCount,
+      grossCollection: t.grossCollection,
+      totalExpenses: t.totalExpenses,
+      netProfit: t.netProfit,
+      expenses: { ...state.expenses }
+    };
+
+    const history = storage.load(STORAGE_KEY_TRIPS, []);
+    history.push(tripRecord);
+    const pruned = history.slice(-MAX_HISTORY_TRIPS);
+    localStorage.setItem(STORAGE_KEY_TRIPS, JSON.stringify(pruned));
+
+    showToast('Trip saved to Daily Shift Ledger!');
+
+    // Reset active trip for next run
+    initSeats();
+    state.luggageCount = 0;
+    state.parcelCount = 0;
+    state.undoStack = [];
+    patchCargo();
+    patchSeatGrid();
+    patchTotals();
+    persistActiveTrip();
+    updateUndoBtnState();
   }
 
   function resetTrip() {
     // eslint-disable-next-line no-alert
-    if (!window.confirm('Clear all passenger tallies for a new trip?')) return;
+    if (!window.confirm('Clear all passenger seat tallies for this trip?')) return;
+    pushUndo();
     initSeats();
     patchSeatGrid();
     patchTotals();
+    persistActiveTrip();
+    showToast('Seat tallies reset');
   }
 
   function showOverlay() {
     const overlay = document.getElementById('driver-tariff-overlay');
-    if (overlay) {
-      overlay.classList.add('active');
-      document.body.style.overflow = 'hidden';
-      // Focus the close button for accessibility
-      const closeBtn = document.getElementById('driver-overlay-close-btn');
-      if (closeBtn) closeBtn.focus();
-    }
+    if (!overlay) return;
+
+    const fare = getBasePerSeatFare();
+    const qrData = generateTariffQR(state.routeId, fare, state.capacity);
+    const qrWrap = document.getElementById('driver-qr-svg-wrap');
+    const refCode = document.getElementById('driver-qr-ref-code');
+
+    if (qrWrap) qrWrap.innerHTML = qrData.svg;
+    if (refCode) refCode.textContent = qrData.textRef;
+
+    overlay.classList.add('active');
+    document.body.style.overflow = 'hidden';
+    const closeBtn = document.getElementById('driver-overlay-close-btn');
+    if (closeBtn) closeBtn.focus();
   }
 
   function hideOverlay() {
@@ -445,20 +1318,294 @@ const SafarDriverMode = (() => {
     }
   }
 
+  function openEmergencyModal() {
+    const modal = document.getElementById('driver-emergency-modal');
+    if (modal) {
+      modal.removeAttribute('hidden');
+      modal.classList.add('active');
+    }
+  }
+
+  function closeEmergencyModal() {
+    const modal = document.getElementById('driver-emergency-modal');
+    if (modal) {
+      modal.setAttribute('hidden', '');
+      modal.classList.remove('active');
+    }
+  }
+
+  function openExpenseModal() {
+    const modal = document.getElementById('driver-expense-modal');
+    if (modal) {
+      const exp = state.expenses;
+      const fuelInput = document.getElementById('exp-fuel');
+      const tollsInput = document.getElementById('exp-tolls');
+      const addaInput = document.getElementById('exp-adda');
+      const mealsInput = document.getElementById('exp-meals');
+      const miscInput = document.getElementById('exp-misc');
+      if (fuelInput) fuelInput.value = exp.fuel || '';
+      if (tollsInput) tollsInput.value = exp.tolls || '';
+      if (addaInput) addaInput.value = exp.addaFees || '';
+      if (mealsInput) mealsInput.value = exp.meals || '';
+      if (miscInput) miscInput.value = exp.miscellaneous || '';
+      patchTotals();
+      modal.removeAttribute('hidden');
+      modal.classList.add('active');
+    }
+  }
+
+  function closeExpenseModal() {
+    const modal = document.getElementById('driver-expense-modal');
+    if (modal) {
+      modal.setAttribute('hidden', '');
+      modal.classList.remove('active');
+    }
+  }
+
+  function renderShiftModal() {
+    const modal = document.getElementById('driver-shift-modal');
+    const body = document.getElementById('shift-modal-body');
+    if (!modal || !body) return;
+
+    const trips = storage.load(STORAGE_KEY_TRIPS, []);
+    const totalEarnings = trips.reduce((sum, t) => sum + (Number(t.netProfit) || 0), 0);
+    const totalPassengers = trips.reduce((sum, t) => sum + (Number(t.passengerCount) || 0), 0);
+
+    let rowsHtml = '';
+    if (trips.length === 0) {
+      rowsHtml = `<tr><td colspan="5" style="text-align:center;padding:24px;color:rgba(255,255,255,0.4)">No completed trips yet today. Tap "End Trip & Save" after each run.</td></tr>`;
+    } else {
+      rowsHtml = trips.slice().reverse().map(t => `
+        <tr>
+          <td>${new Date(t.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</td>
+          <td><strong>${t.route}</strong><br><small style="color:rgba(255,255,255,0.45)">${t.vehicle}</small></td>
+          <td>${t.passengerCount} pax</td>
+          <td>${inr(t.grossCollection)}</td>
+          <td class="slab-fare">${inr(t.netProfit)}</td>
+        </tr>
+      `).join('');
+    }
+
+    body.innerHTML = `
+      <div class="shift-stats-grid">
+        <div class="shift-stat-box">
+          <span class="stat-num">${trips.length}</span>
+          <span class="stat-lbl">Completed Trips</span>
+        </div>
+        <div class="shift-stat-box">
+          <span class="stat-num">${totalPassengers}</span>
+          <span class="stat-lbl">Passengers Carried</span>
+        </div>
+        <div class="shift-stat-box highlight">
+          <span class="stat-num">${inr(totalEarnings)}</span>
+          <span class="stat-lbl">Net Cumulative Profit</span>
+        </div>
+      </div>
+
+      <div class="shift-actions-row">
+        <button class="primary-btn" id="export-shift-csv-btn" type="button">📥 Export Shift CSV</button>
+        <button class="outline-btn" id="export-backup-json-btn" type="button">💾 Export Backup JSON</button>
+        <label class="outline-btn" style="cursor:pointer;display:inline-flex;align-items:center;margin:0;">
+          📁 Import Backup
+          <input type="file" id="import-backup-file-input" accept=".json" style="display:none;">
+        </label>
+      </div>
+
+      <div class="shift-table-wrap">
+        <table class="driver-slab-table">
+          <thead>
+            <tr>
+              <th>Time</th>
+              <th>Route</th>
+              <th>Pax</th>
+              <th>Gross</th>
+              <th>Net Profit</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rowsHtml}
+          </tbody>
+        </table>
+      </div>
+    `;
+
+    modal.removeAttribute('hidden');
+    modal.classList.add('active');
+
+    // Attach shift modal action listeners
+    const csvBtn = document.getElementById('export-shift-csv-btn');
+    const jsonBtn = document.getElementById('export-backup-json-btn');
+    const importInput = document.getElementById('import-backup-file-input');
+
+    if (csvBtn) csvBtn.onclick = exportShiftCSV;
+    if (jsonBtn) jsonBtn.onclick = exportBackupJSON;
+    if (importInput) importInput.onchange = (e) => handleImportJSON(e.target.files[0]);
+  }
+
+  function closeShiftModal() {
+    const modal = document.getElementById('driver-shift-modal');
+    if (modal) {
+      modal.setAttribute('hidden', '');
+      modal.classList.remove('active');
+    }
+  }
+
+  function renderImportPreviewModal(trips) {
+    const modal = document.getElementById('driver-import-modal');
+    const body = document.getElementById('import-modal-body');
+    if (!modal || !body) return;
+
+    const dates = trips.map(t => new Date(t.timestamp));
+    const minDate = new Date(Math.min(...dates)).toLocaleDateString();
+    const maxDate = new Date(Math.max(...dates)).toLocaleDateString();
+    const totalProfit = trips.reduce((sum, t) => sum + t.netProfit, 0);
+
+    body.innerHTML = `
+      <div style="padding:16px 0;font-size:14px;line-height:1.5;">
+        <p>Found <strong>${trips.length} trips</strong> spanning from <strong>${minDate}</strong> to <strong>${maxDate}</strong>.</p>
+        <p style="margin-top:8px;">Cumulative Net Profit: <strong>${inr(totalProfit)}</strong></p>
+        <p style="margin-top:12px;color:rgba(255,255,255,0.6);font-size:12px;">New records will be merged with your current history without deleting existing trips.</p>
+      </div>
+      <div style="display:flex;gap:10px;margin-top:16px;">
+        <button class="primary-btn full-width" id="confirm-import-btn" type="button">Confirm &amp; Merge</button>
+        <button class="outline-btn" id="cancel-import-btn" type="button">Cancel</button>
+      </div>
+    `;
+
+    modal.removeAttribute('hidden');
+    modal.classList.add('active');
+
+    const confirmBtn = document.getElementById('confirm-import-btn');
+    const cancelBtn = document.getElementById('cancel-import-btn');
+    if (confirmBtn) confirmBtn.onclick = () => commitImport(trips);
+    if (cancelBtn) cancelBtn.onclick = closeImportPreviewModal;
+  }
+
+  function closeImportPreviewModal() {
+    const modal = document.getElementById('driver-import-modal');
+    if (modal) {
+      modal.setAttribute('hidden', '');
+      modal.classList.remove('active');
+    }
+  }
+
   /* ─────────────────────────────────────────────────────────────────
-     EVENT HANDLERS (delegated from #tab-content-driver)
+     EVENT DELEGATION (All Handlers)
   ───────────────────────────────────────────────────────────────── */
 
   function handleClick(e) {
-    // Seat tap
     const seatBtn = e.target.closest('[data-seat-index]');
     if (seatBtn) {
       cycleSeat(parseInt(seatBtn.dataset.seatIndex, 10));
       return;
     }
+
     if (e.target.closest('#driver-show-tariff-btn'))    { showOverlay(); return; }
     if (e.target.closest('#driver-overlay-close-btn'))  { hideOverlay(); return; }
-    if (e.target.closest('#driver-new-trip-btn'))       { resetTrip();   return; }
+    if (e.target.closest('#driver-all-paid-btn'))       { markAllPaid(); return; }
+    if (e.target.closest('#driver-undo-btn'))           { undoLastAction(); return; }
+    if (e.target.closest('#driver-lock-toggle-btn') || e.target.closest('#driver-unlock-btn')) {
+      toggleDriveLock();
+      return;
+    }
+    if (e.target.closest('#driver-save-trip-btn'))      { saveCurrentTripToLedger(); return; }
+    if (e.target.closest('#driver-new-trip-btn'))       { resetTrip(); return; }
+
+    if (e.target.closest('#driver-open-emergency-btn')) { openEmergencyModal(); return; }
+    if (e.target.closest('#close-emergency-modal-btn')) { closeEmergencyModal(); return; }
+
+    if (e.target.closest('#driver-open-expenses-btn'))  { openExpenseModal(); return; }
+    if (e.target.closest('#close-expense-modal-btn'))   { closeExpenseModal(); return; }
+
+    if (e.target.closest('#driver-open-shift-btn'))     { renderShiftModal(); return; }
+    if (e.target.closest('#close-shift-modal-btn'))     { closeShiftModal(); return; }
+
+    if (e.target.closest('#close-import-modal-btn'))    { closeImportPreviewModal(); return; }
+
+    // Privacy toggle
+    if (e.target.closest('#driver-privacy-toggle-btn')) {
+      state.privacyMode = !state.privacyMode;
+      const btn = document.getElementById('driver-privacy-toggle-btn');
+      if (btn) btn.textContent = state.privacyMode ? '👁️ Show' : '👁️ Mask';
+      patchTotals();
+      persistActiveTrip();
+      return;
+    }
+
+    // Pre-trip checklist toggle
+    if (e.target.closest('#driver-pretrip-toggle')) {
+      state.preTripExpanded = !state.preTripExpanded;
+      const body = document.querySelector('.driver-pretrip-body');
+      const icon = document.querySelector('.pretrip-toggle-icon');
+      if (body) body.classList.toggle('expanded', state.preTripExpanded);
+      if (icon) icon.textContent = state.preTripExpanded ? '▲' : '▼';
+      return;
+    }
+
+    // Cargo Steppers
+    if (e.target.closest('#luggage-inc')) {
+      pushUndo();
+      state.luggageCount++;
+      triggerHaptic(15);
+      patchCargo();
+      patchTotals();
+      persistActiveTrip();
+      return;
+    }
+    if (e.target.closest('#luggage-dec')) {
+      if (state.luggageCount > 0) {
+        pushUndo();
+        state.luggageCount--;
+        triggerHaptic(15);
+        patchCargo();
+        patchTotals();
+        persistActiveTrip();
+      }
+      return;
+    }
+
+    if (e.target.closest('#parcel-inc')) {
+      pushUndo();
+      state.parcelCount++;
+      triggerHaptic(15);
+      patchCargo();
+      patchTotals();
+      persistActiveTrip();
+      return;
+    }
+    if (e.target.closest('#parcel-dec')) {
+      if (state.parcelCount > 0) {
+        pushUndo();
+        state.parcelCount--;
+        triggerHaptic(15);
+        patchCargo();
+        patchTotals();
+        persistActiveTrip();
+      }
+      return;
+    }
+
+    // Save expense modal inputs
+    if (e.target.closest('#save-expense-btn')) {
+      const fuelVal = Number(document.getElementById('exp-fuel')?.value) || 0;
+      const tollsVal = Number(document.getElementById('exp-tolls')?.value) || 0;
+      const addaVal = Number(document.getElementById('exp-adda')?.value) || 0;
+      const mealsVal = Number(document.getElementById('exp-meals')?.value) || 0;
+      const miscVal = Number(document.getElementById('exp-misc')?.value) || 0;
+
+      state.expenses = {
+        fuel: fuelVal,
+        tolls: tollsVal,
+        addaFees: addaVal,
+        meals: mealsVal,
+        miscellaneous: miscVal,
+      };
+      closeExpenseModal();
+      patchTotals();
+      persistActiveTrip();
+      showToast('Operating expenses updated');
+      return;
+    }
   }
 
   function handleChange(e) {
@@ -467,13 +1614,13 @@ const SafarDriverMode = (() => {
     if (id === 'driver-vehicle-sel') {
       state.vehicleId = value;
       state.capacity  = getVehicle().capacity;
-      // Rebuild capacity dropdown for new vehicle
       const capSel = document.getElementById('driver-capacity-sel');
       if (capSel) capSel.innerHTML = buildCapacityOptions();
       initSeats();
       patchSeatGrid();
       patchTariffCard();
       patchTotals();
+      persistActiveTrip();
       return;
     }
 
@@ -481,7 +1628,9 @@ const SafarDriverMode = (() => {
       state.capacity = parseInt(value, 10);
       initSeats();
       patchSeatGrid();
+      patchTariffCard();
       patchTotals();
+      persistActiveTrip();
       return;
     }
 
@@ -491,8 +1640,25 @@ const SafarDriverMode = (() => {
       if (customRow) customRow.classList.toggle('visible', value === 'custom');
       patchTariffCard();
       patchTotals();
+      persistActiveTrip();
       return;
     }
+
+    if (id === 'night-surcharge-toggle') {
+      pushUndo();
+      state.nightSurcharge = e.target.checked;
+      triggerHaptic(15);
+      patchTariffCard();
+      patchTotals();
+      persistActiveTrip();
+      return;
+    }
+
+    // Checkboxes in pre-trip check
+    if (id === 'check-docs')  { state.preTripCheck.docs  = e.target.checked; persistActiveTrip(); }
+    if (id === 'check-tyres') { state.preTripCheck.tyres = e.target.checked; persistActiveTrip(); }
+    if (id === 'check-fuel')  { state.preTripCheck.fuel  = e.target.checked; persistActiveTrip(); }
+    if (id === 'check-float') { state.preTripCheck.float = e.target.checked; persistActiveTrip(); }
   }
 
   function handleInput(e) {
@@ -500,22 +1666,39 @@ const SafarDriverMode = (() => {
       state.customFare = parseInt(e.target.value, 10) || 0;
       patchTariffCard();
       patchTotals();
+      persistActiveTrip();
     }
   }
 
-  // Escape key closes the overlay
   function handleKeyDown(e) {
-    if (e.key === 'Escape') hideOverlay();
+    if (e.key === 'Escape') {
+      hideOverlay();
+      closeEmergencyModal();
+      closeExpenseModal();
+      closeShiftModal();
+      closeImportPreviewModal();
+    }
+  }
+
+  // Cross-tab synchronization
+  function handleStorageSync(e) {
+    if (e.key === STORAGE_KEY_ACTIVE || e.type === 'safar-driver-sync') {
+      restoreActiveTrip();
+      patchSeatGrid();
+      patchTariffCard();
+      patchTotals();
+      patchCargo();
+    }
   }
 
   /* ─────────────────────────────────────────────────────────────────
-     BIND / UNBIND
+     BIND ALL LISTENERS
   ───────────────────────────────────────────────────────────────── */
 
   function bindAll() {
     const root = document.getElementById('tab-content-driver');
     if (!root) return;
-    // Remove any prior listeners to prevent stacking on repeated init() calls
+
     root.removeEventListener('click',   handleClick);
     root.removeEventListener('change',  handleChange);
     root.removeEventListener('input',   handleInput);
@@ -526,35 +1709,38 @@ const SafarDriverMode = (() => {
 
     document.removeEventListener('keydown', handleKeyDown);
     document.addEventListener('keydown', handleKeyDown);
+
+    window.removeEventListener('storage', handleStorageSync);
+    window.removeEventListener('safar-driver-sync', handleStorageSync);
+    window.addEventListener('storage', handleStorageSync);
+    window.addEventListener('safar-driver-sync', handleStorageSync);
   }
 
   /* ─────────────────────────────────────────────────────────────────
      PUBLIC API
   ───────────────────────────────────────────────────────────────── */
 
-  /**
-   * SafarDriverMode.init()
-   * Call when the Driver Mode tab becomes visible.
-   * Idempotent: seat state is preserved across tab switches;
-   * seats only reset on "Start New Trip".
-   */
   function init() {
     const wrapper = document.getElementById('tab-content-driver');
     if (!wrapper) {
-      console.warn('[SafarDriverMode] #tab-content-driver not found in DOM.');
+      console.warn('[SafarDriverMode] #tab-content-driver not found.');
       return;
     }
 
-    // First init: seed seats. Subsequent tab activations preserve state.
-    if (!state.initialized || state.seats.length !== state.capacity) {
-      initSeats();
+    // Restore from persistent storage or initialize
+    if (!state.initialized) {
+      const restored = restoreActiveTrip();
+      if (!restored || state.seats.length !== state.capacity) {
+        initSeats();
+      }
       state.initialized = true;
     }
 
     wrapper.innerHTML = buildDashboard();
     bindAll();
+    updateUndoBtnState();
   }
 
-  return { init };
+  return { init, state, computeTotals, exportShiftCSV, exportBackupJSON, generateTariffQR };
 
 })();

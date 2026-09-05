@@ -2631,3 +2631,684 @@ body {
     transition: none;
   }
 }
+
+/* ─────────────────────────────────────────────────────────────────
+   SAFAR PRO ENHANCEMENTS — Safety, Overload, Cargo, Ledger & Modals
+───────────────────────────────────────────────────────────────── */
+
+/* ── Drive Safe Lock Shield Banner ──────────────────────────────── */
+.driver-safety-banner {
+  display: none;
+  background: linear-gradient(135deg, rgba(224, 138, 60, 0.25), rgba(10, 17, 24, 0.95));
+  border: 1.5px solid #E08A3C;
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin-bottom: 16px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  box-shadow: 0 4px 16px rgba(224, 138, 60, 0.2);
+}
+
+.driver-safety-banner.active {
+  display: flex !important;
+}
+
+.safety-banner-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.safety-banner-content .shield-icon {
+  font-size: 24px;
+}
+
+.safety-banner-content strong {
+  font-size: 13px;
+  color: #FDE68A;
+  letter-spacing: 0.05em;
+  display: block;
+}
+
+.safety-banner-content p {
+  font-size: 11px;
+  color: rgba(232, 240, 248, 0.7);
+  margin: 2px 0 0 0;
+}
+
+.driver-unlock-btn {
+  background: #E08A3C;
+  color: #0A1118;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: transform 0.1s, background 0.1s;
+}
+
+.driver-unlock-btn:active {
+  transform: scale(0.96);
+  background: #f2bd70;
+}
+
+/* ── Overload Warning Banner ────────────────────────────────────── */
+.driver-overload-banner {
+  display: none;
+  background: rgba(197, 48, 48, 0.2);
+  border: 1px solid rgba(229, 62, 62, 0.7);
+  border-radius: 10px;
+  padding: 12px 14px;
+  margin-bottom: 16px;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.driver-overload-banner.visible {
+  display: flex !important;
+  animation: pulse-border 2s infinite;
+}
+
+@keyframes pulse-border {
+  0% { border-color: rgba(229, 62, 62, 0.4); }
+  50% { border-color: rgba(229, 62, 62, 1); }
+  100% { border-color: rgba(229, 62, 62, 0.4); }
+}
+
+.overload-text strong {
+  font-size: 12px;
+  color: #FEB2B2;
+  display: block;
+}
+
+.overload-text p {
+  font-size: 11px;
+  color: rgba(254, 178, 178, 0.85);
+  margin: 2px 0 0 0;
+  line-height: 1.4;
+}
+
+/* ── Pre-Trip Checklist Card ────────────────────────────────────── */
+.driver-pretrip-card {
+  background: #14202B;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  margin-bottom: 16px;
+  overflow: hidden;
+}
+
+.driver-pretrip-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 14px;
+  cursor: pointer;
+  user-select: none;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.pretrip-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: #E8F0F8;
+}
+
+.pretrip-toggle-icon {
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.driver-pretrip-body {
+  display: none;
+  padding: 12px 14px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.driver-pretrip-body.expanded {
+  display: block;
+}
+
+.driver-check-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 0;
+  font-size: 12px;
+  color: rgba(232, 240, 248, 0.85);
+  cursor: pointer;
+}
+
+.driver-check-item input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  accent-color: #2D7A4F;
+  cursor: pointer;
+}
+
+.driver-pretrip-disclaimer {
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px dashed rgba(255, 255, 255, 0.08);
+  font-size: 10px;
+  color: rgba(253, 230, 138, 0.65);
+  line-height: 1.4;
+}
+
+/* ── Action Toolbar ─────────────────────────────────────────────── */
+.driver-action-toolbar {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.toolbar-btn {
+  padding: 10px 8px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border: 1px solid transparent;
+  transition: background 0.1s, transform 0.1s;
+  min-height: 44px;
+}
+
+.toolbar-btn:active {
+  transform: scale(0.96);
+}
+
+.toolbar-btn.primary {
+  background: #2D7A4F;
+  color: #FFFFFF;
+}
+
+.toolbar-btn.secondary {
+  background: #1E3A52;
+  color: #E8F0F8;
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+.toolbar-btn.outline {
+  background: rgba(255, 255, 255, 0.04);
+  color: #E8F0F8;
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+.toolbar-btn.danger {
+  background: rgba(197, 48, 48, 0.25);
+  color: #FEB2B2;
+  border-color: rgba(197, 48, 48, 0.5);
+}
+
+.toolbar-btn.lock-btn {
+  background: rgba(255, 255, 255, 0.06);
+  color: #FDE68A;
+  border-color: rgba(253, 230, 138, 0.25);
+}
+
+.toolbar-btn.lock-btn.active {
+  background: #E08A3C;
+  color: #0A1118;
+  font-weight: 800;
+}
+
+/* ── Cargo Steppers & Night Switch Bar ──────────────────────────── */
+.driver-cargo-bar {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1.2fr;
+  gap: 8px;
+  margin-bottom: 16px;
+  background: #14202B;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  padding: 10px;
+}
+
+@media (max-width: 600px) {
+  .driver-cargo-bar {
+    grid-template-columns: 1fr 1fr;
+  }
+  .driver-cargo-bar .switch-item {
+    grid-column: span 2;
+  }
+}
+
+.cargo-item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.cargo-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(232, 240, 248, 0.7);
+  white-space: nowrap;
+}
+
+.cargo-stepper {
+  display: flex;
+  align-items: center;
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  overflow: hidden;
+  height: 36px;
+}
+
+.stepper-btn {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.06);
+  color: #E8F0F8;
+  border: none;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.1s;
+}
+
+.stepper-btn:active {
+  background: rgba(255, 255, 255, 0.18);
+}
+
+.stepper-val {
+  min-width: 28px;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 800;
+  color: #FDE68A;
+}
+
+.switch-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  height: 100%;
+  user-select: none;
+}
+
+.switch-wrap input {
+  display: none;
+}
+
+.switch-slider {
+  width: 38px;
+  height: 22px;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 12px;
+  position: relative;
+  transition: background 0.2s;
+  flex-shrink: 0;
+}
+
+.switch-slider::before {
+  content: "";
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  left: 3px;
+  top: 3px;
+  background: #ffffff;
+  border-radius: 50%;
+  transition: transform 0.2s;
+}
+
+.switch-wrap input:checked + .switch-slider {
+  background: #2D7A4F;
+}
+
+.switch-wrap input:checked + .switch-slider::before {
+  transform: translateX(16px);
+}
+
+.switch-text {
+  font-size: 11px;
+  font-weight: 600;
+  color: #FDE68A;
+}
+
+/* ── Net Profit Bar in Cash Summary ─────────────────────────────── */
+.driver-cash-top-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.driver-net-profit-bar {
+  background: rgba(45, 122, 79, 0.18);
+  border: 1px solid rgba(45, 122, 79, 0.4);
+  border-radius: 8px;
+  padding: 10px 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+
+.net-left {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.net-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: #E8F0F8;
+}
+
+.net-value {
+  font-size: 18px;
+  font-weight: 900;
+  color: #4CAF50;
+}
+
+.net-sub {
+  font-size: 11px;
+  color: rgba(232, 240, 248, 0.55);
+}
+
+.privacy-toggle-btn {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #E8F0F8;
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-size: 11px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+/* ── End Trip Actions Row ───────────────────────────────────────── */
+.driver-trip-actions-row {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.driver-save-trip-btn {
+  background: #2D7A4F;
+  color: #ffffff;
+  border: none;
+  border-radius: 10px;
+  padding: 14px;
+  font-size: 14px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: transform 0.1s, background 0.1s;
+}
+
+.driver-save-trip-btn:active {
+  transform: scale(0.97);
+  background: #388E3C;
+}
+
+/* ── Dynamic Offline QR Container ───────────────────────────────── */
+.driver-qr-container {
+  margin: 20px auto;
+  text-align: center;
+  max-width: 220px;
+}
+
+#driver-qr-svg-wrap {
+  background: #ffffff;
+  padding: 10px;
+  border-radius: 12px;
+  display: inline-block;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.4);
+}
+
+#driver-qr-svg-wrap svg {
+  display: block;
+  width: 160px;
+  height: 160px;
+}
+
+.driver-qr-ref {
+  font-family: monospace;
+  font-size: 12px;
+  font-weight: 800;
+  color: #FDE68A;
+  margin-top: 8px;
+  letter-spacing: 0.08em;
+}
+
+.driver-qr-note {
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.6);
+  margin-top: 4px;
+  line-height: 1.3;
+}
+
+/* ── Modals & Drawers ───────────────────────────────────────────── */
+.driver-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(10, 17, 24, 0.85);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+.driver-modal-overlay[hidden] {
+  display: none !important;
+}
+
+.driver-modal-box {
+  background: #14202B;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 16px;
+  width: 100%;
+  max-width: 440px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
+  display: flex;
+  flex-direction: column;
+}
+
+.driver-modal-box.large {
+  max-width: 640px;
+}
+
+.driver-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.modal-title-box {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.modal-title-box h3 {
+  margin: 0;
+  font-size: 15px;
+  color: #E8F0F8;
+  font-weight: 800;
+}
+
+.driver-modal-close {
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 20px;
+  cursor: pointer;
+  padding: 4px;
+}
+
+.driver-modal-content {
+  padding: 20px;
+}
+
+/* ── Emergency Item Cards ───────────────────────────────────────── */
+.driver-emergency-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 10px;
+  margin-bottom: 8px;
+  gap: 10px;
+}
+
+.emergency-icon-box {
+  font-size: 20px;
+}
+
+.emergency-info {
+  flex: 1;
+}
+
+.emergency-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #E8F0F8;
+}
+
+.emergency-badge {
+  font-size: 10px;
+  color: rgba(253, 230, 138, 0.7);
+  margin-top: 2px;
+}
+
+.emergency-dial-btn {
+  background: #2D7A4F;
+  color: #FFFFFF;
+  text-decoration: none;
+  font-size: 12px;
+  font-weight: 800;
+  padding: 8px 12px;
+  border-radius: 6px;
+  white-space: nowrap;
+}
+
+/* ── Expense Summary Box ────────────────────────────────────────── */
+.expense-summary-box {
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 8px;
+  padding: 12px;
+  margin-top: 14px;
+}
+
+.exp-sum-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  color: rgba(232, 240, 248, 0.8);
+  margin-bottom: 6px;
+}
+
+.exp-sum-row.highlight {
+  font-size: 15px;
+  color: #4CAF50;
+  font-weight: 800;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px dashed rgba(255, 255, 255, 0.1);
+}
+
+/* ── Shift Ledger Grid & Actions ────────────────────────────────── */
+.shift-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.shift-stat-box {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  padding: 10px;
+  text-align: center;
+}
+
+.shift-stat-box.highlight {
+  background: rgba(45, 122, 79, 0.15);
+  border-color: rgba(45, 122, 79, 0.4);
+}
+
+.shift-stat-box .stat-num {
+  display: block;
+  font-size: 16px;
+  font-weight: 800;
+  color: #E8F0F8;
+}
+
+.shift-stat-box.highlight .stat-num {
+  color: #4CAF50;
+}
+
+.shift-stat-box .stat-lbl {
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.5);
+  text-transform: uppercase;
+  margin-top: 4px;
+}
+
+.shift-actions-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.shift-actions-row button,
+.shift-actions-row label {
+  font-size: 12px;
+  padding: 8px 12px;
+}
+
+.shift-table-wrap {
+  max-height: 280px;
+  overflow-y: auto;
+}
+
+/* ── iOS Visual Ripple Fallback ─────────────────────────────────── */
+.driver-haptic-pulse {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background: rgba(255, 255, 255, 0.05);
+  animation: haptic-fade 0.25s ease-out forwards;
+  z-index: 9999;
+}
+
+@keyframes haptic-fade {
+  0%   { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+/* ── Low Power Mode Optimizations ───────────────────────────────── */
+body.driver-low-power * {
+  animation-duration: 0.001s !important;
+  transition-duration: 0.001s !important;
+}
