@@ -1819,11 +1819,6 @@ function switchTab(tabId) {
     view.hidden = view.id !== `tab-${tabId}`;
   });
 
-  // Render Stage Explorer when its tab becomes visible
-  if (tabId === 'stages') {
-    renderStageExplorer();
-  }
-
   // Initialize Driver Mode when its tab becomes visible
   if (tabId === 'driver' && typeof SafarDriverMode !== 'undefined') {
     SafarDriverMode.init();
@@ -2055,7 +2050,6 @@ function initSafar() {
   renderVehicleCards();
   renderRouteGuide();
   renderHistory();
-  renderStageExplorer();
   calculateAndRender();
   if (window.SafarHelpAssistant && typeof window.SafarHelpAssistant.init === "function") {
     window.SafarHelpAssistant.init();

@@ -4,8 +4,6 @@ import assert from 'assert';
 // 1. Verify frontend/index.html elements
 const html = readFileSync('frontend/index.html', 'utf-8');
 
-assert.ok(html.includes('data-tab="stages"'), 'index.html missing data-tab="stages"');
-assert.ok(html.includes('id="stageExplorerSection"'), 'index.html missing stageExplorerSection');
 assert.ok(html.includes('id="passengerRightsBtn"'), 'index.html missing passengerRightsBtn');
 assert.ok(html.includes('id="conductorPassModal"'), 'index.html missing conductorPassModal');
 assert.ok(html.includes('id="passQrCanvas"'), 'index.html missing passQrCanvas');

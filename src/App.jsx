@@ -32,7 +32,6 @@ import {
   LayoutGrid,
   List,
 } from "lucide-react";
-import StageExplorer from "./components/StageExplorer.jsx";
 import ConductorSlipModal from "./components/ConductorSlipModal.jsx";
 import VehicleIllustration, {
   VEHICLE_VISUAL_META,
@@ -1181,7 +1180,6 @@ export default function App() {
           <nav className="hidden lg:flex items-center gap-1.5 bg-[#eaf0e9]/80 p-1 rounded-2xl border border-[#dce5dc]">
             {[
               { label: "Fare calculator", icon: Calculator },
-              { label: "Routes & Stages", icon: Route },
               { label: "Recent estimates", icon: Clock3 },
               { label: "Official rate card", icon: FileText },
             ].map((item) => {
@@ -1255,7 +1253,6 @@ export default function App() {
             <nav className="mt-6 space-y-1.5 flex-1">
               {[
                 { label: "Fare calculator", icon: Calculator, desc: "Instant trip cost estimate" },
-                { label: "Routes & Stages", icon: Route, desc: "Corridor timetable & stage fares" },
                 { label: "Recent estimates", icon: Clock3, desc: "Your recent route calculations" },
                 { label: "Official rate card", icon: FileText, desc: "Government SRO rules & rights" },
               ].map((item) => {
@@ -2390,20 +2387,6 @@ export default function App() {
                 </div>
               </div>
             </div>
-          </div>
-        )}
-
-        {activeNav === "Routes & Stages" && (
-          <div className="bg-[#fbfcf8] border border-[#dce5dc] rounded-3xl p-6 sm:p-8 shadow-sm">
-            <StageExplorer
-              onUseRoute={({ from: f, to: t, distance: d }) => {
-                setFrom(f);
-                setTo(t);
-                setDistance(String(d));
-                setActiveNav("Fare calculator");
-                showToast(`Loaded ${f} ➔ ${t} (${d} km)`);
-              }}
-            />
           </div>
         )}
 
