@@ -500,3 +500,104 @@ export function filterEligibleVehicles(vehicles, routeProfile) {
     return true;
   });
 }
+
+/**
+ * Vehicle Operational Distance & Corridor Viability Matrix
+ *
+ * @param {string} vehicleKey - Key of vehicle (e.g. 'e-rickshaw', 'e-auto', 'auto')
+ * @param {number} km - Total distance in km
+ * @param {string} [from=''] - Origin location
+ * @param {string} [to=''] - Destination location
+ * @returns {{ isViable: boolean, reason: string, maxKm: number, vehicleName?: string, alternativeKey: string, alternativeName: string }}
+ */
+export function getVehicleRouteViability(vehicleKey, km, from = "", to = "") {
+  const dist = Number(km) || 0;
+  if (!dist || dist <= 0) {
+    return {
+      isViable: true,
+      reason: "",
+      maxKm: Infinity,
+      alternativeKey: "shared-cab",
+      alternativeName: "Shared Maxi-Cab (Sumo/Bolero)",
+    };
+  }
+
+  switch (vehicleKey) {
+    case "e-rickshaw":
+      if (dist > 10) {
+        return {
+          isViable: false,
+          maxKm: 10,
+          vehicleName: "E-Rickshaw (Toto / Cart)",
+          reason: `E-Rickshaws operate exclusively on short municipal feeder hops (up to 10 km). They cannot run on long-distance or inter-district highway corridors (${dist} km).`,
+          alternativeKey: "shared-cab",
+          alternativeName: "Shared Maxi-Cab (Sumo/Bolero)",
+        };
+      }
+      break;
+
+    case "e-auto":
+      if (dist > 15) {
+        return {
+          isViable: false,
+          maxKm: 15,
+          vehicleName: "E-Auto (Smart Metered)",
+          reason: `E-Autos operate strictly within urban municipal limits (up to 15 km) and do not service inter-district highway routes (${dist} km).`,
+          alternativeKey: "shared-cab",
+          alternativeName: "Shared Maxi-Cab (Sumo/Bolero)",
+        };
+      }
+      break;
+
+    case "auto":
+      if (dist > 25) {
+        return {
+          isViable: false,
+          maxKm: 25,
+          vehicleName: "Auto-Rickshaw (Petrol/CNG)",
+          reason: `Auto-Rickshaws operate within municipal and suburban limits (up to 25 km). They do not service long-distance highway corridors (${dist} km).`,
+          alternativeKey: "shared-cab",
+          alternativeName: "Shared Maxi-Cab or Sedan Taxi",
+        };
+      }
+      break;
+
+    case "vikram-tempo":
+      if (dist > 20) {
+        return {
+          isViable: false,
+          maxKm: 20,
+          vehicleName: "Vikram Tempo (Jammu City)",
+          reason: `Vikram Tempos run on designated short urban corridors in Jammu (up to 20 km) and cannot ply on inter-district mountain routes (${dist} km).`,
+          alternativeKey: "shared-cab",
+          alternativeName: "Shared Maxi-Cab (Sumo/Bolero)",
+        };
+      }
+      break;
+
+    case "mini-bus":
+      if (dist > 70) {
+        return {
+          isViable: false,
+          maxKm: 70,
+          vehicleName: "Matador (Mini-Bus)",
+          reason: `Matadors and Mini-Buses operate on sub-district stage routes (up to 70 km). For journeys exceeding 70 km (${dist} km), use 2+2 Big Buses or Shared Maxi-Cabs.`,
+          alternativeKey: "bus-2x2",
+          alternativeName: "Private 2+2 Big Bus or Shared Cab",
+        };
+      }
+      break;
+
+    default:
+      break;
+  }
+
+  return {
+    isViable: true,
+    reason: "",
+    maxKm: Infinity,
+    alternativeKey: "shared-cab",
+    alternativeName: "Shared Maxi-Cab (Sumo/Bolero)",
+  };
+}
+

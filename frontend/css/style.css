@@ -4446,47 +4446,118 @@ body.driver-low-power * {
   }
 }
 
+:root {
+  --surface-1: #ffffff;
+  --surface-2: #f8fafc;
+}
+
 /* Corridor Timeline & Conductor Pass */
 .timeline-stop {
   position: relative;
-  padding-left: 1.5rem;
+  padding-left: 1.75rem;
 }
 
 .timeline-stop::before {
   content: '';
   position: absolute;
-  left: 0.35rem;
-  top: 0;
-  bottom: 0;
+  left: 0.5rem;
+  top: -12px;
+  bottom: -12px;
   width: 2px;
-  background-color: var(--border-color, #e2e8f0);
+  background-color: var(--color-border, #cbd5e1);
+}
+
+.timeline-stop:first-child::before {
+  top: 50%;
+}
+
+.timeline-stop:last-child::before {
+  bottom: 50%;
+}
+
+.timeline-stop::after {
+  content: '';
+  position: absolute;
+  left: calc(0.5rem - 4px);
+  top: 50%;
+  transform: translateY(-50%);
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background-color: var(--color-primary, #234b4c);
+  border: 2px solid #ffffff;
+  box-shadow: 0 0 0 2px var(--color-border, #cbd5e1);
+  z-index: 1;
 }
 
 .conductor-pass-card {
-  border-radius: 1rem;
+  position: relative;
+  border-radius: 1.25rem;
   background: var(--surface-1, #ffffff);
-  border: 1px solid var(--border-color, #e2e8f0);
-  box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1);
+  border: 1px solid var(--color-border, #e2e8f0);
+  box-shadow: 0 20px 35px -10px rgba(15, 23, 42, 0.15);
 }
 
 .conductor-pass-divider {
   border-top: 2px dashed #cbd5e1;
   position: relative;
-  margin: 1rem 0;
+  margin: 1.25rem -1.5rem;
+}
+
+.conductor-pass-divider::before,
+.conductor-pass-divider::after {
+  content: '';
+  position: absolute;
+  top: -10px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: rgba(15, 23, 42, 0.6);
+}
+
+.conductor-pass-divider::before {
+  left: -10px;
+}
+
+.conductor-pass-divider::after {
+  right: -10px;
 }
 
 .badge-tier-low {
-  background-color: #d1fae5;
-  color: #065f46;
+  background-color: #dcfce7;
+  color: #15803d;
+  border: 1px solid #bbf7d0;
 }
 
 .badge-tier-moderate {
   background-color: #fef3c7;
-  color: #92400e;
+  color: #b45309;
+  border: 1px solid #fde68a;
 }
 
 .badge-tier-high {
   background-color: #ffe4e6;
-  color: #9f1239;
+  color: #be123c;
+  border: 1px solid #fecdd3;
+}
+
+.passenger-rights-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 20px;
+  background: #edf5ee;
+  border: 1px solid #d2e4d4;
+  color: #234b4c;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.passenger-rights-btn:hover {
+  background: #e2ede3;
+  border-color: #b8d4bb;
 }
 

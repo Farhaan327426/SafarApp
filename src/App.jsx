@@ -41,7 +41,9 @@ import {
   VEHICLE_OPERATIONAL_ZONES,
   resolveRouteProfile,
   filterEligibleVehicles,
+  getVehicleRouteViability,
 } from "./data/transitZones.js";
+import { useFareCalculator } from "./hooks/useFareCalculator.js";
 
 const vehicleCategories = [
   { key: "all", label: "All Vehicles (11)" },
@@ -880,111 +882,6 @@ function resolveRouteInfo(loc1, loc2, userRegionOverride = null) {
   };
 }
 
-// Vehicle Operational Distance & Corridor Viability Matrix
-export function getVehicleRouteViability(vehicleKey, km, from = "", to = "") {
-  const dist = Number(km) || 0;
-  if (!dist || dist <= 0) {
-    return {
-      isViable: true,
-      reason: "",
-      maxKm: Infinity,
-      alternativeKey: "shared-cab",
-      alternativeName: "Shared Maxi-Cab (Sumo/Bolero)",
-    };
-  }
-
-  switch (vehicleKey) {
-    case "e-rickshaw":
-      if (dist > 10) {
-        return {
-          isViable: false,
-          maxKm: 10,
-          vehicleName: "E-Rickshaw (Toto / Cart)",
-          reason: `E-Rickshaws operate exclusively on short municipal feeder hops (up to 10 km). They cannot run on long-distance or inter-district highway corridors (${dist} km).`,
-          alternativeKey: "shared-cab",
-          alternativeName: "Shared Maxi-Cab (Sumo/Bolero)",
-        };
-      }
-      break;
-
-    case "e-auto":
-      if (dist > 15) {
-        return {
-          isViable: false,
-          maxKm: 15,
-          vehicleName: "E-Auto (Smart Metered)",
-          reason: `E-Autos operate strictly within urban municipal limits (up to 15 km) and do not service inter-district highway routes (${dist} km).`,
-          alternativeKey: "shared-cab",
-          alternativeName: "Shared Maxi-Cab (Sumo/Bolero)",
-        };
-      }
-      break;
-
-    case "auto":
-      if (dist > 25) {
-        return {
-          isViable: false,
-          maxKm: 25,
-          vehicleName: "Auto-Rickshaw (Petrol/CNG)",
-          reason: `Auto-Rickshaws operate within municipal and suburban limits (up to 25 km). They do not service long-distance highway corridors (${dist} km).`,
-          alternativeKey: "shared-cab",
-          alternativeName: "Shared Maxi-Cab or Sedan Taxi",
-        };
-      }
-      break;
-
-    case "vikram-tempo":
-      if (dist > 20) {
-        return {
-          isViable: false,
-          maxKm: 20,
-          vehicleName: "Vikram / Safa Tempo",
-          reason: `Vikram Tempos run on designated short urban corridors in Jammu (up to 20 km) and cannot ply long-distance routes (${dist} km).`,
-          alternativeKey: "mini-bus",
-          alternativeName: "Mini Bus (Matador) or Shared Cab",
-        };
-      }
-      break;
-
-    case "tata-magic":
-      if (dist > 35) {
-        return {
-          isViable: false,
-          maxKm: 35,
-          vehicleName: "Tata Magic / Feeder 4-Wheeler",
-          reason: `Tata Magic / Feeder vans operate on short rural-urban feeder stages (up to 35 km) and do not operate across long-distance highways (${dist} km).`,
-          alternativeKey: "mini-bus",
-          alternativeName: "Mini Bus (Matador) or Shared Cab",
-        };
-      }
-      break;
-
-    case "mini-bus":
-      if (dist > 70) {
-        return {
-          isViable: false,
-          maxKm: 70,
-          vehicleName: "Mini Bus / Matador (407)",
-          reason: `Matadors / Mini Buses operate on intra-district stage routes (up to 70 km). Long-distance inter-district transit (${dist} km) is serviced by 2+2 Big Buses or Shared Maxi-Cabs.`,
-          alternativeKey: "private-bus",
-          alternativeName: "Private 2+2 Big Bus or Shared Cab",
-        };
-      }
-      break;
-
-    default:
-      break;
-  }
-
-  return {
-    isViable: true,
-    reason: "",
-    maxKm: Infinity,
-    alternativeKey: "shared-cab",
-    alternativeName: "Shared Maxi-Cab (Sumo/Bolero)",
-  };
-}
-
 export default function App() {
   const [activeNav, setActiveNav] = useState("Fare calculator");
   const [from, setFrom] = useState("");
@@ -999,7 +896,6 @@ export default function App() {
   const [showConductorSlip, setShowConductorSlip] = useState(false);
   const [searchFromFocus, setSearchFromFocus] = useState(false);
   const [searchToFocus, setSearchToFocus] = useState(false);
-  const [priceMode, setPriceMode] = useState("per-seat");
   const [vehicleViewMode, setVehicleViewMode] = useState("visual"); // 'visual' | 'compact'
   const [showFleetGuide, setShowFleetGuide] = useState(false);
   const [inspectedVehicleKey, setInspectedVehicleKey] = useState(null);
@@ -1075,210 +971,15 @@ export default function App() {
     return info;
   };
 
-  // Exact Statutory Fare Calculations
-  const fareParts = useMemo(() => {
-    const km = Number(distance) || 0;
-
-    // Secondary rule: If zero vehicles are eligible for a selected corridor
-    if (hasRoute && (!activeVehicle || eligibleVehicles.length === 0)) {
-      return {
-        isViable: false,
-        isZeroEligible: true,
-        viability: {
-          isViable: false,
-          reason: "No registered vehicle category operates this route.",
-          maxKm: 0,
-        },
-        base: 0,
-        distanceCost: 0,
-        localAdjustment: 0,
-        totalSingle: 0,
-        fullCabCost: 0,
-        formulaDesc: "No registered vehicle category operates this route.",
-        perKmRate: 0,
-      };
-    }
-
-    const viability = getVehicleRouteViability(chosenVehicle.key, km, from, to);
-
-    if (km <= 0) {
-      return {
-        isViable: true,
-        isZeroEligible: false,
-        viability,
-        base: chosenVehicle.base,
-        distanceCost: 0,
-        localAdjustment: 0,
-        totalSingle: 0,
-        fullCabCost: 0,
-        formulaDesc: `Official rate: ₹${chosenVehicle.perKm}/km`,
-        perKmRate: chosenVehicle.perKm,
-      };
-    }
-
-    if (!viability.isViable) {
-      return {
-        isViable: false,
-        isZeroEligible: false,
-        viability,
-        base: 0,
-        distanceCost: 0,
-        localAdjustment: 0,
-        totalSingle: 0,
-        fullCabCost: 0,
-        formulaDesc: `Route not serviced (Exceeds ${viability.maxKm} km operational range)`,
-        perKmRate: 0,
-      };
-    }
-
-    let base = chosenVehicle.base;
-    let distanceCost = 0;
-    let localAdjustment = 0;
-    let totalSingle = 0;
-    let formulaDesc = "";
-
-    switch (chosenVehicle.calcType) {
-      case "e-rickshaw":
-        base = 15;
-        distanceCost = Math.round(km * 15);
-        totalSingle = Math.max(15, distanceCost);
-        formulaDesc = `Flat ₹15/km (${km} km × ₹15)`;
-        break;
-
-      case "e-auto":
-        base = 25;
-        distanceCost = km <= 1 ? 0 : Math.round((km - 1) * 20);
-        totalSingle = km <= 1 ? 25 : 25 + distanceCost;
-        formulaDesc = km <= 1 ? "1st KM Base (₹25)" : `₹25 (1st km) + ${(km - 1)} km × ₹20/km`;
-        break;
-
-      case "stage-slab":
-        if (km <= 3) {
-          totalSingle = 9;
-          base = 9;
-          formulaDesc = "Stage Slab: 0 to 3 KM (₹9)";
-        } else if (km <= 5) {
-          totalSingle = 14;
-          base = 14;
-          formulaDesc = "Stage Slab: 3 to 5 KM (₹14)";
-        } else if (km <= 10) {
-          totalSingle = 17;
-          base = 17;
-          formulaDesc = "Stage Slab: 5 to 10 KM (₹17)";
-        } else if (km <= 15) {
-          totalSingle = 20;
-          base = 20;
-          formulaDesc = "Stage Slab: 10 to 15 KM (₹20)";
-        } else if (km <= 20) {
-          totalSingle = 26;
-          base = 26;
-          formulaDesc = "Stage Slab: 15 to 20 KM (₹26)";
-        } else {
-          base = 26;
-          const extraKm = km - 20;
-          distanceCost = Math.round(extraKm * 1.40);
-          totalSingle = 26 + distanceCost;
-          formulaDesc = `₹26 (20km slab) + ${extraKm} km @ 50% Concession (₹1.40/km)`;
-        }
-        break;
-
-      case "stage-carriage":
-        {
-          const ratePerKm =
-            terrainRegion === "kashmir-plain"
-              ? 1.64
-              : terrainRegion === "kashmir-hill"
-              ? 1.88
-              : terrainRegion === "jammu-plain"
-              ? 1.12
-              : 1.59;
-          base = 10;
-          distanceCost = Math.round(km * ratePerKm);
-          totalSingle = Math.max(10, distanceCost);
-          formulaDesc = `${km} km × ₹${ratePerKm}/km`;
-        }
-        break;
-
-      case "stage-carriage-big":
-        {
-          const ratePerKm =
-            terrainRegion === "kashmir-plain"
-              ? 1.40
-              : terrainRegion === "kashmir-hill"
-              ? 1.64
-              : terrainRegion === "jammu-plain"
-              ? 1.12
-              : 1.59;
-          base = 10;
-          distanceCost = Math.round(km * ratePerKm);
-          totalSingle = Math.max(10, distanceCost);
-          formulaDesc = `${km} km × ₹${ratePerKm}/km`;
-        }
-        break;
-
-      case "tourist-group":
-        {
-          const seatCost = Math.max(25, Math.round(km * 2.25));
-          const charterCost = Math.max(1200, Math.round(km * 29.0));
-          totalSingle = seatCost;
-          formulaDesc = `${km} km × ₹2.25/km (Per Seat) · ₹29/km (Charter)`;
-        }
-        break;
-
-      case "urban-stage":
-        if (km <= 3) {
-          totalSingle = 8;
-          base = 8;
-          formulaDesc = "Urban Stage: 0 to 3 KM (₹8)";
-        } else if (km <= 6) {
-          totalSingle = 12;
-          base = 12;
-          formulaDesc = "Urban Stage: 3 to 6 KM (₹12)";
-        } else if (km <= 10) {
-          totalSingle = 15;
-          base = 15;
-          formulaDesc = "Urban Stage: 6 to 10 KM (₹15)";
-        } else {
-          totalSingle = 18;
-          base = 18;
-          formulaDesc = "Urban Stage: 10 to 15 KM (₹18)";
-        }
-        break;
-
-      case "metered-auto":
-        base = 45;
-        distanceCost = km <= 2 ? 0 : Math.round((km - 2) * 7.4);
-        totalSingle = km <= 2 ? 45 : 45 + distanceCost;
-        formulaDesc = km <= 2 ? "First 2 KM Meter (₹45)" : `₹45 (First 2 km) + ${(km - 2)} km × ₹7.40/km`;
-        break;
-
-      default:
-        base = chosenVehicle.base;
-        distanceCost = Math.round(km * chosenVehicle.perKm);
-        localAdjustment = chosenVehicle.key === "suv-taxi" ? 20 : 0;
-        totalSingle = Math.max(15, base + distanceCost + localAdjustment);
-        formulaDesc = `${km} km × ₹${chosenVehicle.perKm}/km`;
-        break;
-    }
-
-    const fullCabCost = chosenVehicle.key === "force-traveler"
-      ? Math.max(1200, Math.round(km * 29.0))
-      : chosenVehicle.isPerSeat
-      ? totalSingle * chosenVehicle.seatsMultiplier
-      : totalSingle;
-
-    return {
-      isViable: true,
-      viability,
-      base,
-      distanceCost,
-      localAdjustment,
-      totalSingle,
-      fullCabCost,
-      formulaDesc,
-      perKmRate: chosenVehicle.perKm,
-    };
-  }, [chosenVehicle, distance, from, to, terrainRegion]);
+  // Statutory Fare Computations via useFareCalculator Hook
+  const { fareParts, displayFare, priceMode, setPriceMode } = useFareCalculator({
+    vehicle: chosenVehicle,
+    distance,
+    terrainRegion,
+    from,
+    to,
+    eligibleVehicles,
+  });
 
   const activePresets = useMemo(() => {
     if (vehicle === "tata-magic") {
@@ -1378,16 +1079,6 @@ export default function App() {
       viability,
     };
   }, [from, to, distance, vehicle]);
-
-  const displayFare = useMemo(() => {
-    if (!fareParts.isViable) {
-      return 0;
-    }
-    if (!chosenVehicle.isPerSeat) {
-      return fareParts.totalSingle;
-    }
-    return priceMode === "full-cab" ? fareParts.fullCabCost : fareParts.totalSingle;
-  }, [chosenVehicle, fareParts, priceMode]);
 
   const showToast = (message) => {
     setNotice(message);
@@ -1490,6 +1181,7 @@ export default function App() {
           <nav className="hidden lg:flex items-center gap-1.5 bg-[#eaf0e9]/80 p-1 rounded-2xl border border-[#dce5dc]">
             {[
               { label: "Fare calculator", icon: Calculator },
+              { label: "Routes & Stages", icon: Route },
               { label: "Recent estimates", icon: Clock3 },
               { label: "Official rate card", icon: FileText },
             ].map((item) => {
@@ -1563,6 +1255,7 @@ export default function App() {
             <nav className="mt-6 space-y-1.5 flex-1">
               {[
                 { label: "Fare calculator", icon: Calculator, desc: "Instant trip cost estimate" },
+                { label: "Routes & Stages", icon: Route, desc: "Corridor timetable & stage fares" },
                 { label: "Recent estimates", icon: Clock3, desc: "Your recent route calculations" },
                 { label: "Official rate card", icon: FileText, desc: "Government SRO rules & rights" },
               ].map((item) => {
@@ -2700,6 +2393,20 @@ export default function App() {
           </div>
         )}
 
+        {activeNav === "Routes & Stages" && (
+          <div className="bg-[#fbfcf8] border border-[#dce5dc] rounded-3xl p-6 sm:p-8 shadow-sm">
+            <StageExplorer
+              onUseRoute={({ from: f, to: t, distance: d }) => {
+                setFrom(f);
+                setTo(t);
+                setDistance(String(d));
+                setActiveNav("Fare calculator");
+                showToast(`Loaded ${f} ➔ ${t} (${d} km)`);
+              }}
+            />
+          </div>
+        )}
+
         {activeNav === "Recent estimates" && (
           <div className="bg-[#fbfcf8] border border-[#dce5dc] rounded-3xl p-6 sm:p-8 shadow-sm">
             <h2 className="text-xl font-extrabold text-[#234b4c] pb-4 border-b border-[#e5ece3]">
@@ -3076,11 +2783,13 @@ export default function App() {
       <ConductorSlipModal
         open={showConductorSlip}
         onClose={() => setShowConductorSlip(false)}
-        origin={from}
-        destination={to}
-        vehicle={chosenVehicle?.label || ""}
+        origin={from || "Lal Chowk"}
+        destination={to || "Hazratbal"}
+        vehicle={chosenVehicle?.label || "Shared Cab"}
         distanceKm={Number(distance) || 0}
-        farePerSeat={displayFare}
+        farePerSeat={displayFare || 20}
+        totalFare={displayFare || 20}
+        passengers={1}
       />
 
       {/* Floating Toast Notification */}

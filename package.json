@@ -7,7 +7,8 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "test": "node --test"
+    "sync-corridors": "node scripts/generate-corridors-data.js",
+    "test": "node scripts/generate-corridors-data.js && node --test"
   },
   "dependencies": {
     "clsx": "^2.1.1",
