@@ -1172,13 +1172,14 @@ function renderVehicleCards() {
     const illustrationSvg = window.getVehicleIllustrationSvg ? window.getVehicleIllustrationSvg(v.key) : v.icon;
     const hallmarkText = visualMeta?.name || v.label;
 
+    const assetVersion = window.location.protocol === "file:" ? "" : "?v=1.1.0";
     card.innerHTML = `
       <div class="vehicle-card-header">
         <span class="vehicle-badge">${v.badge}</span>
         ${fareBadge}
       </div>
       <div class="vehicle-illustration-showcase">
-        <img src="images/vehicles/${v.key}.svg?v=1.1.0" alt="${v.label}" class="vehicle-illustration-svg" loading="lazy" onerror="this.outerHTML=window.getVehicleIllustrationSvg('${v.key}')" />
+        <img src="images/vehicles/${v.key}.svg${assetVersion}" alt="${v.label}" class="vehicle-illustration-svg" loading="lazy" onerror="this.outerHTML=window.getVehicleIllustrationSvg('${v.key}')" />
       </div>
       <div class="vehicle-card-meta">
         <div class="vehicle-title-row">
@@ -1359,8 +1360,9 @@ function calculateAndRender() {
   // Update elements
   const heroVehiclePreview = document.getElementById("hero-vehicle-preview");
   if (heroVehiclePreview) {
+    const assetVersion = window.location.protocol === "file:" ? "" : "?v=1.1.0";
     heroVehiclePreview.innerHTML = `
-      <img src="images/vehicles/${v.key}.svg?v=1.1.0" alt="${v.label}" class="vehicle-illustration-svg" onerror="this.outerHTML=window.getVehicleIllustrationSvg('${v.key}')" />
+      <img src="images/vehicles/${v.key}.svg${assetVersion}" alt="${v.label}" class="vehicle-illustration-svg" onerror="this.outerHTML=window.getVehicleIllustrationSvg('${v.key}')" />
     `;
   }
 

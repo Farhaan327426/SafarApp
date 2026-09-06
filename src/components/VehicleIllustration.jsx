@@ -676,11 +676,15 @@ export function SUVTaxiIllustration({ className = "w-full h-full" }) {
 export default function VehicleIllustration({ vehicleKey, className = "w-full h-full" }) {
   const [imgError, setImgError] = React.useState(false);
 
+  const base = (typeof import.meta !== "undefined" && import.meta.env && import.meta.env.BASE_URL) || "/";
+  const normalizedBase = base.endsWith("/") ? base : `${base}/`;
+  const imageSrc = `${normalizedBase}vehicles/${vehicleKey}.svg`;
+
   // If the standalone image asset loads successfully, render it directly
   if (!imgError) {
     return (
       <img
-        src={`/vehicles/${vehicleKey}.svg`}
+        src={imageSrc}
         alt={vehicleKey}
         className={className}
         loading="lazy"
