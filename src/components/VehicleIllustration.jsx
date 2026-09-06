@@ -670,8 +670,26 @@ export function SUVTaxiIllustration({ className = "w-full h-full" }) {
 
 /**
  * Universal Vehicle Illustration Dispatcher
+ * Loads the standalone vehicle image asset from /vehicles/${vehicleKey}.svg
+ * with graceful fallback to the built-in inline vector illustrations.
  */
 export default function VehicleIllustration({ vehicleKey, className = "w-full h-full" }) {
+  const [imgError, setImgError] = React.useState(false);
+
+  // If the standalone image asset loads successfully, render it directly
+  if (!imgError) {
+    return (
+      <img
+        src={`/vehicles/${vehicleKey}.svg`}
+        alt={vehicleKey}
+        className={className}
+        loading="lazy"
+        onError={() => setImgError(true)}
+      />
+    );
+  }
+
+  // Fallback to embedded vector graphics if image fails to load
   switch (vehicleKey) {
     case "shared-cab":
       return <TataSumoIllustration className={className} />;
@@ -699,3 +717,4 @@ export default function VehicleIllustration({ vehicleKey, className = "w-full h-
       return <TataSumoIllustration className={className} />;
   }
 }
+

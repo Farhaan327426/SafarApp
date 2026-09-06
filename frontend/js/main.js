@@ -1178,7 +1178,7 @@ function renderVehicleCards() {
         ${fareBadge}
       </div>
       <div class="vehicle-illustration-showcase">
-        <img src="images/vehicles/${v.key}.svg" alt="${v.label}" class="vehicle-illustration-svg" loading="lazy" onerror="this.outerHTML=window.getVehicleIllustrationSvg('${v.key}')" />
+        <img src="images/vehicles/${v.key}.svg?v=1.1.0" alt="${v.label}" class="vehicle-illustration-svg" loading="lazy" onerror="this.outerHTML=window.getVehicleIllustrationSvg('${v.key}')" />
       </div>
       <div class="vehicle-card-meta">
         <div class="vehicle-title-row">
@@ -1360,7 +1360,7 @@ function calculateAndRender() {
   const heroVehiclePreview = document.getElementById("hero-vehicle-preview");
   if (heroVehiclePreview) {
     heroVehiclePreview.innerHTML = `
-      <img src="images/vehicles/${v.key}.svg" alt="${v.label}" class="vehicle-illustration-svg" onerror="this.outerHTML=window.getVehicleIllustrationSvg('${v.key}')" />
+      <img src="images/vehicles/${v.key}.svg?v=1.1.0" alt="${v.label}" class="vehicle-illustration-svg" onerror="this.outerHTML=window.getVehicleIllustrationSvg('${v.key}')" />
     `;
   }
 
