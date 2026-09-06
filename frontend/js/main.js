@@ -2013,7 +2013,6 @@ function attachListeners() {
   safeBind('#openPassModalBtn', 'click', openConductorPass);
   safeBind('#closePassModal', 'click', closeConductorPass);
   safeBind('#closePassBtn', 'click', closeConductorPass);
-  safeBind('#passengerRightsBtn', 'click', showModal);
 
   safeBind('#passIncBtn', 'click', () => {
     currentPassPassengers = Math.min(10, currentPassPassengers + 1);

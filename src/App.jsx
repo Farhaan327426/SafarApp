@@ -1215,15 +1215,15 @@ export default function App() {
               <span>2026 Revised Rates</span>
             </div>
 
-            {/* Unified Help & Passenger Rights Toggle */}
+            {/* Official Unified Help & Passenger Rights Toggle */}
             <button
               id="helpModalTriggerBtn"
               onClick={() => setShowHelpModal((prev) => !prev)}
               className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold rounded-xl text-[#345657] bg-[#f0f4ee] hover:bg-[#e4ece2] border border-[#dce5dc] transition cursor-pointer shadow-xs"
-              title="Help, Passenger Rights & Helplines"
+              title="SAFAR Official Help, Passenger Rights & Helplines"
             >
               <CircleHelp size={16} className="text-[#d36b3d]" />
-              <span>Help</span>
+              <span>Help &amp; Rights</span>
             </button>
           </div>
         </div>
