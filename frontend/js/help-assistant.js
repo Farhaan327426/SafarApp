@@ -1071,9 +1071,6 @@ Logged via Safar J&K Transit Portal.`;
       }
       return;
     }
-      }
-      return;
-    }
   }
 
   function handleContainerInput(e) {

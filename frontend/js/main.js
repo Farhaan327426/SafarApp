@@ -2201,14 +2201,23 @@ function attachListeners() {
 
   // Modal triggers & Minimizer Tab
   const hideModal = () => {
-    if (helpModal) helpModal.hidden = true;
+    if (helpModal) {
+      if (typeof window.safarCloseModal === "function") {
+        window.safarCloseModal(helpModal);
+      } else {
+        helpModal.hidden = true;
+        helpModal.setAttribute("hidden", "");
+        helpModal.classList.add("hidden");
+      }
+    }
   };
 
   const minimizeModal = () => {
-    if (helpModal) helpModal.hidden = true;
+    hideModal();
     if (minimizedAssistantTab) {
       minimizedAssistantTab.classList.remove("hidden");
       minimizedAssistantTab.hidden = false;
+      minimizedAssistantTab.removeAttribute("hidden");
       showToast("Assistant minimized to floating tab");
     }
   };
@@ -2219,7 +2228,13 @@ function attachListeners() {
       minimizedAssistantTab.hidden = true;
     }
     if (helpModal) {
-      helpModal.hidden = false;
+      if (typeof window.safarOpenModal === "function") {
+        window.safarOpenModal(helpModal, helpModalTrigger);
+      } else {
+        helpModal.hidden = false;
+        helpModal.removeAttribute("hidden");
+        helpModal.classList.remove("hidden");
+      }
       if (window.SafarHelpAssistant && typeof window.SafarHelpAssistant.init === "function") {
         window.SafarHelpAssistant.init();
       }
@@ -2236,10 +2251,11 @@ function attachListeners() {
 
   const toggleModal = () => {
     if (!helpModal) return;
-    if (helpModal.hidden) {
-      showModal();
-    } else {
+    const isVisible = !helpModal.hidden && !helpModal.hasAttribute("hidden") && !helpModal.classList.contains("hidden");
+    if (isVisible) {
       hideModal();
+    } else {
+      showModal();
     }
   };
 
