@@ -674,17 +674,32 @@ export function SUVTaxiIllustration({ className = "w-full h-full" }) {
  * with graceful fallback to the built-in inline vector illustrations.
  */
 export default function VehicleIllustration({ vehicleKey, className = "w-full h-full" }) {
+  const [photoError, setPhotoError] = React.useState(false);
   const [imgError, setImgError] = React.useState(false);
 
   const base = (typeof import.meta !== "undefined" && import.meta.env && import.meta.env.BASE_URL) || "/";
   const normalizedBase = base.endsWith("/") ? base : `${base}/`;
-  const imageSrc = `${normalizedBase}vehicles/${vehicleKey}.svg`;
+  
+  const hasPhoto = ["shared-cab", "mini-bus", "auto"].includes(vehicleKey);
 
-  // If the standalone image asset loads successfully, render it directly
+  // If authentic high-definition realistic photograph exists, display it
+  if (hasPhoto && !photoError) {
+    return (
+      <img
+        src={`${normalizedBase}vehicles/${vehicleKey}.jpg`}
+        alt={vehicleKey}
+        className={className}
+        loading="lazy"
+        onError={() => setPhotoError(true)}
+      />
+    );
+  }
+
+  // Standalone vector asset from /vehicles/${vehicleKey}.svg
   if (!imgError) {
     return (
       <img
-        src={imageSrc}
+        src={`${normalizedBase}vehicles/${vehicleKey}.svg`}
         alt={vehicleKey}
         className={className}
         loading="lazy"

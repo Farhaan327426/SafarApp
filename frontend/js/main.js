@@ -1354,10 +1354,12 @@ function renderVehicleCards() {
       : `<span style="font-weight: 700; font-size: 10px; background: #edf3eb; color: #557b72; padding: 2px 6px; border-radius: 6px;">${v.calcType === "urban-stage" ? "₹8-₹18" : v.calcType === "stage-slab" ? "₹9-₹26" : `₹${v.perKm}/km`}</span>`;
 
     const visualMeta = window.VEHICLE_VISUAL_META ? window.VEHICLE_VISUAL_META[v.key] : null;
-    const illustrationSvg = window.getVehicleIllustrationSvg ? window.getVehicleIllustrationSvg(v.key) : v.icon;
     const hallmarkText = visualMeta?.name || v.label;
-
+    const isPhoto = ["shared-cab", "mini-bus", "auto"].includes(v.key);
     const assetVersion = window.location.protocol === "file:" ? "" : "?v=1.1.0";
+    const primaryImg = isPhoto ? `images/vehicles/${v.key}.jpg${assetVersion}` : `images/vehicles/${v.key}.svg${assetVersion}`;
+    const fallbackSvg = `images/vehicles/${v.key}.svg${assetVersion}`;
+
     const footerHtml = hasRoute && !cardViability.isViable
       ? `
         <div class="vehicle-card-footer" style="background: #fff5f5; border-top: 1px solid #fed7d7;">
@@ -1373,19 +1375,31 @@ function renderVehicleCards() {
       `;
 
     card.innerHTML = `
-      <div class="vehicle-card-header">
-        <span class="vehicle-badge">${v.badge}</span>
-        ${fareBadge}
-      </div>
       <div class="vehicle-illustration-showcase">
-        <img src="images/vehicles/${v.key}.svg${assetVersion}" alt="${v.label}" class="vehicle-illustration-svg" loading="lazy" onerror="this.outerHTML=window.getVehicleIllustrationSvg('${v.key}')" />
+        <div class="showcase-top-left">
+          <span class="vehicle-badge-pill">${v.badge}</span>
+        </div>
+        <div class="showcase-top-right">
+          ${fareBadge}
+        </div>
+        <img 
+          src="${primaryImg}" 
+          alt="${v.label}" 
+          class="vehicle-illustration-img" 
+          loading="lazy" 
+          onerror="if (this.src.indexOf('.jpg') !== -1) { this.src='${fallbackSvg}'; } else { this.outerHTML=window.getVehicleIllustrationSvg('${v.key}'); }" 
+        />
+        <div class="showcase-bottom-left">
+          <span class="hallmark-pill">${hallmarkText}</span>
+        </div>
       </div>
       <div class="vehicle-card-meta">
         <div class="vehicle-title-row">
           <strong>${v.label}</strong>
-          ${isSelected ? `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#234b4c" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>` : ""}
+          <span class="capacity-pill">${v.capacity || ""}</span>
         </div>
-        <p>${v.sublabel}</p>
+        <p class="vehicle-sublabel">${v.sublabel}</p>
+        <p class="vehicle-hallmark-spot"><strong>Spot:</strong> ${visualMeta?.hallmark || v.districtFootprint || "Govt Approved"}</p>
       </div>
       ${footerHtml}
     `;
@@ -1590,8 +1604,16 @@ function calculateAndRender() {
   const heroVehiclePreview = document.getElementById("hero-vehicle-preview");
   if (heroVehiclePreview) {
     const assetVersion = window.location.protocol === "file:" ? "" : "?v=1.1.0";
+    const isPhoto = ["shared-cab", "mini-bus", "auto"].includes(v.key);
+    const primaryImg = isPhoto ? `images/vehicles/${v.key}.jpg${assetVersion}` : `images/vehicles/${v.key}.svg${assetVersion}`;
+    const fallbackSvg = `images/vehicles/${v.key}.svg${assetVersion}`;
     heroVehiclePreview.innerHTML = `
-      <img src="images/vehicles/${v.key}.svg${assetVersion}" alt="${v.label}" class="vehicle-illustration-svg" onerror="this.outerHTML=window.getVehicleIllustrationSvg('${v.key}')" />
+      <img 
+        src="${primaryImg}" 
+        alt="${v.label}" 
+        class="vehicle-illustration-img" 
+        onerror="if (this.src.indexOf('.jpg') !== -1) { this.src='${fallbackSvg}'; } else { this.outerHTML=window.getVehicleIllustrationSvg('${v.key}'); }" 
+      />
     `;
   }
 
