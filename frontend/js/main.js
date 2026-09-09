@@ -1355,10 +1355,8 @@ function renderVehicleCards() {
 
     const visualMeta = window.VEHICLE_VISUAL_META ? window.VEHICLE_VISUAL_META[v.key] : null;
     const hallmarkText = visualMeta?.name || v.label;
-    const isPhoto = ["shared-cab", "mini-bus", "auto"].includes(v.key);
-    const assetVersion = window.location.protocol === "file:" ? "" : "?v=1.1.0";
-    const primaryImg = isPhoto ? `images/vehicles/${v.key}.jpg${assetVersion}` : `images/vehicles/${v.key}.svg${assetVersion}`;
-    const fallbackSvg = `images/vehicles/${v.key}.svg${assetVersion}`;
+    const primaryImg = `images/vehicles/${v.key}.jpg`;
+    const fallbackSvg = `images/vehicles/${v.key}.svg`;
 
     const footerHtml = hasRoute && !cardViability.isViable
       ? `
@@ -1374,15 +1372,13 @@ function renderVehicleCards() {
         </div>
       `;
 
-    const illustrationHtml = isPhoto
-      ? `<img 
-          src="${primaryImg}" 
-          alt="${v.label}" 
-          class="vehicle-illustration-img" 
-          loading="lazy" 
-          onerror="this.outerHTML=window.getVehicleIllustrationSvg('${v.key}')" 
-        />`
-      : (window.getVehicleIllustrationSvg ? window.getVehicleIllustrationSvg(v.key) : `<img src="${primaryImg}" alt="${v.label}" class="vehicle-illustration-img" />`);
+    const illustrationHtml = `<img 
+        src="${primaryImg}" 
+        alt="${v.label}" 
+        class="vehicle-illustration-img" 
+        loading="lazy" 
+        onerror="this.onerror=null; if (window.getVehicleIllustrationSvg) { this.outerHTML=window.getVehicleIllustrationSvg('${v.key}'); } else { this.src='${fallbackSvg}'; }" 
+      />`;
 
     card.innerHTML = `
       <div class="vehicle-illustration-showcase">
@@ -1607,21 +1603,14 @@ function calculateAndRender() {
   // Update elements
   const heroVehiclePreview = document.getElementById("hero-vehicle-preview");
   if (heroVehiclePreview) {
-    const assetVersion = window.location.protocol === "file:" ? "" : "?v=1.1.0";
-    const isPhoto = ["shared-cab", "mini-bus", "auto"].includes(v.key);
-    const primaryImg = isPhoto ? `images/vehicles/${v.key}.jpg${assetVersion}` : `images/vehicles/${v.key}.svg${assetVersion}`;
-    if (isPhoto) {
-      heroVehiclePreview.innerHTML = `
-        <img 
-          src="${primaryImg}" 
-          alt="${v.label}" 
-          class="vehicle-illustration-img" 
-          onerror="this.outerHTML=window.getVehicleIllustrationSvg('${v.key}')" 
-        />
-      `;
-    } else {
-      heroVehiclePreview.innerHTML = window.getVehicleIllustrationSvg ? window.getVehicleIllustrationSvg(v.key) : `<img src="${primaryImg}" alt="${v.label}" class="vehicle-illustration-img" />`;
-    }
+    heroVehiclePreview.innerHTML = `
+      <img 
+        src="images/vehicles/${v.key}.jpg" 
+        alt="${v.label}" 
+        class="vehicle-illustration-img" 
+        onerror="this.onerror=null; if (window.getVehicleIllustrationSvg) { this.outerHTML=window.getVehicleIllustrationSvg('${v.key}'); } else { this.src='images/vehicles/${v.key}.svg'; }" 
+      />
+    `;
   }
 
   if (fareRouteSummary) {

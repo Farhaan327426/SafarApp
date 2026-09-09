@@ -680,10 +680,8 @@ export default function VehicleIllustration({ vehicleKey, className = "w-full h-
   const base = (typeof import.meta !== "undefined" && import.meta.env && import.meta.env.BASE_URL) || "/";
   const normalizedBase = base.endsWith("/") ? base : `${base}/`;
   
-  const hasPhoto = ["shared-cab", "mini-bus", "auto"].includes(vehicleKey);
-
   // If authentic high-definition realistic photograph exists, display it
-  if (hasPhoto && !photoError) {
+  if (!photoError) {
     return (
       <img
         src={`${normalizedBase}vehicles/${vehicleKey}.jpg`}
