@@ -554,24 +554,6 @@ Logged via Safar J&K Transit Portal.`;
     `).join('');
   }
 
-  function buildEveningHubsHTML() {
-    const hubs = (typeof window !== 'undefined' && window.SafarCrowdRadar && typeof window.SafarCrowdRadar.getActiveEveningPools === 'function')
-      ? window.SafarCrowdRadar.getActiveEveningPools()
-      : [
-          { name: "Jahangir Chowk / TRC", city: "Srinagar", activeVehiclesRemaining: 2, routes: ["Budgam", "Baramulla", "Soura", "Pampore"] },
-          { name: "Batamaloo Stand", city: "Srinagar", activeVehiclesRemaining: 2, routes: ["Tangmarg", "Magam", "Pattan"] },
-          { name: "Jewel Chowk", city: "Jammu", activeVehiclesRemaining: 2, routes: ["RS Pura", "Akhnoor", "Bishnah", "Udhampur"] }
-        ];
-
-    return hubs.map(h => `
-      <div class="hub-pill">
-        <strong>${h.name} (${h.city})</strong>
-        <span>${h.activeVehiclesRemaining} shared cabs active</span>
-        <small>Routes: ${Array.isArray(h.routes) ? h.routes.join(", ") : h.routes}</small>
-      </div>
-    `).join('');
-  }
-
   function buildSolutionCard(problem) {
     if (!problem) return '';
     const complaint = generateComplaintText(problem);
@@ -799,22 +781,6 @@ Logged via Safar J&K Transit Portal.`;
           </div>
         </div>
 
-        <!-- Post-7 PM Evening Stand Radar -->
-        <div id="eveningRadarSection" class="card evening-radar-card" style="margin-top: 16px;">
-          <div class="section-title-row">
-            <div class="radar-title-wrap">
-              <span class="radar-moon-icon">🌙</span>
-              <div>
-                <h3>Evening Stand Radar (Post-7 PM)</h3>
-                <small>Live active shared cabs &amp; safe carpool hubs</small>
-              </div>
-            </div>
-            <span class="live-tag">LIVE STANDS</span>
-          </div>
-          <div id="eveningHubsList" class="hubs-grid">
-            ${buildEveningHubsHTML()}
-          </div>
-        </div>
       </div>
 
       <!-- ── TAB 2: OFFICIAL DIRECTORY ── -->

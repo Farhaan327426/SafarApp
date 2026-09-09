@@ -832,17 +832,6 @@
             badge.classList.remove("hidden");
           }
 
-          const hubsContainer = document.getElementById("eveningHubsList");
-          if (hubsContainer) {
-            const hubs = SafarCrowdRadar.getActiveEveningPools() || [];
-            hubsContainer.innerHTML = hubs.map(h => `
-              <div class="hub-pill">
-                <strong>${escapeHtml(h.name)} (${escapeHtml(h.city)})</strong>
-                <span>${Number(h.activeVehiclesRemaining) || 0} shared cabs active</span>
-                <small>Routes: ${escapeHtml((h.routes || []).join(", "))}</small>
-              </div>
-            `).join("");
-          }
         }
       } catch (err) {
         console.warn("[Radar Init]", err);
