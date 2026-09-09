@@ -681,59 +681,83 @@ Logged via Safar J&K Transit Portal.`;
       <div class="help-pane-content${state.activeTab === 'problem' ? ' active' : ''}" id="help-pane-problem">
         <div class="help-hub-hero">
           <div class="hub-hero-badge">⚖️ J&amp;K Transit Commuter Rights &amp; SRO-97 Defense</div>
-          <h3>What issue are you facing right now?</h3>
-          <p>Select your situation or ask anything below. Safar AI will instantly formulate your statutory legal defense, tell you what to say to the driver, and provide 1-tap direct numbers to on-duty RTOs and Traffic Police flying squads.</p>
+          <h3>What is the problem?</h3>
+          <p>Tell us what happened or select your issue below. Safar AI will instantly cite the governing statutory law, provide the exact spoken script to challenge the driver, and give you direct telephone numbers to on-duty RTO and Traffic Police flying squads.</p>
         </div>
 
-        <!-- 🎙️ Instant Voice Fare Check & Dispute -->
-        <div class="card voice-box" style="margin-bottom: 18px;">
+        <!-- 🎙️ Unified "What is the problem?" Voice & AI Search -->
+        <div class="card problem-voice-box" style="margin-bottom: 20px;">
           <div class="voice-header">
             <div class="voice-title-wrap">
-              <span class="voice-icon" id="voiceHeaderIcon">🎙️</span>
+              <span class="voice-icon" id="voiceHeaderIcon">🤖</span>
               <div>
-                <h3>Instant Voice Fare Check &amp; Dispute</h3>
-                <p class="subtitle">Tap the mic to speak or click any quick route scenario below</p>
+                <h3>What is the problem?</h3>
+                <p class="subtitle">Tap the mic to speak or type your issue in Urdu, Hindi, or English</p>
               </div>
             </div>
-            <span class="lang-tag">🎙️ Live Voice / Urdu / Hindi / English</span>
+            <span class="lang-tag">🎙️ Voice &amp; AI Legal Redressal</span>
           </div>
           
           <div class="voice-input-row">
-            <input type="text" id="voiceQueryInput" placeholder="Type or speak fare issue (e.g. Driver charging 35 from Lal Chowk to Batamaloo)..." value="${state.customQuery || ''}" autocomplete="off" />
-            <button id="micBtn" class="btn btn-mic" type="button" aria-label="Start Voice Recording" title="Click to speak (Urdu / Hindi / English)">
+            <input type="text" id="help-custom-input" class="help-custom-input" 
+                   placeholder="What is the problem? Tap mic to speak or type here..." 
+                   value="${state.customQuery || ''}" autocomplete="off" />
+            <button id="micBtn" class="btn btn-mic" type="button" aria-label="Tap to speak: What is the problem?" title="Tap to speak: What is the problem?">
               <span class="mic-icon-symbol">🎙️</span>
             </button>
-            <button id="checkDisputeBtn" class="btn btn-primary" type="button">Check Fare</button>
+            <button type="button" id="help-ask-ai-btn" class="btn btn-primary help-ask-btn">
+              <span>Solve Problem ➔</span>
+            </button>
           </div>
 
           <!-- Live Voice Status Banner -->
           <div id="voiceStatusBanner" class="voice-status-banner hidden" role="status" aria-live="polite"></div>
 
-          <!-- 1-Tap Quick Scenario Chips -->
+          <!-- Voice Problem Selector Sheet (Opens on mic click or fallback) -->
+          <div id="voiceProblemModal" class="voice-problem-sheet hidden">
+            <div class="voice-sheet-header">
+              <div class="voice-wave-animation">
+                <span class="vbar"></span><span class="vbar"></span><span class="vbar"></span><span class="vbar"></span><span class="vbar"></span>
+              </div>
+              <span class="voice-sheet-title">🎙️ <strong>What is the problem?</strong> Speak or choose:</span>
+              <button type="button" id="closeVoiceSheetBtn" class="voice-sheet-close" aria-label="Close voice dialog">✕</button>
+            </div>
+            <div class="voice-problem-options">
+              <button type="button" class="voice-prob-chip" data-prob-id="overcharge">
+                <span class="chip-ico">💸</span> <strong>Overcharging extra fare</strong> <small>کرایہ زیادہ مانگ رہا ہے</small>
+              </button>
+              <button type="button" class="voice-prob-chip" data-prob-id="midway_drop">
+                <span class="chip-ico">🛑</span> <strong>Dropped midway / Refusal</strong> <small>راستے میں اتار دیا / انکار</small>
+              </button>
+              <button type="button" class="voice-prob-chip" data-prob-id="overload">
+                <span class="chip-ico">⚠️</span> <strong>Dangerous overloading</strong> <small>گنجائش سے زیادہ سواریاں</small>
+              </button>
+              <button type="button" class="voice-prob-chip" data-prob-id="meter_refusal">
+                <span class="chip-ico">🛺</span> <strong>Auto refusing meter</strong> <small>میٹر پر چلنے سے انکار</small>
+              </button>
+              <button type="button" class="voice-prob-chip" data-prob-id="luggage">
+                <span class="chip-ico">🧳</span> <strong>Excess luggage charges</strong> <small>سامان کے اضافی چارجز</small>
+              </button>
+              <button type="button" class="voice-prob-chip" data-prob-id="highway_block">
+                <span class="chip-ico">❄️</span> <strong>Highway blocked / Snow</strong> <small>شاہراہ بند / برفباری</small>
+              </button>
+            </div>
+          </div>
+
+          <!-- 1-Tap Quick Problem Chips -->
           <div class="voice-quick-chips">
-            <span class="chip-label">⚡ Quick scenarios:</span>
-            <button type="button" class="voice-chip" data-query="Driver charging 35 from Lal Chowk to Batamaloo in Sumo">🚕 Lal Chowk ➔ Batamaloo (₹35)</button>
-            <button type="button" class="voice-chip" data-query="Auto driver demanded 120 from TRC to Boulevard">🛺 TRC ➔ Boulevard (₹120)</button>
-            <button type="button" class="voice-chip" data-query="Mini Bus charging 30 from Pantha Chowk to Lal Chowk">🚌 Pantha Chowk ➔ Lal Chowk (₹30)</button>
-            <button type="button" class="voice-chip" data-query="Cab charging 220 from Srinagar to Anantnag">🚙 Srinagar ➔ Anantnag (₹220)</button>
+            <span class="chip-label">⚡ Common issues:</span>
+            <button type="button" class="voice-chip" data-prob-id="overcharge">💸 Overcharging</button>
+            <button type="button" class="voice-chip" data-prob-id="midway_drop">🛑 Dropped Midway</button>
+            <button type="button" class="voice-chip" data-prob-id="overload">⚠️ Overcrowding</button>
+            <button type="button" class="voice-chip" data-prob-id="meter_refusal">🛺 Meter Refusal</button>
+            <button type="button" class="voice-chip" data-prob-id="luggage">🧳 Luggage Fee</button>
+            <button type="button" class="voice-chip" data-prob-id="highway_block">❄️ Highway Block</button>
           </div>
         </div>
 
         <div class="help-prob-grid">
           ${buildProblemTiles()}
-        </div>
-
-        <!-- Custom Query Bar -->
-        <div class="help-custom-query-wrap">
-          <div class="custom-query-box">
-            <span class="query-icon">💬</span>
-            <input type="text" id="help-custom-input" class="help-custom-input"
-                   placeholder="Or type your specific issue (e.g., Sumo driver at Batamaloo charging extra)..."
-                   value="${state.customQuery}">
-            <button type="button" id="help-ask-ai-btn" class="help-ask-btn">
-              <span>Ask Safar AI ➔</span>
-            </button>
-          </div>
         </div>
 
         <!-- Solution Container -->
@@ -855,14 +879,25 @@ Logged via Safar J&K Transit Portal.`;
   }
 
   /* ─────────────────────────────────────────────────────────────────
-     VOICE FARE DISPUTE ASSISTANT (WEB SPEECH + ROBUST CONTROLLER)
+     VOICE PROBLEM ASSISTANT ("WHAT IS THE PROBLEM?")
   ───────────────────────────────────────────────────────────────── */
 
   let activeSpeechRec = null;
   let isListeningVoice = false;
   let voiceSilenceTimer = null;
   let voiceSafetyTimeout = null;
-  let capturedTranscript = "";
+
+  function executeProblemResolution(query) {
+    if (!query || !query.trim()) return;
+    const clean = query.trim();
+    state.customQuery = clean;
+    state.selectedProblem = evaluateCustomProblem(clean);
+    renderHelpModal();
+    const solBox = document.getElementById('ai-solution-render');
+    if (solBox) {
+      solBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+  }
 
   function updateVoiceStatus(message, type = "info", isPulsing = false) {
     const banner = document.getElementById("voiceStatusBanner");
@@ -887,12 +922,12 @@ Logged via Safar J&K Transit Portal.`;
     if (isListening) {
       micBtn.classList.add("recording");
       micBtn.innerHTML = '<span class="mic-stop-icon">⏹️</span>';
-      micBtn.setAttribute("title", "Listening... Tap to Stop & Check Fare");
+      micBtn.setAttribute("title", "Listening... Tap to Stop & Solve Problem");
       micBtn.setAttribute("aria-label", "Stop Voice Recording");
     } else {
       micBtn.classList.remove("recording");
       micBtn.innerHTML = '<span class="mic-icon-symbol">🎙️</span>';
-      micBtn.setAttribute("title", "Click to speak (Urdu / Hindi / English)");
+      micBtn.setAttribute("title", "Tap to speak: What is the problem?");
       micBtn.setAttribute("aria-label", "Start Voice Recording");
     }
   }
@@ -911,18 +946,22 @@ Logged via Safar J&K Transit Portal.`;
 
     setMicBtnState(false);
 
-    const qInput = document.getElementById("voiceQueryInput");
-    if (triggerSubmit && qInput && qInput.value.trim()) {
-      updateVoiceStatus(`✅ Captured: "${qInput.value.trim()}" — Evaluating tariff...`, "success", false);
-      const chk = document.getElementById("checkDisputeBtn");
-      if (chk) chk.click();
+    const sheet = document.getElementById("voiceProblemModal");
+    if (sheet && triggerSubmit) {
+      sheet.classList.add("hidden");
+    }
+
+    const input = document.getElementById("help-custom-input");
+    if (triggerSubmit && input && input.value.trim()) {
+      updateVoiceStatus(`✅ Analyzing: "${input.value.trim()}"...`, "success", false);
+      executeProblemResolution(input.value.trim());
     }
   }
 
   function toggleVoiceRecording() {
     const micBtn = document.getElementById("micBtn");
-    const qInput = document.getElementById("voiceQueryInput");
-    if (!micBtn || !qInput) return;
+    const input = document.getElementById("help-custom-input");
+    const sheet = document.getElementById("voiceProblemModal");
 
     // Toggle off if currently listening
     if (isListeningVoice) {
@@ -931,106 +970,111 @@ Logged via Safar J&K Transit Portal.`;
     }
 
     const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!SpeechRec) {
-      updateVoiceStatus("⚠️ Speech recognition is not supported in this browser. Please type or click a quick scenario below.", "warning", false);
-      return;
-    }
+    let started = false;
 
-    try {
-      const recognition = new SpeechRec();
-      recognition.continuous = true;
-      recognition.interimResults = true;
-      recognition.lang = "en-IN";
-      recognition.maxAlternatives = 1;
+    if (SpeechRec) {
+      try {
+        const recognition = new SpeechRec();
+        recognition.continuous = true;
+        recognition.interimResults = true;
+        recognition.lang = "en-IN";
+        recognition.maxAlternatives = 1;
 
-      isListeningVoice = true;
-      capturedTranscript = "";
-      setMicBtnState(true);
-      updateVoiceStatus("🔴 Listening... Speak route & fare now (e.g. \"Sumo charging 35 from Lal Chowk to Batamaloo\")", "listening", true);
-
-      // 14-second automatic safety fallback
-      clearTimeout(voiceSafetyTimeout);
-      voiceSafetyTimeout = setTimeout(() => {
-        if (isListeningVoice) {
-          if (qInput.value.trim()) {
-            stopVoiceRecording(true);
-          } else {
-            stopVoiceRecording(false);
-            updateVoiceStatus("⌛ No voice detected. Tap mic to retry or click a quick scenario below.", "info", false);
-          }
-        }
-      }, 14000);
-
-      recognition.onstart = () => {
         isListeningVoice = true;
         setMicBtnState(true);
-      };
+        updateVoiceStatus("🔴 Listening... Tell me: What is the problem?", "listening", true);
+        if (sheet) sheet.classList.remove("hidden");
 
-      recognition.onresult = (evt) => {
-        let interimText = "";
-        let finalText = "";
-        for (let i = evt.resultIndex; i < evt.results.length; ++i) {
-          const trans = evt.results[i][0].transcript;
-          if (evt.results[i].isFinal) {
-            finalText += trans;
-          } else {
-            interimText += trans;
-          }
-        }
-
-        const combined = (finalText || interimText).trim();
-        if (combined) {
-          capturedTranscript = combined;
-          qInput.value = combined;
-          updateVoiceStatus(`🎙️ Hearing: "${combined}"`, "listening", true);
-
-          if (finalText) {
-            clearTimeout(voiceSilenceTimer);
-            voiceSilenceTimer = setTimeout(() => {
-              if (isListeningVoice) {
-                stopVoiceRecording(true);
-              }
-            }, 900);
-          }
-        }
-      };
-
-      recognition.onerror = (evt) => {
-        console.warn("[Voice Assistant Speech Error]", evt.error);
-        clearTimeout(voiceSilenceTimer);
+        // 14-second automatic safety fallback
         clearTimeout(voiceSafetyTimeout);
-        isListeningVoice = false;
-        setMicBtnState(false);
+        voiceSafetyTimeout = setTimeout(() => {
+          if (isListeningVoice) {
+            if (input && input.value.trim()) {
+              stopVoiceRecording(true);
+            } else {
+              stopVoiceRecording(false);
+              updateVoiceStatus("⌛ Tap an issue below or type what happened.", "info", false);
+            }
+          }
+        }, 14000);
 
-        if (evt.error === "no-speech") {
-          updateVoiceStatus("⌛ No speech detected. Tap mic to retry or click a quick scenario below.", "info", false);
-        } else if (evt.error === "not-allowed" || evt.error === "service-not-allowed") {
-          updateVoiceStatus("⚠️ Microphone permission blocked. Allow mic access in browser address bar, or tap a scenario below.", "warning", false);
-        } else if (evt.error === "network") {
-          updateVoiceStatus("⚠️ Speech service requires an internet connection / HTTP host. Tap a quick scenario below or type above.", "warning", false);
-        } else {
-          updateVoiceStatus(`⚠️ Voice note: ${evt.error}. You can type above or tap a quick scenario below.`, "info", false);
-        }
-      };
+        recognition.onstart = () => {
+          isListeningVoice = true;
+          setMicBtnState(true);
+          if (sheet) sheet.classList.remove("hidden");
+        };
 
-      recognition.onend = () => {
-        if (isListeningVoice) {
+        recognition.onresult = (evt) => {
+          let interimText = "";
+          let finalText = "";
+          for (let i = evt.resultIndex; i < evt.results.length; ++i) {
+            const trans = evt.results[i][0].transcript;
+            if (evt.results[i].isFinal) {
+              finalText += trans;
+            } else {
+              interimText += trans;
+            }
+          }
+
+          const combined = (finalText || interimText).trim();
+          if (combined) {
+            if (input) input.value = combined;
+            updateVoiceStatus(`🎙️ Hearing: "${combined}"`, "listening", true);
+
+            if (finalText) {
+              clearTimeout(voiceSilenceTimer);
+              voiceSilenceTimer = setTimeout(() => {
+                if (isListeningVoice) {
+                  stopVoiceRecording(true);
+                }
+              }, 900);
+            }
+          }
+        };
+
+        recognition.onerror = (evt) => {
+          console.warn("[Voice Problem Assistant Error]", evt.error);
+          clearTimeout(voiceSilenceTimer);
+          clearTimeout(voiceSafetyTimeout);
           isListeningVoice = false;
           setMicBtnState(false);
-          if (qInput.value.trim()) {
-            stopVoiceRecording(true);
+          if (sheet) sheet.classList.remove("hidden");
+
+          if (evt.error === "not-allowed" || evt.error === "service-not-allowed") {
+            updateVoiceStatus("⚠️ Microphone permission needed. Select your issue below or type.", "warning", false);
+          } else if (evt.error === "network") {
+            updateVoiceStatus("⚠️ Speech service requires web server. Tap your problem below or type.", "warning", false);
+          } else {
+            updateVoiceStatus("🎙️ What is the problem? Choose or speak your issue below:", "info", false);
           }
-        }
-      };
+        };
 
-      activeSpeechRec = recognition;
-      recognition.start();
+        recognition.onend = () => {
+          if (isListeningVoice) {
+            isListeningVoice = false;
+            setMicBtnState(false);
+            if (input && input.value.trim()) {
+              stopVoiceRecording(true);
+            }
+          }
+        };
 
-    } catch (err) {
-      console.error("[Voice Assistant Init]", err);
-      isListeningVoice = false;
+        activeSpeechRec = recognition;
+        recognition.start();
+        started = true;
+      } catch (err) {
+        console.warn("[Voice Assistant Exception]", err);
+        started = false;
+      }
+    }
+
+    if (!started) {
       setMicBtnState(false);
-      updateVoiceStatus("⚠️ Could not start microphone. You can type or click a quick scenario below.", "warning", false);
+      if (sheet) {
+        sheet.classList.remove("hidden");
+        sheet.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+      updateVoiceStatus("🎙️ What is the problem? Choose or speak your issue below:", "info", false);
     }
   }
 
@@ -1059,16 +1103,36 @@ Logged via Safar J&K Transit Portal.`;
       return;
     }
 
-    // AI Ask Button
+    // Mic button
+    if (e.target.closest('#micBtn')) {
+      toggleVoiceRecording();
+      return;
+    }
+
+    // Close voice sheet button
+    if (e.target.closest('#closeVoiceSheetBtn')) {
+      const sheet = document.getElementById('voiceProblemModal');
+      if (sheet) sheet.classList.add('hidden');
+      return;
+    }
+
+    // Voice quick scenario chips & voice-problem option chips
+    const probChip = e.target.closest('.voice-chip, .voice-prob-chip');
+    if (probChip) {
+      const probId = probChip.dataset.probId;
+      const prob = PROBLEMS.find(p => p.id === probId);
+      if (prob) {
+        executeProblemResolution(prob.title);
+      }
+      return;
+    }
+
+    // AI Ask Button ("Solve Problem ➔")
     if (e.target.closest('#help-ask-ai-btn')) {
       const input = document.getElementById('help-custom-input');
       const val = input ? input.value.trim() : '';
       if (val) {
-        state.customQuery = val;
-        state.selectedProblem = evaluateCustomProblem(val);
-        renderHelpModal();
-        const solBox = document.getElementById('ai-solution-render');
-        if (solBox) solBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        executeProblemResolution(val);
       }
       return;
     }
@@ -1118,108 +1182,6 @@ Logged via Safar J&K Transit Portal.`;
         copyNumBtn.textContent = '✓';
         setTimeout(() => copyNumBtn.textContent = '📋', 1800);
       });
-      return;
-    }
-
-    // Instant Voice Fare Check trigger
-    if (e.target.closest('#checkDisputeBtn')) {
-      const qInput = document.getElementById('voiceQueryInput');
-      const query = qInput ? qInput.value.trim() : "";
-      if (!query) {
-        if (typeof window.showToast === "function") {
-          window.showToast("Please enter or speak your fare query first.");
-        }
-        return;
-      }
-
-      if (!window.SafarDisputeEngine) {
-        if (typeof window.showToast === "function") {
-          window.showToast("Dispute Engine initializing. Please retry in a moment.");
-        }
-        return;
-      }
-
-      const parsed = window.SafarDisputeEngine.parseDisputeQuery(query);
-      const result = window.SafarDisputeEngine.verifyFare(parsed.origin, parsed.destination, parsed.demandedFare);
-
-      const cardLegalFare = document.getElementById("cardLegalFare");
-      const cardDemandedFare = document.getElementById("cardDemandedFare");
-      const cardRouteDesc = document.getElementById("cardRouteDesc");
-      const cardTariffBreakdown = document.getElementById("cardTariffBreakdown");
-      const banner = document.getElementById("cardDiscrepancyBanner");
-
-      if (cardLegalFare) cardLegalFare.textContent = `₹${result.legalFare}`;
-      if (cardDemandedFare) cardDemandedFare.textContent = `₹${result.demandedFare}`;
-      if (cardRouteDesc) cardRouteDesc.textContent = `${result.origin} ⇄ ${result.destination} (~${result.distanceKm} km)`;
-      if (cardTariffBreakdown) cardTariffBreakdown.textContent = result.breakdown;
-
-      if (banner) {
-        if (result.isViolation) {
-          banner.textContent = `⚠️ Overcharging by ₹${result.overcharge} — In violation of ${result.mvaSection}`;
-          banner.className = "discrepancy-banner alert";
-        } else {
-          banner.textContent = `✅ Fare is compliant with SRO-97 statutory ceiling.`;
-          banner.className = "discrepancy-banner safe";
-        }
-      }
-
-      const disputeModal = document.getElementById("disputeModal");
-      if (typeof window.safarOpenModal === "function" && disputeModal) {
-        window.safarOpenModal(disputeModal);
-      } else if (disputeModal) {
-        disputeModal.hidden = false;
-        disputeModal.classList.remove("hidden");
-      }
-
-      const speakBtn = document.getElementById("speakToConductorBtn");
-      if (speakBtn) {
-        speakBtn.onclick = () => {
-          window.SafarDisputeEngine.verbalNegotiationTTS(result.legalFare, result.origin, result.destination, result.demandedFare);
-        };
-      }
-
-      const escalateBtn = document.getElementById("escalateToLockerBtn");
-      if (escalateBtn) {
-        escalateBtn.onclick = () => {
-          if (typeof window.safarCloseModal === "function" && disputeModal) {
-            window.safarCloseModal(disputeModal);
-          } else if (disputeModal) {
-            disputeModal.hidden = true;
-            disputeModal.classList.add("hidden");
-          }
-          const evidenceModal = document.getElementById("evidenceModal");
-          if (evidenceModal) {
-            const locInput = document.getElementById("dossierLocation");
-            if (locInput) locInput.value = `${result.origin} to ${result.destination}`;
-            if (typeof window.safarOpenModal === "function") {
-              window.safarOpenModal(evidenceModal);
-            } else {
-              evidenceModal.hidden = false;
-              evidenceModal.classList.remove("hidden");
-            }
-          }
-        };
-      }
-      return;
-    }
-
-    // Mic button
-    if (e.target.closest('#micBtn')) {
-      toggleVoiceRecording();
-      return;
-    }
-
-    // Voice quick scenario chips
-    const voiceChip = e.target.closest('.voice-chip');
-    if (voiceChip) {
-      const qInput = document.getElementById('voiceQueryInput');
-      const query = voiceChip.getAttribute('data-query');
-      if (qInput && query) {
-        qInput.value = query;
-        updateVoiceStatus(`⚡ Scenario loaded: "${query}"`, "info", false);
-        const chk = document.getElementById('checkDisputeBtn');
-        if (chk) chk.click();
-      }
       return;
     }
 
@@ -1291,11 +1253,7 @@ Logged via Safar J&K Transit Portal.`;
     if (e.target.id === 'help-custom-input' && e.key === 'Enter') {
       const val = e.target.value.trim();
       if (val) {
-        state.customQuery = val;
-        state.selectedProblem = evaluateCustomProblem(val);
-        renderHelpModal();
-        const solBox = document.getElementById('ai-solution-render');
-        if (solBox) solBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        executeProblemResolution(val);
       }
     }
   }
