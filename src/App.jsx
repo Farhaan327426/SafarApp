@@ -1568,11 +1568,6 @@ export default function App() {
                                 </span>
                               </div>
                               <p className="text-[11px] font-medium text-[#78908a] mt-0.5">{v.sublabel}</p>
-                              
-                              {/* Real-World Spotting Hallmark */}
-                              <p className="text-[10px] text-[#5c7a73] line-clamp-1 mt-1 font-medium">
-                                <strong className="text-[#234b4c]">Spot:</strong> {visualMeta?.hallmark}
-                              </p>
                             </div>
 
                             {/* Card Footer */}

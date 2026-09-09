@@ -1399,7 +1399,6 @@ function renderVehicleCards() {
           <span class="capacity-pill">${v.capacity || ""}</span>
         </div>
         <p class="vehicle-sublabel">${v.sublabel}</p>
-        <p class="vehicle-hallmark-spot"><strong>Spot:</strong> ${visualMeta?.hallmark || v.districtFootprint || "Govt Approved"}</p>
       </div>
       ${footerHtml}
     `;
