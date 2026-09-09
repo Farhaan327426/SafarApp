@@ -929,61 +929,81 @@ Logged via Safar J&K Transit Portal.`;
     // Instant Voice Fare Check trigger
     if (e.target.closest('#checkDisputeBtn')) {
       const qInput = document.getElementById('voiceQueryInput');
-      const query = qInput ? qInput.value.trim() : "Driver charging 30 from Lal Chowk to Batamaloo";
-      if (window.SafarDisputeEngine) {
-        const parsed = window.SafarDisputeEngine.parseDisputeQuery(query);
-        const result = window.SafarDisputeEngine.verifyFare(parsed.origin, parsed.destination, parsed.demandedFare);
+      const query = qInput ? qInput.value.trim() : "";
+      if (!query) {
+        if (typeof window.showToast === "function") {
+          window.showToast("Please enter or speak your fare query first.");
+        }
+        return;
+      }
 
-        const cardLegalFare = document.getElementById("cardLegalFare");
-        const cardDemandedFare = document.getElementById("cardDemandedFare");
-        const cardRouteDesc = document.getElementById("cardRouteDesc");
-        const cardTariffBreakdown = document.getElementById("cardTariffBreakdown");
-        const banner = document.getElementById("cardDiscrepancyBanner");
+      if (!window.SafarDisputeEngine) {
+        if (typeof window.showToast === "function") {
+          window.showToast("Dispute Engine initializing. Please retry in a moment.");
+        }
+        return;
+      }
 
-        if (cardLegalFare) cardLegalFare.textContent = `₹${result.legalFare}`;
-        if (cardDemandedFare) cardDemandedFare.textContent = `₹${result.demandedFare}`;
-        if (cardRouteDesc) cardRouteDesc.textContent = `${result.origin} ⇄ ${result.destination} (~${result.distanceKm} km)`;
-        if (cardTariffBreakdown) cardTariffBreakdown.textContent = result.breakdown;
+      const parsed = window.SafarDisputeEngine.parseDisputeQuery(query);
+      const result = window.SafarDisputeEngine.verifyFare(parsed.origin, parsed.destination, parsed.demandedFare);
 
-        if (banner) {
-          if (result.isViolation) {
-            banner.textContent = `⚠️ Overcharging by ₹${result.overcharge} — Illegal under ${result.mvaSection}`;
-            banner.className = "discrepancy-banner alert";
-          } else {
-            banner.textContent = `✅ Fare is compliant with SRO-97 statutory ceiling.`;
-            banner.className = "discrepancy-banner safe";
+      const cardLegalFare = document.getElementById("cardLegalFare");
+      const cardDemandedFare = document.getElementById("cardDemandedFare");
+      const cardRouteDesc = document.getElementById("cardRouteDesc");
+      const cardTariffBreakdown = document.getElementById("cardTariffBreakdown");
+      const banner = document.getElementById("cardDiscrepancyBanner");
+
+      if (cardLegalFare) cardLegalFare.textContent = `₹${result.legalFare}`;
+      if (cardDemandedFare) cardDemandedFare.textContent = `₹${result.demandedFare}`;
+      if (cardRouteDesc) cardRouteDesc.textContent = `${result.origin} ⇄ ${result.destination} (~${result.distanceKm} km)`;
+      if (cardTariffBreakdown) cardTariffBreakdown.textContent = result.breakdown;
+
+      if (banner) {
+        if (result.isViolation) {
+          banner.textContent = `⚠️ Overcharging by ₹${result.overcharge} — In violation of ${result.mvaSection}`;
+          banner.className = "discrepancy-banner alert";
+        } else {
+          banner.textContent = `✅ Fare is compliant with SRO-97 statutory ceiling.`;
+          banner.className = "discrepancy-banner safe";
+        }
+      }
+
+      const disputeModal = document.getElementById("disputeModal");
+      if (typeof window.safarOpenModal === "function" && disputeModal) {
+        window.safarOpenModal(disputeModal);
+      } else if (disputeModal) {
+        disputeModal.hidden = false;
+        disputeModal.classList.remove("hidden");
+      }
+
+      const speakBtn = document.getElementById("speakToConductorBtn");
+      if (speakBtn) {
+        speakBtn.onclick = () => {
+          window.SafarDisputeEngine.verbalNegotiationTTS(result.legalFare, result.origin, result.destination, result.demandedFare);
+        };
+      }
+
+      const escalateBtn = document.getElementById("escalateToLockerBtn");
+      if (escalateBtn) {
+        escalateBtn.onclick = () => {
+          if (typeof window.safarCloseModal === "function" && disputeModal) {
+            window.safarCloseModal(disputeModal);
+          } else if (disputeModal) {
+            disputeModal.hidden = true;
+            disputeModal.classList.add("hidden");
           }
-        }
-
-        const disputeModal = document.getElementById("disputeModal");
-        if (disputeModal) {
-          disputeModal.hidden = false;
-          disputeModal.classList.remove("hidden");
-        }
-
-        const speakBtn = document.getElementById("speakToConductorBtn");
-        if (speakBtn) {
-          speakBtn.onclick = () => {
-            window.SafarDisputeEngine.verbalNegotiationTTS(result.legalFare, result.origin, result.destination);
-          };
-        }
-
-        const escalateBtn = document.getElementById("escalateToLockerBtn");
-        if (escalateBtn) {
-          escalateBtn.onclick = () => {
-            if (disputeModal) {
-              disputeModal.hidden = true;
-              disputeModal.classList.add("hidden");
-            }
-            const evidenceModal = document.getElementById("evidenceModal");
-            if (evidenceModal) {
-              const locInput = document.getElementById("dossierLocation");
-              if (locInput) locInput.value = `${result.origin} to ${result.destination}`;
+          const evidenceModal = document.getElementById("evidenceModal");
+          if (evidenceModal) {
+            const locInput = document.getElementById("dossierLocation");
+            if (locInput) locInput.value = `${result.origin} to ${result.destination}`;
+            if (typeof window.safarOpenModal === "function") {
+              window.safarOpenModal(evidenceModal);
+            } else {
               evidenceModal.hidden = false;
               evidenceModal.classList.remove("hidden");
             }
-          };
-        }
+          }
+        };
       }
       return;
     }
@@ -1020,14 +1040,17 @@ Logged via Safar J&K Transit Portal.`;
     const occBtn = e.target.closest('.occ-btn');
     if (occBtn) {
       const level = occBtn.dataset.level;
+      const fromVal = document.getElementById("input-from")?.value?.trim() || "";
+      const toVal = document.getElementById("input-to")?.value?.trim() || "";
+      const currentRoute = (fromVal && toVal) ? `${fromVal} ➔ ${toVal}` : "Active Transit Corridor";
+      const vehiclePlate = document.getElementById("quickPlateInput")?.value?.trim() || "COMMUTER-REPORT";
+
       if (window.SafarCrowdRadar) {
-        window.SafarCrowdRadar.recordOccupancy("JK-ACTIVE", "Lal Chowk-Route", level);
+        window.SafarCrowdRadar.recordOccupancy(vehiclePlate, currentRoute, level);
       }
-      const msg = `Recorded: ${occBtn.textContent.trim()}. Telemetry broadcasted.`;
+      const msg = `Recorded: ${occBtn.textContent.trim()} for ${currentRoute}.`;
       if (typeof window.showToast === "function") {
         window.showToast(msg);
-      } else {
-        alert(msg);
       }
       return;
     }
@@ -1040,9 +1063,14 @@ Logged via Safar J&K Transit Portal.`;
         dossierPlate.value = quickPlate.value.trim();
       }
       const evidenceModal = document.getElementById("evidenceModal");
-      if (evidenceModal) {
+      if (typeof window.safarOpenModal === "function" && evidenceModal) {
+        window.safarOpenModal(evidenceModal);
+      } else if (evidenceModal) {
         evidenceModal.hidden = false;
         evidenceModal.classList.remove("hidden");
+      }
+      return;
+    }
       }
       return;
     }

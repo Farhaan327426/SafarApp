@@ -313,29 +313,47 @@ ID: ${rec.id}
 
 // ─── Backward-Compatibility Dossier Builder ───────────────────────────────────
 
+function _sanitizeInputText(str, maxLen = 100) {
+  if (typeof str !== 'string') return '';
+  return str.replace(/[^\w\s.,\-\/()]/gi, '').trim().slice(0, maxLen);
+}
+
+function _sanitizePlate(plate) {
+  if (typeof plate !== 'string') return 'UNREG';
+  const cleaned = plate.replace(/[^a-zA-Z0-9\s\-]/g, '').trim().slice(0, 15).toUpperCase();
+  return cleaned || 'UNREG';
+}
+
 function buildGrievanceDossier(data) {
   const violation = VIOLATION_CODES[data.violationType] || VIOLATION_CODES.OVERCHARGING;
   const timestamp = new Date().toLocaleString("en-IN", { timeZone: "Asia/Kolkata" });
+  const safePlate = _sanitizePlate(data.vehiclePlate);
+  const safeLocation = _sanitizeInputText(data.location, 80) || "On Route";
+  const demanded = typeof data.demandedAmount === 'number' ? data.demandedAmount : parseFloat(data.demandedAmount) || null;
+  const legal = typeof data.legalAmount === 'number' ? data.legalAmount : parseFloat(data.legalAmount) || null;
 
   const reportBody = 
 `OFFICIAL COMPLAINT: PUBLIC TRANSPORT VIOLATION
 Date & Time: ${timestamp}
-Location / Stand: ${data.location || "On Route"}
-Vehicle Registration No: ${(data.vehiclePlate || "UNREG").toUpperCase()}
+Location / Stand: ${safeLocation}
+Vehicle Registration No: ${safePlate}
 
 VIOLATION DETAILS:
 - Offense: ${violation.title}
 - Statutory Provision: ${violation.section}
 - Legal Penalty Applicable: ${violation.fine}
-- Demanded / Overcharged Amount: ${data.demandedAmount ? `₹${data.demandedAmount} (Legal Tariff: ₹${data.legalAmount})` : 'N/A'}
+- Demanded / Overcharged Amount: ${demanded ? `₹${demanded} (Legal Benchmark Tariff: ₹${legal || 'N/A'})` : 'N/A'}
 
 FACTUAL STATEMENT:
-The driver/operator of vehicle ${(data.vehiclePlate || "UNREG").toUpperCase()} engaged in clear statutory non-compliance. Passenger rights under J&K Transport Department gazetted tariffs were willfully bypassed. Immediate inspection and action under MVA rules requested.
+The driver/operator of vehicle ${safePlate} engaged in clear statutory non-compliance at ${safeLocation}. Commuter rights under J&K Transport Department gazetted tariffs were willfully bypassed. Immediate administrative review and inspection under Motor Vehicles Act rules requested.
+
+DISCLAIMER:
+This grievance report is generated as passenger documentation for submission to transport authorities (RTO / Traffic Police Control Room). It serves as an administrative complaint record.
 
 Filed via SafarApp Public Commuter Defense Layer.`;
 
   return {
-    subject: `Transport Violation Report: ${(data.vehiclePlate || "UNREG").toUpperCase()} - ${violation.title}`,
+    subject: `Transport Grievance Report: ${safePlate} - ${violation.title}`,
     body: reportBody,
     timestamp,
     violation

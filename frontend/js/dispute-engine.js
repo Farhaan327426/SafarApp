@@ -462,14 +462,16 @@ function parseDisputeQuery(rawText) {
   };
 }
 
-function verbalNegotiationTTS(legalFare, origin, destination) {
-  const disputeMock = {
+function verbalNegotiationTTS(legalFare, origin, destination, demandedFare = null) {
+  const demanded = typeof demandedFare === 'number' && !isNaN(demandedFare) ? demandedFare : (legalFare || 10);
+  const discrepancy = Math.max(0, demanded - legalFare);
+  const disputeData = {
     statutoryFare: legalFare,
-    chargedFare: legalFare + 10,
-    discrepancy: 10,
-    isOvercharge: true
+    chargedFare: demanded,
+    discrepancy: discrepancy,
+    isOvercharge: discrepancy > 0
   };
-  SpeechAPI.speakVerdict(disputeMock, 'ur-IN');
+  return SpeechAPI.speakVerdict(disputeData, 'ur-IN');
 }
 
 // ─── Public API ───────────────────────────────────────────────────────────────

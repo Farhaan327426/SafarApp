@@ -172,6 +172,7 @@ body {
   color: #4a6d65;
   letter-spacing: 0.01em;
   display: block;
+  unicode-bidi: isolate;
 }
 
 .desktop-nav {
@@ -1793,9 +1794,14 @@ body {
   padding: 16px;
 }
 
-/* Display modal only when it is NOT hidden */
-.modal-backdrop:not([hidden]) {
+/* Display modal only when it is NOT hidden by attribute or class */
+.modal-backdrop:not([hidden]):not(.hidden) {
   display: flex !important;
+}
+
+.modal-backdrop[hidden],
+.modal-backdrop.hidden {
+  display: none !important;
 }
 
 .modal-dialog {
@@ -4555,6 +4561,80 @@ body.driver-low-power * {
   cursor: pointer;
   transition: all 0.2s;
 }
+
+/* Accessible route point indicators (non-color dependent) */
+.endpoint-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  font-size: 10px;
+  font-weight: 800;
+  line-height: 1;
+  margin-right: 6px;
+  vertical-align: middle;
+}
+
+.endpoint-badge.origin {
+  background: #d97706;
+  color: #ffffff;
+  border: 1px solid #b45309;
+}
+
+.endpoint-badge.destination {
+  background: #15803d;
+  color: #ffffff;
+  border: 1px solid #166534;
+}
+
+/* Skeleton Loading Placeholder States */
+.skeleton-card {
+  border-radius: var(--radius-lg, 12px);
+  background: linear-gradient(90deg, #f0f4ee 25%, #e2ece0 50%, #f0f4ee 75%);
+  background-size: 200% 100%;
+  animation: skeletonPulse 1.6s ease-in-out infinite;
+  min-height: 80px;
+  border: 1px solid #e2e8df;
+}
+
+@keyframes skeletonPulse {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* NoScript Emergency Fallback Banner */
+.safar-noscript-banner {
+  background: #fef3c7;
+  color: #92400e;
+  border-bottom: 2px solid #f59e0b;
+  padding: 12px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  text-align: center;
+  position: relative;
+  z-index: 99999;
+}
+
+/* Privacy & Consent Notice in Radar/Telemetry */
+.telemetry-consent-note {
+  font-size: 11px;
+  color: var(--color-text-muted, #5f7470);
+  background: #f4f7f2;
+  border-radius: 8px;
+  padding: 8px 10px;
+  margin-top: 10px;
+  line-height: 1.4;
+  border-left: 3px solid #3b82f6;
+}
+
+/* Focus Visibility & Trapping Standards */
+:focus-visible {
+  outline: 2px solid #234b4c;
+  outline-offset: 2px;
+}
+
 
 .passenger-rights-btn:hover {
   background: #e2ede3;

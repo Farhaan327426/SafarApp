@@ -8,6 +8,8 @@
   <meta name="description"
     content="Know the official transit fare before you go. Statutory government rates for Shared Cabs, Autos, Buses, and Taxis across Jammu & Kashmir.">
   <meta name="theme-color" content="#234b4c">
+  <meta http-equiv="Content-Security-Policy"
+    content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: https:; connect-src 'self';">
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -20,6 +22,12 @@
 </head>
 
 <body>
+  <noscript>
+    <div class="safar-noscript-banner">
+      ⚠️ JavaScript is required for live transit fare calculation and routing. For official emergency transit helplines, dial <strong>112</strong> (Police) or <strong>1033</strong> (National Highways).
+    </div>
+  </noscript>
+
   <!-- App Container -->
   <div id="app">
     <!-- Top Sticky Navigation Bar -->
@@ -27,7 +35,7 @@
       <div class="header-container">
         <!-- Logo -->
         <div class="brand-wrap">
-          <button id="mobile-menu-btn" class="icon-btn mobile-only" aria-label="Open Menu">
+          <button id="mobile-menu-btn" class="icon-btn mobile-only" aria-label="Open Navigation Menu" aria-expanded="false" aria-controls="mobile-drawer">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
               stroke-linecap="round" stroke-linejoin="round">
               <line x1="3" y1="12" x2="21" y2="12"></line>
@@ -42,22 +50,22 @@
                 stroke-linecap="round" stroke-linejoin="round">
                 <polygon points="3 11 22 2 13 21 11 13 3 11"></polygon>
               </svg>
-              <span class="live-dot"></span>
+              <span class="live-dot" aria-hidden="true"></span>
             </div>
             <div class="brand-text">
               <div class="brand-row">
                 <span class="brand-title">SAFAR</span>
                 <span class="brand-badge">J&K</span>
               </div>
-              <span class="brand-tagline urdu-tagline" dir="rtl" lang="ur">منزل سے بہتر ہے سفر</span>
+              <span class="brand-tagline urdu-tagline"><bdi dir="rtl" lang="ur">منزل سے بہتر ہے سفر</bdi></span>
             </div>
           </div>
         </div>
 
         <!-- Desktop Navigation Tabs -->
-        <nav class="desktop-nav">
-          <button class="nav-tab active" data-tab="calculator">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <nav class="desktop-nav" role="tablist" aria-label="Primary Navigation">
+          <button class="nav-tab active" data-tab="calculator" role="tab" id="tab-btn-calculator" aria-selected="true" aria-controls="tab-calculator" tabindex="0">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
               <rect x="4" y="2" width="16" height="20" rx="2"></rect>
               <line x1="8" y1="6" x2="16" y2="6"></line>
               <line x1="16" y1="14" x2="16" y2="18"></line>
@@ -71,8 +79,8 @@
             </svg>
             <span>Fare Calculator</span>
           </button>
-          <button class="nav-tab" data-tab="driver">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <button class="nav-tab" data-tab="driver" role="tab" id="tab-btn-driver" aria-selected="false" aria-controls="tab-driver" tabindex="-1">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
               <circle cx="12" cy="12" r="10"></circle>
               <circle cx="12" cy="12" r="3"></circle>
               <line x1="12" y1="2" x2="12" y2="9"></line>
@@ -81,8 +89,8 @@
             </svg>
             <span>Driver/Conductor</span>
           </button>
-          <button class="nav-tab" data-tab="rates">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <button class="nav-tab" data-tab="rates" role="tab" id="tab-btn-rates" aria-selected="false" aria-controls="tab-rates" tabindex="-1">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
               <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
               <polyline points="14 2 14 8 20 8"></polyline>
               <line x1="16" y1="13" x2="8" y2="13"></line>
@@ -95,13 +103,15 @@
 
         <!-- Right Tools -->
         <div class="header-tools">
-          <div class="status-chip desktop-only">
-            <span class="pulse-dot"></span>
-            <span>SRO-97 Verified</span>
+          <div class="status-chip desktop-only" title="Gazetted baseline tariff under J&K Transport SRO-97 notification">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right: 4px; vertical-align: middle;" aria-hidden="true">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+            </svg>
+            <span>SRO-97 Benchmark Rate</span>
           </div>
 
           <button id="help-modal-trigger" class="help-btn" title="SAFAR Official Help &amp; Passenger Rights">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
               <circle cx="12" cy="12" r="10"></circle>
               <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
               <line x1="12" y1="17" x2="12.01" y2="17"></line>
@@ -121,22 +131,22 @@
             <span class="brand-title">SAFAR</span>
             <span class="brand-badge">J&K</span>
           </div>
-          <button id="close-drawer-btn" class="icon-btn"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+          <button id="close-drawer-btn" class="icon-btn" aria-label="Close Navigation Menu"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"
               stroke="currentColor" stroke-width="2">
               <line x1="18" y1="6" x2="6" y2="18"></line>
               <line x1="6" y1="6" x2="18" y2="18"></line>
             </svg></button>
         </div>
-        <div class="drawer-links">
-          <button class="drawer-link active" data-tab="calculator">
+        <div class="drawer-links" role="tablist" aria-label="Mobile Navigation">
+          <button class="drawer-link active" data-tab="calculator" role="tab" id="drawer-tab-calc" aria-selected="true" aria-controls="tab-calculator">
             <strong>Fare Calculator</strong>
             <span>Instant trip price estimate</span>
           </button>
-          <button class="drawer-link" data-tab="driver">
+          <button class="drawer-link" data-tab="driver" role="tab" id="drawer-tab-driver" aria-selected="false" aria-controls="tab-driver">
             <strong>Driver/Conductor</strong>
             <span>Conductor seat tally &amp; stage guide</span>
           </button>
-          <button class="drawer-link" data-tab="rates">
+          <button class="drawer-link" data-tab="rates" role="tab" id="drawer-tab-rates" aria-selected="false" aria-controls="tab-rates">
             <strong>Passenger Hub</strong>
             <span>SRO-97 statutory rates &amp; legal rules</span>
           </button>
@@ -155,7 +165,7 @@
       <!-- ============================================================= -->
       <!-- TAB 1: FARE CALCULATOR                                        -->
       <!-- ============================================================= -->
-      <section id="tab-calculator" class="tab-view active">
+      <section id="tab-calculator" class="tab-view active" role="tabpanel" aria-labelledby="tab-btn-calculator" tabindex="0">
         <!-- Hero Header -->
         <div class="hero-card">
           <div class="hero-content">
@@ -170,7 +180,8 @@
         <div class="quick-corridors-bar">
           <span class="corridors-label">Popular Trips:</span>
           <div class="corridors-scroll" id="quick-preset-buttons">
-            <!-- Injected by JavaScript -->
+            <div class="skeleton-card" style="min-height:32px;min-width:120px;border-radius:20px;display:inline-block;"></div>
+            <div class="skeleton-card" style="min-height:32px;min-width:140px;border-radius:20px;display:inline-block;"></div>
           </div>
         </div>
 
@@ -200,7 +211,9 @@
               </div>
 
               <div class="vehicle-cards-grid" id="vehicle-cards-container">
-                <!-- Populated by JavaScript -->
+                <div class="skeleton-card"></div>
+                <div class="skeleton-card"></div>
+                <div class="skeleton-card"></div>
               </div>
             </div>
 
@@ -211,8 +224,8 @@
                 <div class="header-titles">
                   <h2>Where are you traveling?</h2>
                 </div>
-                <button id="reset-route-btn" class="text-btn">
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <button id="reset-route-btn" class="text-btn" aria-label="Clear route inputs">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                     <polyline points="1 4 1 10 7 10"></polyline>
                     <polyline points="23 20 23 14 17 14"></polyline>
                     <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"></path>
@@ -224,22 +237,26 @@
               <!-- From / Swap / To Row -->
               <div class="route-input-row">
                 <div class="input-field">
-                  <label class="field-label origin"><span class="dot-orange"></span> Boarding Point (Pickup)</label>
+                  <label for="input-from" class="field-label origin">
+                    <span class="endpoint-badge origin" aria-hidden="true">A</span>
+                    <span class="dot-orange" aria-hidden="true"></span>
+                    Boarding Point (Pickup)
+                  </label>
                   <div class="input-icon-wrap">
                     <svg class="field-icon icon-orange" width="18" height="18" viewBox="0 0 24 24" fill="none"
-                      stroke="currentColor" stroke-width="2">
+                      stroke="currentColor" stroke-width="2" aria-hidden="true">
                       <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
                       <circle cx="12" cy="10" r="3"></circle>
                     </svg>
                     <input type="text" id="input-from" value="" list="locations-list"
-                      placeholder="e.g. Srinagar, Lal Chowk, Katra" autocomplete="off">
+                      placeholder="e.g. Srinagar, Lal Chowk, Katra" autocomplete="off" aria-required="true">
                   </div>
                 </div>
 
                 <div class="swap-wrap">
-                  <button id="swap-route-btn" class="swap-btn" title="Swap Route Direction">
+                  <button id="swap-route-btn" class="swap-btn" title="Swap Route Direction" aria-label="Swap Origin and Destination">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                      stroke-width="2.5">
+                      stroke-width="2.5" aria-hidden="true">
                       <polyline points="17 1 21 5 17 9"></polyline>
                       <path d="M3 11V9a4 4 0 0 1 4-4h14"></path>
                       <polyline points="7 23 3 19 7 15"></polyline>
@@ -249,15 +266,19 @@
                 </div>
 
                 <div class="input-field">
-                  <label class="field-label dest"><span class="dot-green"></span> Deboarding Point (Drop-off)</label>
+                  <label for="input-to" class="field-label dest">
+                    <span class="endpoint-badge destination" aria-hidden="true">B</span>
+                    <span class="dot-green" aria-hidden="true"></span>
+                    Deboarding Point (Drop-off)
+                  </label>
                   <div class="input-icon-wrap">
                     <svg class="field-icon icon-green" width="18" height="18" viewBox="0 0 24 24" fill="none"
-                      stroke="currentColor" stroke-width="2">
+                      stroke="currentColor" stroke-width="2" aria-hidden="true">
                       <circle cx="12" cy="12" r="10"></circle>
                       <polyline points="12 6 12 12 16 14"></polyline>
                     </svg>
                     <input type="text" id="input-to" value="" list="locations-list"
-                      placeholder="e.g. Gulmarg, Pahalgam, Jammu" autocomplete="off">
+                      placeholder="e.g. Gulmarg, Pahalgam, Jammu" autocomplete="off" aria-required="true">
                   </div>
                 </div>
               </div>
@@ -267,20 +288,19 @@
                 <!-- Injected in alphabetical order by JS -->
               </datalist>
 
-
               <!-- Context Alerts Box (Batamaloo redirect, Winter pass closure, Frontier & Pilgrimage) -->
               <div id="context-alerts-box" style="margin-top: 12px; display: none;"></div>
 
               <!-- Distance Row -->
               <div class="distance-row">
                 <div class="distance-info">
-                  <strong>Road Distance:</strong>
+                  <label for="input-distance"><strong>Road Distance:</strong></label>
                   <span id="route-type-badge">Verified Highway Corridor</span>
                 </div>
                 <div class="distance-control">
                   <div class="unit-input-wrap">
-                    <input type="number" id="input-distance" value="" placeholder="KM" min="1" max="800">
-                    <span class="unit-suffix">KM</span>
+                    <input type="number" id="input-distance" value="" placeholder="KM" min="1" max="800" inputmode="numeric" aria-label="Distance in kilometers">
+                    <span class="unit-suffix" aria-hidden="true">KM</span>
                   </div>
                 </div>
               </div>
@@ -319,8 +339,8 @@
               <div class="big-price-wrap">
                 <small class="price-caption">Govt Approved Fare Range</small>
                 <div class="price-num-row">
-                  <span class="main-price-val" id="display-price-val">₹ 300</span>
-                  <span class="price-basis-label" id="display-price-basis">(Per Passenger)</span>
+                  <span class="main-price-val" id="display-price-val">₹ —</span>
+                  <span class="price-basis-label" id="display-price-basis">(Choose route to calculate)</span>
                 </div>
               </div>
 
@@ -332,7 +352,7 @@
                 </div>
                 <div class="spec-box">
                   <span class="spec-lbl">Distance</span>
-                  <strong class="spec-val" id="spec-distance-val">51 KM</strong>
+                  <strong class="spec-val" id="spec-distance-val">—</strong>
                 </div>
               </div>
 
@@ -388,11 +408,11 @@
                 </div>
                 <div class="breakdown-row">
                   <span>Total Road Distance</span>
-                  <strong id="math-distance-cost">51 KM</strong>
+                  <strong id="math-distance-cost">—</strong>
                 </div>
                 <div class="breakdown-total">
                   <span>Total Payable Fare</span>
-                  <strong id="math-total-fare">₹ 300</strong>
+                  <strong id="math-total-fare">₹ —</strong>
                 </div>
               </div>
 
@@ -439,13 +459,12 @@
       </section>
 
       <!-- TAB: PASSENGER HUB & OFFICIAL FARE (SRO-97) -->
-      <section id="tab-rates" class="tab-view" hidden>
+      <section id="tab-rates" class="tab-view" role="tabpanel" aria-labelledby="tab-btn-rates" tabindex="0" hidden>
         <div class="card-box large-card">
           <div class="card-header">
             <div class="header-titles">
               <h2>Official J&K Transport Fare Schedules (SRO-97)</h2>
-              <p>Mandatory maximum fare ceiling rates for all 9 non-SRTC commercial passenger vehicles in Jammu &
-                Kashmir.</p>
+              <p>Mandatory maximum fare ceiling rates for all non-SRTC commercial passenger vehicles in Jammu & Kashmir.</p>
             </div>
           </div>
 
@@ -459,7 +478,7 @@
                   <th>Transit Applicability</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody id="sro97-rates-table-body">
                 <tr style="background: rgba(237, 245, 238, 0.5);">
                   <td><strong>⚡ E-Rickshaw (Toto / Cart)</strong></td>
                   <td>Flat ₹15 per km</td>
@@ -476,7 +495,7 @@
                   <td><strong>🛺 Tata Magic / Local 4-Wheeler</strong></td>
                   <td>Stage slabs: ₹9 (3km), ₹14 (5km), ₹17 (10km), ₹20 (15km), ₹26 (20km)</td>
                   <td>6 to 8 seats</td>
-                  <td>50% concession for distance &gt;20km</td>
+                  <td>Rural feeder & inter-village stages</td>
                 </tr>
                 <tr>
                   <td><strong>🚌 Mini Bus (Matador / 407)</strong></td>
@@ -517,11 +536,14 @@
               </tbody>
             </table>
           </div>
+          <p style="margin-top: 14px; font-size: 0.78rem; color: var(--color-text-muted); line-height: 1.5;">
+            <em>Disclaimer:</em> Statutory benchmark tariffs are gazetted ceiling rates under J&K Transport Department Notification SRO-97. Displayed fares reflect baseline ceiling formulas; individual routes or stages may be subject to designated local transport authority orders.
+          </p>
         </div>
       </section>
 
       <!-- Driver & Conductor Mode View -->
-      <section id="tab-driver" class="tab-view" hidden>
+      <section id="tab-driver" class="tab-view" role="tabpanel" aria-labelledby="tab-btn-driver" tabindex="0" hidden>
         <div id="tab-content-driver"></div>
       </section>
     </main>
@@ -543,28 +565,28 @@
     </footer>
 
     <!-- Commuter Help, AI Grievance Assistant & Official Authority Directory Modal -->
-    <div id="help-modal" class="modal-backdrop" hidden>
+    <div id="help-modal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="help-modal-heading" hidden>
       <div class="modal-dialog help-hub-dialog">
         <div class="modal-header help-hub-header">
           <div class="modal-title">
             <div class="brand-icon-sm">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                 <polygon points="3 11 22 2 13 21 11 13 3 11"></polygon>
               </svg>
             </div>
             <div>
-              <h3>SAFAR Help &amp; Transit AI Assistant</h3>
+              <h3 id="help-modal-heading">SAFAR Help &amp; Transit AI Assistant</h3>
               <p class="modal-subtitle">Official J&amp;K RTO Directory · Police Helplines · Statutory Grievance Redressal</p>
             </div>
           </div>
           <div class="modal-window-actions">
             <button id="minimize-modal-btn" class="icon-btn minimize-btn" aria-label="Minimize Help Assistant" title="Minimize to Floating Tab">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true">
                 <line x1="5" y1="12" x2="19" y2="12"></line>
               </svg>
             </button>
             <button id="close-modal-btn" class="icon-btn" aria-label="Close Help Modal" title="Close"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"
-                stroke="currentColor" stroke-width="2">
+                stroke="currentColor" stroke-width="2" aria-hidden="true">
                 <line x1="18" y1="6" x2="6" y2="18"></line>
                 <line x1="6" y1="6" x2="18" y2="18"></line>
               </svg></button>
@@ -583,16 +605,17 @@
     </div>
 
     <!-- MODAL: Show Conductor Digital Dispute Card -->
-    <div id="disputeModal" class="modal-backdrop hidden" hidden>
+    <div id="disputeModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="dispute-modal-heading" hidden>
       <div class="modal-card conductor-card">
         <button class="close-btn" id="closeDisputeModal" aria-label="Close Dispute Modal">&times;</button>
         <div class="dispute-badge-strip">
-          <span class="statutory-tag">OFFICIAL RTO SRO-97 TARIFF</span>
+          <span class="statutory-tag">OFFICIAL RTO SRO-97 BENCHMARK</span>
         </div>
+        <h3 id="dispute-modal-heading" style="margin: 6px 0; font-size: 1.05rem; font-weight: 800; color: var(--color-primary);">Tariff Verification</h3>
 
         <div class="fare-comparison-block">
           <div class="fare-cell legal-box">
-            <label>LEGAL TARIFF</label>
+            <label>STATUTORY BENCHMARK</label>
             <div class="amount" id="cardLegalFare">₹10</div>
           </div>
           <div class="fare-cell vs-divider">vs</div>
@@ -603,7 +626,7 @@
         </div>
 
         <div class="discrepancy-banner" id="cardDiscrepancyBanner">
-          ⚠️ Overcharging by ₹20 — Illegal under Section 192A MVA
+          ⚠️ Overcharging by ₹20 — In violation of Section 192A MVA
         </div>
 
         <div class="route-meta">
@@ -611,9 +634,14 @@
           <p id="cardTariffBreakdown">Minibus Stage Tariff: Base ₹10 for first 3 km.</p>
         </div>
 
+        <!-- Safety Advisory Warning Notice -->
+        <div class="telemetry-consent-note" style="border-left-color: #f59e0b; background: #fefce8; color: #854d0e; margin: 10px 0; text-align: left;">
+          <strong>⚠️ Passenger Safety Advisory:</strong> For commuter reference and evidence recording only. Never play audio while transit is in motion or to escalate confrontational situations. In emergencies, dial <strong>112</strong>.
+        </div>
+
         <div class="conductor-actions">
           <button id="speakToConductorBtn" class="btn btn-speaker" type="button">
-            🔊 Speak to Conductor (Urdu / اردو)
+            🔊 Play Fare Explanation (Urdu)
           </button>
           <button id="escalateToLockerBtn" class="btn btn-secondary" type="button">
             Transfer to Evidence Locker
@@ -623,14 +651,18 @@
     </div>
 
     <!-- MODAL: Formal Grievance Dispatch -->
-    <div id="evidenceModal" class="modal-backdrop hidden" hidden>
+    <div id="evidenceModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="evidence-modal-heading" hidden>
       <div class="modal-card">
         <button class="close-btn" id="closeEvidenceModal" aria-label="Close Evidence Modal">&times;</button>
-        <h3>Formal RTO &amp; Traffic Police Grievance</h3>
-        <p class="subtitle">Direct legal notice under Motor Vehicles Act 1988</p>
+        <h3 id="evidence-modal-heading">Formal RTO &amp; Traffic Police Grievance</h3>
+        <p class="subtitle">Official Grievance Report under Motor Vehicles Act 1988 Guidelines</p>
+        <p style="font-size: 0.76rem; color: var(--color-text-muted); margin: -4px 0 12px 0; line-height: 1.4;">
+          Administrative passenger documentation for submission to transport authorities (RTO / Traffic Police Control Room). Does not constitute a judicial court summons.
+        </p>
+
         <div class="form-group">
           <label for="dossierPlate">Vehicle Plate Number</label>
-          <input type="text" id="dossierPlate" placeholder="JK01 AB 1234" />
+          <input type="text" id="dossierPlate" placeholder="JK01 AB 1234" maxlength="15" />
         </div>
         <div class="form-group">
           <label for="dossierViolationType">Violation Category</label>
@@ -642,7 +674,7 @@
         </div>
         <div class="form-group">
           <label for="dossierLocation">Stand / Boarding Location</label>
-          <input type="text" id="dossierLocation" value="Jahangir Chowk / Lal Chowk" />
+          <input type="text" id="dossierLocation" value="Jahangir Chowk / Lal Chowk" maxlength="80" />
         </div>
 
         <div class="dispatch-action-grid">
@@ -650,26 +682,26 @@
             📲 Dispatch to Traffic WhatsApp (9419035000)
           </button>
           <button id="dispatchEmailBtn" class="btn btn-email" type="button">
-            ✉️ Send to RTO (Formal Notice)
+            ✉️ Send Grievance Dossier to RTO via Email
           </button>
         </div>
       </div>
     </div>
 
     <!-- Conductor Digital Fare Pass Modal -->
-    <div id="conductorPassModal" class="modal-backdrop hidden" hidden>
+    <div id="conductorPassModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="conductor-pass-heading" hidden>
       <div class="modal-card conductor-pass-card" style="max-width: 380px;">
         <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--color-border); padding-bottom: 12px; margin-bottom: 16px;">
           <div>
-            <h3 style="font-size: 1rem; font-weight: 800; color: var(--color-primary); margin: 0;">Digital Transit Pass</h3>
+            <h3 id="conductor-pass-heading" style="font-size: 1rem; font-weight: 800; color: var(--color-primary); margin: 0;">Digital Transit Pass</h3>
             <span style="font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--color-text-muted);">Offline Slip</span>
           </div>
           <button class="close-btn" id="closePassModal" aria-label="Close Pass" style="position: static; font-size: 1.25rem;">&times;</button>
         </div>
 
         <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 12px; border-radius: 12px; background: #f8faf6; border: 1px dashed var(--color-border); margin-bottom: 16px;">
-          <canvas id="passQrCanvas" width="180" height="180" style="display: block; border-radius: 8px;"></canvas>
-          <span style="margin-top: 8px; font-size: 0.65rem; font-family: monospace; color: var(--color-text-muted); text-transform: uppercase; letter-spacing: 0.1em;">Verified under J&amp;K SRO-97</span>
+          <canvas id="passQrCanvas" width="180" height="180" role="img" aria-label="Digital Transit QR Pass showing verified route fare details" style="display: block; border-radius: 8px;">Transit Fare QR Pass</canvas>
+          <span style="margin-top: 8px; font-size: 0.65rem; font-family: monospace; color: var(--color-text-muted); text-transform: uppercase; letter-spacing: 0.1em;">Statutory Tariff under J&amp;K SRO-97</span>
         </div>
 
         <div style="font-size: 0.8rem; display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px;">
@@ -684,9 +716,9 @@
           <div style="display: flex; justify-content: space-between; align-items: center;">
             <span style="color: var(--color-text-muted);">Passengers:</span>
             <div style="display: flex; align-items: center; gap: 8px;">
-              <button id="passDecBtn" type="button" style="width: 24px; height: 24px; border-radius: 6px; border: 1px solid var(--color-border); background: #e5ece3; font-weight: 800; cursor: pointer;">-</button>
+              <button id="passDecBtn" type="button" aria-label="Decrease passenger count" style="width: 24px; height: 24px; border-radius: 6px; border: 1px solid var(--color-border); background: #e5ece3; font-weight: 800; cursor: pointer;">-</button>
               <strong id="passCountVal" style="min-width: 20px; text-align: center;">1</strong>
-              <button id="passIncBtn" type="button" style="width: 24px; height: 24px; border-radius: 6px; border: 1px solid var(--color-border); background: #e5ece3; font-weight: 800; cursor: pointer;">+</button>
+              <button id="passIncBtn" type="button" aria-label="Increase passenger count" style="width: 24px; height: 24px; border-radius: 6px; border: 1px solid var(--color-border); background: #e5ece3; font-weight: 800; cursor: pointer;">+</button>
             </div>
           </div>
           <div style="display: flex; justify-content: space-between; border-top: 1px solid var(--color-border); padding-top: 8px; font-size: 0.95rem; font-weight: 800;">
@@ -702,22 +734,22 @@
     </div>
 
     <!-- Floating Toast Notification -->
-    <div id="toast" class="toast-notification" hidden>
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f2bd70" stroke-width="2.5">
+    <div id="toast" class="toast-notification" role="status" aria-live="polite" hidden>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f2bd70" stroke-width="2.5" aria-hidden="true">
         <polyline points="20 6 9 17 4 12"></polyline>
       </svg>
       <span id="toast-text">Route updated</span>
     </div>
 
     <!-- Floating Minimizer Tab Dock (when Help & AI Assistant is minimized) -->
-    <div id="minimized-assistant-tab" class="minimized-assistant-tab hidden" hidden>
+    <div id="minimized-assistant-tab" class="minimized-assistant-tab" role="region" aria-label="Minimized AI Assistant" hidden>
       <div class="minimized-tab-content" title="Click to Restore Safar AI Assistant">
-        <span class="pulse-dot"></span>
-        <span class="tab-robot-icon">🤖</span>
+        <span class="pulse-dot" aria-hidden="true"></span>
+        <span class="tab-robot-icon" aria-hidden="true">🤖</span>
         <span class="tab-title">Safar AI Assistant</span>
         <span class="tab-badge">Active</span>
-        <button id="restore-modal-btn" class="restore-tab-btn" type="button" title="Restore Assistant">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <button id="restore-modal-btn" class="restore-tab-btn" type="button" title="Restore Assistant" aria-label="Restore Assistant Modal">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
             <polyline points="15 3 21 3 21 9"></polyline>
             <polyline points="9 21 3 21 3 15"></polyline>
             <line x1="21" y1="3" x2="14" y2="10"></line>
@@ -725,25 +757,70 @@
           </svg>
           <span>Expand</span>
         </button>
-        <button id="dismiss-minimized-tab" class="dismiss-tab-btn" type="button" title="Dismiss Tab" aria-label="Dismiss">
+        <button id="dismiss-minimized-tab" class="dismiss-tab-btn" type="button" title="Dismiss Tab" aria-label="Dismiss Tab">
           &times;
         </button>
       </div>
     </div>
   </div>
 
-  <script src="js/vehicle-illustrations.js?v=1.1.0"></script>
-  <script src="js/qrcode.js"></script>
-  <script src="js/dispute-engine.js"></script>
-  <script src="js/crowd-radar.js"></script>
-  <script src="js/evidence-locker.js"></script>
-  <script src="js/help-assistant.js?v=1.1.0"></script>
-  <script src="js/driver-mode.js?v=1.1.0"></script>
-  <script src="js/corridors-data.js?v=1.1.0"></script>
-  <script src="js/main.js?v=1.1.0"></script>
+  <script src="js/vehicle-illustrations.js?v=1.1.0" defer></script>
+  <script src="js/qrcode.js" defer></script>
+  <script src="js/dispute-engine.js" defer></script>
+  <script src="js/crowd-radar.js" defer></script>
+  <script src="js/evidence-locker.js" defer></script>
+  <script src="js/help-assistant.js?v=1.1.0" defer></script>
+  <script src="js/driver-mode.js?v=1.1.0" defer></script>
+  <script src="js/corridors-data.js?v=1.1.0" defer></script>
+  <script src="js/main.js?v=1.1.0" defer></script>
   <script>
     // Commuter Defense Layer DOM Bindings & Radar Initialization
     document.addEventListener("DOMContentLoaded", () => {
+      // Security Helper: HTML Entity Escaping to prevent Stored / DOM XSS
+      function escapeHtml(str) {
+        if (typeof str !== "string") return "";
+        return str
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;")
+          .replace(/'/g, "&#039;");
+      }
+
+      // Safe Modal Helpers with fallback
+      function openModalSafe(modalEl, triggerEl = null) {
+        if (!modalEl) return;
+        if (typeof window.safarOpenModal === "function") {
+          window.safarOpenModal(modalEl, triggerEl);
+        } else {
+          modalEl.hidden = false;
+          modalEl.classList.remove("hidden");
+        }
+      }
+
+      function closeModalSafe(modalEl) {
+        if (!modalEl) return;
+        if (typeof window.safarCloseModal === "function") {
+          window.safarCloseModal(modalEl);
+        } else {
+          modalEl.hidden = true;
+          modalEl.classList.add("hidden");
+        }
+      }
+
+      function showToastSafe(msg) {
+        if (typeof window.showToast === "function") {
+          window.showToast(msg);
+        } else {
+          const fb = document.createElement("div");
+          fb.className = "toast-notification";
+          fb.textContent = msg;
+          fb.style.cssText = "position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#234b4c;color:#fff;padding:8px 16px;border-radius:20px;z-index:99999;font-size:13px;";
+          document.body.appendChild(fb);
+          setTimeout(() => fb.remove(), 2800);
+        }
+      }
+
       // 1. Radar Initialization
       try {
         if (window.SafarCrowdRadar) {
@@ -756,12 +833,12 @@
 
           const hubsContainer = document.getElementById("eveningHubsList");
           if (hubsContainer) {
-            const hubs = SafarCrowdRadar.getActiveEveningPools();
+            const hubs = SafarCrowdRadar.getActiveEveningPools() || [];
             hubsContainer.innerHTML = hubs.map(h => `
               <div class="hub-pill">
-                <strong>${h.name} (${h.city})</strong>
-                <span>${h.activeVehiclesRemaining} shared cabs active</span>
-                <small>Routes: ${h.routes.join(", ")}</small>
+                <strong>${escapeHtml(h.name)} (${escapeHtml(h.city)})</strong>
+                <span>${Number(h.activeVehiclesRemaining) || 0} shared cabs active</span>
+                <small>Routes: ${escapeHtml((h.routes || []).join(", "))}</small>
               </div>
             `).join("");
           }
@@ -770,6 +847,9 @@
         console.warn("[Radar Init]", err);
       }
 
+      // Active Dispute State
+      let currentDisputeResult = null;
+
       // 2. Dispute Evaluation Trigger
       const checkBtn = document.getElementById("checkDisputeBtn");
       const queryInput = document.getElementById("voiceQueryInput");
@@ -777,9 +857,21 @@
 
       if (checkBtn && queryInput && disputeModal) {
         checkBtn.addEventListener("click", () => {
-          const query = queryInput.value.trim() || "Driver charging 30 from Lal Chowk to Batamaloo";
+          const query = queryInput.value.trim();
+          if (!query) {
+            showToastSafe("Please enter or speak your fare dispute query (e.g. 'Driver charged 30 from Lal Chowk to Batamaloo').");
+            queryInput.focus();
+            return;
+          }
+
+          if (!window.SafarDisputeEngine) {
+            showToastSafe("Transit dispute engine is initializing or unavailable. Please retry in a moment.");
+            return;
+          }
+
           const parsed = window.SafarDisputeEngine.parseDisputeQuery(query);
           const result = window.SafarDisputeEngine.verifyFare(parsed.origin, parsed.destination, parsed.demandedFare);
+          currentDisputeResult = result;
 
           const cardLegalFare = document.getElementById("cardLegalFare");
           const cardDemandedFare = document.getElementById("cardDemandedFare");
@@ -794,39 +886,50 @@
 
           if (banner) {
             if (result.isViolation) {
-              banner.textContent = `⚠️ Overcharging by ₹${result.overcharge} — Illegal under ${result.mvaSection}`;
+              banner.textContent = `⚠️ Overcharging by ₹${result.overcharge} — In violation of ${result.mvaSection}`;
               banner.className = "discrepancy-banner alert";
             } else {
-              banner.textContent = `✅ Fare is compliant with SRO-97 statutory ceiling.`;
+              banner.textContent = `✅ Fare is compliant with SRO-97 statutory benchmark ceiling.`;
               banner.className = "discrepancy-banner safe";
             }
           }
 
-          disputeModal.hidden = false;
-          disputeModal.classList.remove("hidden");
+          openModalSafe(disputeModal, checkBtn);
+        });
+      }
 
-          // Bind verbal negotiation button
-          const speakBtn = document.getElementById("speakToConductorBtn");
-          if (speakBtn) {
-            speakBtn.onclick = () => {
-              window.SafarDisputeEngine.verbalNegotiationTTS(result.legalFare, result.origin, result.destination);
-            };
+      // Decoupled Verbal Negotiation & Escalation Listeners
+      const speakBtn = document.getElementById("speakToConductorBtn");
+      if (speakBtn) {
+        speakBtn.addEventListener("click", () => {
+          if (!window.SafarDisputeEngine) {
+            showToastSafe("Speech engine unavailable.");
+            return;
           }
+          if (currentDisputeResult) {
+            window.SafarDisputeEngine.verbalNegotiationTTS(
+              currentDisputeResult.legalFare,
+              currentDisputeResult.origin,
+              currentDisputeResult.destination,
+              currentDisputeResult.demandedFare
+            );
+          } else {
+            showToastSafe("Please evaluate a route first.");
+          }
+        });
+      }
 
-          // Bind escalate button
-          const escalateBtn = document.getElementById("escalateToLockerBtn");
-          if (escalateBtn) {
-            escalateBtn.onclick = () => {
-              disputeModal.hidden = true;
-              disputeModal.classList.add("hidden");
-              const evidenceModal = document.getElementById("evidenceModal");
-              if (evidenceModal) {
-                const locInput = document.getElementById("dossierLocation");
-                if (locInput) locInput.value = `${result.origin} to ${result.destination}`;
-                evidenceModal.hidden = false;
-                evidenceModal.classList.remove("hidden");
-              }
-            };
+      const escalateBtn = document.getElementById("escalateToLockerBtn");
+      if (escalateBtn) {
+        escalateBtn.addEventListener("click", () => {
+          if (disputeModal) closeModalSafe(disputeModal);
+          const evidenceModal = document.getElementById("evidenceModal");
+          if (evidenceModal) {
+            const locInput = document.getElementById("dossierLocation");
+            if (locInput && currentDisputeResult) {
+              locInput.value = `${currentDisputeResult.origin} to ${currentDisputeResult.destination}`;
+            }
+            openModalSafe(evidenceModal, escalateBtn);
           }
         });
       }
@@ -862,81 +965,93 @@
       // Modal Close Handlers
       const closeDisputeModal = document.getElementById("closeDisputeModal");
       if (closeDisputeModal && disputeModal) {
-        closeDisputeModal.onclick = () => {
-          disputeModal.hidden = true;
-          disputeModal.classList.add("hidden");
-        };
+        closeDisputeModal.addEventListener("click", () => closeModalSafe(disputeModal));
       }
 
-      // 4. Evidence Locker Trigger
+      // 4. Evidence Locker Trigger & Handlers
       const evidenceModal = document.getElementById("evidenceModal");
       const openEvidenceModalBtn = document.getElementById("openEvidenceModalBtn");
       const closeEvidenceModal = document.getElementById("closeEvidenceModal");
 
       if (openEvidenceModalBtn && evidenceModal) {
-        openEvidenceModalBtn.onclick = () => {
+        openEvidenceModalBtn.addEventListener("click", () => {
           const quickPlate = document.getElementById("quickPlateInput");
           const dossierPlate = document.getElementById("dossierPlate");
           if (quickPlate && dossierPlate && quickPlate.value.trim()) {
             dossierPlate.value = quickPlate.value.trim();
           }
-          evidenceModal.hidden = false;
-          evidenceModal.classList.remove("hidden");
-        };
+          openModalSafe(evidenceModal, openEvidenceModalBtn);
+        });
       }
 
       if (closeEvidenceModal && evidenceModal) {
-        closeEvidenceModal.onclick = () => {
-          evidenceModal.hidden = true;
-          evidenceModal.classList.add("hidden");
-        };
+        closeEvidenceModal.addEventListener("click", () => closeModalSafe(evidenceModal));
       }
 
       const dispatchWhatsAppBtn = document.getElementById("dispatchWhatsAppBtn");
-      if (dispatchWhatsAppBtn && window.SafarEvidenceLocker) {
-        dispatchWhatsAppBtn.onclick = () => {
+      if (dispatchWhatsAppBtn) {
+        dispatchWhatsAppBtn.addEventListener("click", () => {
+          if (!window.SafarEvidenceLocker) {
+            showToastSafe("Evidence locker service is loading. Please retry.");
+            return;
+          }
+          const rawPlate = document.getElementById("dossierPlate")?.value || "UNREG";
+          const rawLoc = document.getElementById("dossierLocation")?.value || "J&K Transit Route";
+          const violationType = document.getElementById("dossierViolationType")?.value || "OVERCHARGING";
+
           const dossier = window.SafarEvidenceLocker.buildGrievanceDossier({
-            vehiclePlate: (document.getElementById("dossierPlate")?.value || "JK01AA0000"),
-            violationType: (document.getElementById("dossierViolationType")?.value || "OVERCHARGING"),
-            location: (document.getElementById("dossierLocation")?.value || "J&K Transit Route"),
-            demandedAmount: 30,
-            legalAmount: 10
+            vehiclePlate: rawPlate,
+            violationType: violationType,
+            location: rawLoc,
+            demandedAmount: currentDisputeResult?.demandedFare || 30,
+            legalAmount: currentDisputeResult?.legalFare || 10
           });
           window.SafarEvidenceLocker.dispatchWhatsApp(dossier);
-        };
+        });
       }
 
       const dispatchEmailBtn = document.getElementById("dispatchEmailBtn");
-      if (dispatchEmailBtn && window.SafarEvidenceLocker) {
-        dispatchEmailBtn.onclick = () => {
+      if (dispatchEmailBtn) {
+        dispatchEmailBtn.addEventListener("click", () => {
+          if (!window.SafarEvidenceLocker) {
+            showToastSafe("Evidence locker service is loading. Please retry.");
+            return;
+          }
+          const rawPlate = document.getElementById("dossierPlate")?.value || "UNREG";
+          const rawLoc = document.getElementById("dossierLocation")?.value || "J&K Transit Route";
+          const violationType = document.getElementById("dossierViolationType")?.value || "OVERCHARGING";
+
           const dossier = window.SafarEvidenceLocker.buildGrievanceDossier({
-            vehiclePlate: (document.getElementById("dossierPlate")?.value || "JK01AA0000"),
-            violationType: (document.getElementById("dossierViolationType")?.value || "OVERCHARGING"),
-            location: (document.getElementById("dossierLocation")?.value || "J&K Transit Route")
+            vehiclePlate: rawPlate,
+            violationType: violationType,
+            location: rawLoc,
+            demandedAmount: currentDisputeResult?.demandedFare || 30,
+            legalAmount: currentDisputeResult?.legalFare || 10
           });
           window.SafarEvidenceLocker.dispatchEmail(dossier, "kashmir");
-        };
+        });
       }
 
-      // 5. 1-Click Occupancy Telemetry
+      // 5. Dynamic 1-Click Occupancy Telemetry
       document.querySelectorAll(".occ-btn").forEach(btn => {
         btn.addEventListener("click", (e) => {
           const level = e.currentTarget.dataset.level;
+          const fromVal = document.getElementById("input-from")?.value?.trim() || "";
+          const toVal = document.getElementById("input-to")?.value?.trim() || "";
+          const activeRoute = (fromVal && toVal) ? `${fromVal} ➔ ${toVal}` : "Active Transit Corridor";
+          const activePlate = document.getElementById("quickPlateInput")?.value?.trim() || "COMMUTER-REPORT";
+
           if (window.SafarCrowdRadar) {
-            window.SafarCrowdRadar.recordOccupancy("JK-ACTIVE", "Lal Chowk-Route", level);
+            window.SafarCrowdRadar.recordOccupancy(activePlate, activeRoute, level);
           }
-          if (typeof window.showToast === "function") {
-            window.showToast(`Recorded: ${e.currentTarget.textContent}. Telemetry broadcasted.`);
-          } else {
-            alert(`Recorded: ${e.currentTarget.textContent}. Telemetry broadcasted to route commuters.`);
-          }
+          showToastSafe(`Recorded: ${e.currentTarget.textContent.trim()} for ${activeRoute}.`);
         });
       });
     });
 
     if ('serviceWorker' in navigator && (window.location.protocol === 'http:' || window.location.protocol === 'https:')) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js?v=1.0.7').catch((err) => {
+        navigator.serviceWorker.register('./sw.js?v=1.1.0').catch((err) => {
           console.warn('[SW] Registration note:', err);
         });
       });

@@ -19,6 +19,7 @@ const PRECACHE_ASSETS = [
   './js/driver-mode.js?v=1.1.0',
   './js/qrcode.js',
   './js/vehicle-illustrations.js?v=1.1.0',
+  './js/corridors-data.js?v=1.1.0',
   './manifest.webmanifest',
   './transit-defense.html',
   './css/defense.css',

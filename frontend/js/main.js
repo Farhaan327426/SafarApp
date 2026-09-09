@@ -573,15 +573,62 @@ const closeDrawerBtn = document.getElementById("close-drawer-btn");
 const shareFareBtn = document.getElementById("share-fare-btn");
 const helplineBtn = document.getElementById("helpline-btn");
 
-// Toast helper
+// Toast helper & Modal Manager
+let _lastActiveModalElement = null;
+
 function showToast(msg) {
-  if (!toast) return;
-  toastText.textContent = msg;
-  toast.hidden = false;
-  setTimeout(() => {
-    toast.hidden = true;
-  }, 2800);
+  if (toast && toastText) {
+    toastText.textContent = msg;
+    toast.hidden = false;
+    toast.classList.remove("hidden");
+    setTimeout(() => {
+      toast.hidden = true;
+      toast.classList.add("hidden");
+    }, 2800);
+  } else {
+    const fallbackToast = document.createElement("div");
+    fallbackToast.className = "toast-notification";
+    fallbackToast.textContent = msg;
+    fallbackToast.style.cssText = "position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#234b4c;color:#fff;padding:8px 16px;border-radius:20px;z-index:99999;box-shadow:0 4px 12px rgba(0,0,0,0.15);font-size:13px;font-weight:600;";
+    document.body.appendChild(fallbackToast);
+    setTimeout(() => fallbackToast.remove(), 2800);
+  }
 }
+window.showToast = showToast;
+
+function safarOpenModal(modalEl, triggerEl = null) {
+  if (!modalEl) return;
+  _lastActiveModalElement = triggerEl || document.activeElement;
+  modalEl.hidden = false;
+  modalEl.classList.remove("hidden");
+  modalEl.setAttribute("aria-modal", "true");
+  modalEl.setAttribute("role", "dialog");
+  const focusable = modalEl.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+  if (focusable.length > 0) {
+    focusable[0].focus();
+  }
+}
+window.safarOpenModal = safarOpenModal;
+
+function safarCloseModal(modalEl) {
+  if (!modalEl) return;
+  modalEl.hidden = true;
+  modalEl.classList.add("hidden");
+  modalEl.removeAttribute("aria-modal");
+  if (_lastActiveModalElement && typeof _lastActiveModalElement.focus === "function") {
+    _lastActiveModalElement.focus();
+    _lastActiveModalElement = null;
+  }
+}
+window.safarCloseModal = safarCloseModal;
+
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape") {
+    document.querySelectorAll(".modal-backdrop:not([hidden]):not(.hidden)").forEach((m) => {
+      safarCloseModal(m);
+    });
+  }
+});
 
 // 4. J&K Geographic Location Coordinates Matrix (All 75+ Hubs across 22 RTO Districts)
 const locationCoordinates = {
@@ -1290,18 +1337,47 @@ function calculateAndRender() {
 
       case "stage-carriage":
         {
-          const ratePerKm =
-            currentTerrainRegion === "kashmir-plain"
-              ? 1.64
-              : currentTerrainRegion === "kashmir-hill"
-              ? 1.88
-              : currentTerrainRegion === "jammu-plain"
-              ? 1.12
-              : 1.59;
-          base = 10;
-          distCost = Math.round(km * ratePerKm);
-          totalSingle = Math.max(10, distCost);
-          formulaDesc = `${km} km × ₹${ratePerKm}/km`;
+          if (v.key === "tata-magic" || v.calcType === "stage-slab") {
+            let slabCost = 9;
+            let slabLabel = "Stage Slab: ₹9 (1–3 km)";
+            if (km <= 3) {
+              slabCost = 9;
+              slabLabel = "Stage Slab: ₹9 (1–3 km)";
+            } else if (km <= 5) {
+              slabCost = 14;
+              slabLabel = "Stage Slab: ₹14 (3–5 km)";
+            } else if (km <= 10) {
+              slabCost = 17;
+              slabLabel = "Stage Slab: ₹17 (5–10 km)";
+            } else if (km <= 15) {
+              slabCost = 20;
+              slabLabel = "Stage Slab: ₹20 (10–15 km)";
+            } else if (km <= 20) {
+              slabCost = 26;
+              slabLabel = "Stage Slab: ₹26 (15–20 km)";
+            } else {
+              const extraKm = km - 20;
+              slabCost = 26 + Math.round(extraKm * 1.30);
+              slabLabel = `Stage Slab: ₹26 (20km) + ${extraKm} km × ₹1.30/km`;
+            }
+            base = 9;
+            distCost = slabCost - 9;
+            totalSingle = slabCost;
+            formulaDesc = slabLabel;
+          } else {
+            const ratePerKm =
+              currentTerrainRegion === "kashmir-plain"
+                ? 1.64
+                : currentTerrainRegion === "kashmir-hill"
+                ? 1.88
+                : currentTerrainRegion === "jammu-plain"
+                ? 1.12
+                : 1.59;
+            base = 10;
+            distCost = Math.round(km * ratePerKm);
+            totalSingle = Math.max(10, distCost);
+            formulaDesc = `${km} km × ₹${ratePerKm}/km`;
+          }
         }
         break;
 
@@ -1796,29 +1872,33 @@ function openConductorPass() {
   const modal = document.getElementById('conductorPassModal');
   if (!modal) return;
   currentPassOpenTimestamp = Date.now(); // Lock timestamp ON MODAL OPEN
-  modal.hidden = false;
-  modal.classList.remove('hidden');
+  safarOpenModal(modal, document.getElementById('openPassModalBtn'));
   updateConductorPassModal();
 }
 
 function closeConductorPass() {
   const modal = document.getElementById('conductorPassModal');
   if (!modal) return;
-  modal.hidden = true;
-  modal.classList.add('hidden');
+  safarCloseModal(modal);
 }
 
 // Switch Navigation Tabs
 function switchTab(tabId) {
   document.querySelectorAll(".nav-tab").forEach((btn) => {
-    btn.classList.toggle("active", btn.getAttribute("data-tab") === tabId);
+    const isSelected = btn.getAttribute("data-tab") === tabId;
+    btn.classList.toggle("active", isSelected);
+    btn.setAttribute("aria-selected", isSelected ? "true" : "false");
+    btn.setAttribute("tabindex", isSelected ? "0" : "-1");
   });
   document.querySelectorAll(".drawer-link").forEach((btn) => {
-    btn.classList.toggle("active", btn.getAttribute("data-tab") === tabId);
+    const isSelected = btn.getAttribute("data-tab") === tabId;
+    btn.classList.toggle("active", isSelected);
+    btn.setAttribute("aria-selected", isSelected ? "true" : "false");
   });
   document.querySelectorAll(".tab-view").forEach((view) => {
-    view.classList.toggle("active", view.id === `tab-${tabId}`);
-    view.hidden = view.id !== `tab-${tabId}`;
+    const isActive = view.id === `tab-${tabId}`;
+    view.classList.toggle("active", isActive);
+    view.hidden = !isActive;
   });
 
   // Initialize Driver Mode when its tab becomes visible
@@ -1999,14 +2079,24 @@ function attachListeners() {
 
   // Mobile drawer toggle
   if (mobileMenuBtn && mobileDrawer) {
-    mobileMenuBtn.addEventListener("click", () => (mobileDrawer.hidden = false));
+    mobileMenuBtn.addEventListener("click", () => {
+      const willOpen = mobileDrawer.hidden;
+      mobileDrawer.hidden = !willOpen;
+      mobileMenuBtn.setAttribute("aria-expanded", willOpen ? "true" : "false");
+    });
   }
   if (closeDrawerBtn && mobileDrawer) {
-    closeDrawerBtn.addEventListener("click", () => (mobileDrawer.hidden = true));
+    closeDrawerBtn.addEventListener("click", () => {
+      mobileDrawer.hidden = true;
+      if (mobileMenuBtn) mobileMenuBtn.setAttribute("aria-expanded", "false");
+    });
   }
   const drawerBackdrop = document.querySelector(".drawer-backdrop");
   if (drawerBackdrop && mobileDrawer) {
-    drawerBackdrop.addEventListener("click", () => (mobileDrawer.hidden = true));
+    drawerBackdrop.addEventListener("click", () => {
+      mobileDrawer.hidden = true;
+      if (mobileMenuBtn) mobileMenuBtn.setAttribute("aria-expanded", "false");
+    });
   }
 
   // Conductor Pass Modal bindings
@@ -2043,6 +2133,20 @@ function attachListeners() {
   }
 }
 
+// Render Rates Table dynamically from vehicleOptions to prevent data drift
+function renderRatesTable() {
+  const tbody = document.getElementById("sro97-rates-table-body");
+  if (!tbody || !Array.isArray(vehicleOptions)) return;
+  tbody.innerHTML = vehicleOptions.map(v => `
+    <tr>
+      <td><strong>${v.label}</strong> <span style="display:block;font-size:0.75rem;color:var(--color-text-muted);">${v.sublabel}</span></td>
+      <td>${v.detail}</td>
+      <td>${v.capacity}</td>
+      <td>${v.districtFootprint}</td>
+    </tr>
+  `).join("");
+}
+
 // Initialization function
 function initSafar() {
   attachListeners();
@@ -2051,6 +2155,7 @@ function initSafar() {
   renderVehicleCards();
   renderRouteGuide();
   renderHistory();
+  renderRatesTable();
   calculateAndRender();
   if (window.SafarHelpAssistant && typeof window.SafarHelpAssistant.init === "function") {
     window.SafarHelpAssistant.init();
