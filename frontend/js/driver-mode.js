@@ -358,11 +358,7 @@ const SafarDriverMode = (() => {
     if (state.routeId === 'custom') return state.customFare || 0;
     const route = getRoute();
     if (!route || !route.fares) return 0;
-    let base = route.fares[state.vehicleId] || 0;
-    if (state.nightSurcharge) {
-      base = Math.round(base * 1.20);
-    }
-    return base;
+    return route.fares[state.vehicleId] || 0;
   }
 
   function computeTotals() {
@@ -1082,13 +1078,6 @@ const SafarDriverMode = (() => {
             <button type="button" class="stepper-btn" id="parcel-inc">+</button>
           </div>
         </div>
-        <div class="cargo-item switch-item">
-          <label class="switch-wrap">
-            <input type="checkbox" id="night-surcharge-toggle" ${state.nightSurcharge ? 'checked' : ''}>
-            <span class="switch-slider"></span>
-            <span class="switch-text">🌙 Night/Snow (+20%)</span>
-          </label>
-        </div>
       </div>
     </div>
   </div>
@@ -1199,8 +1188,6 @@ const SafarDriverMode = (() => {
   function patchCargo() {
     setText('luggage-val', state.luggageCount);
     setText('parcel-val', state.parcelCount);
-    const nightToggle = document.getElementById('night-surcharge-toggle');
-    if (nightToggle) nightToggle.checked = state.nightSurcharge;
   }
 
   function patchOneSeat(idx) {
@@ -1679,16 +1666,6 @@ const SafarDriverMode = (() => {
       document.querySelectorAll('#driver-quick-corridors .corridor-pill').forEach(p => {
         p.classList.toggle('active', p.dataset.corridorId === value);
       });
-      patchTariffCard();
-      patchTotals();
-      persistActiveTrip();
-      return;
-    }
-
-    if (id === 'night-surcharge-toggle') {
-      pushUndo();
-      state.nightSurcharge = e.target.checked;
-      triggerHaptic(15);
       patchTariffCard();
       patchTotals();
       persistActiveTrip();
