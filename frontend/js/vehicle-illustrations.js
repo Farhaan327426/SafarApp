@@ -2,7 +2,7 @@
 // Designed specifically for J&K transit ecosystem with crisp, standardized 200x90 viewBox
 
 window.VEHICLE_ILLUSTRATIONS = {
-  "shared-cab": `<svg viewBox="0 0 200 90" fill="none" xmlns="http://www.w3.org/2000/svg" class="vehicle-illustration-svg">
+  "shared-cab": `<svg width="100%" height="100%" viewBox="0 0 200 90" fill="none" xmlns="http://www.w3.org/2000/svg" class="vehicle-illustration-svg">
   <defs>
     <linearGradient id="sumoBody" x1="0" y1="20" x2="0" y2="70" gradientUnits="userSpaceOnUse">
       <stop offset="0%" stop-color="#ffffff"/>
@@ -61,7 +61,7 @@ window.VEHICLE_ILLUSTRATIONS = {
   </g>
 </svg>`,
 
-  "mini-bus": `<svg viewBox="0 0 200 90" fill="none" xmlns="http://www.w3.org/2000/svg" class="vehicle-illustration-svg">
+  "mini-bus": `<svg width="100%" height="100%" viewBox="0 0 200 90" fill="none" xmlns="http://www.w3.org/2000/svg" class="vehicle-illustration-svg">
   <defs>
     <linearGradient id="matadorCream" x1="0" y1="20" x2="0" y2="48" gradientUnits="userSpaceOnUse">
       <stop offset="0%" stop-color="#fffdf5"/>
@@ -119,7 +119,7 @@ window.VEHICLE_ILLUSTRATIONS = {
   </g>
 </svg>`,
 
-  "vikram-tempo": `<svg viewBox="0 0 200 90" fill="none" xmlns="http://www.w3.org/2000/svg" class="vehicle-illustration-svg">
+  "vikram-tempo": `<svg width="100%" height="100%" viewBox="0 0 200 90" fill="none" xmlns="http://www.w3.org/2000/svg" class="vehicle-illustration-svg">
   <defs>
     <linearGradient id="tempoBody" x1="0" y1="40" x2="0" y2="72" gradientUnits="userSpaceOnUse">
       <stop offset="0%" stop-color="#ea580c"/>
@@ -169,7 +169,7 @@ window.VEHICLE_ILLUSTRATIONS = {
   </g>
 </svg>`,
 
-  "e-rickshaw": `<svg viewBox="0 0 200 90" fill="none" xmlns="http://www.w3.org/2000/svg" class="vehicle-illustration-svg">
+  "e-rickshaw": `<svg width="100%" height="100%" viewBox="0 0 200 90" fill="none" xmlns="http://www.w3.org/2000/svg" class="vehicle-illustration-svg">
   <defs>
     <linearGradient id="erickGreen" x1="0" y1="40" x2="0" y2="72" gradientUnits="userSpaceOnUse">
       <stop offset="0%" stop-color="#10b981"/>
@@ -213,7 +213,7 @@ window.VEHICLE_ILLUSTRATIONS = {
   </g>
 </svg>`,
 
-  "e-auto": `<svg viewBox="0 0 200 90" fill="none" xmlns="http://www.w3.org/2000/svg" class="vehicle-illustration-svg">
+  "e-auto": `<svg width="100%" height="100%" viewBox="0 0 200 90" fill="none" xmlns="http://www.w3.org/2000/svg" class="vehicle-illustration-svg">
   <defs>
     <linearGradient id="eautoGradient" x1="0" y1="24" x2="0" y2="72" gradientUnits="userSpaceOnUse">
       <stop offset="0%" stop-color="#10b981"/>
@@ -251,7 +251,7 @@ window.VEHICLE_ILLUSTRATIONS = {
   </g>
 </svg>`,
 
-  "auto": `<svg viewBox="0 0 200 90" fill="none" xmlns="http://www.w3.org/2000/svg" class="vehicle-illustration-svg">
+  "auto": `<svg width="100%" height="100%" viewBox="0 0 200 90" fill="none" xmlns="http://www.w3.org/2000/svg" class="vehicle-illustration-svg">
   <defs>
     <linearGradient id="autoYellow" x1="0" y1="20" x2="0" y2="48" gradientUnits="userSpaceOnUse">
       <stop offset="0%" stop-color="#fbbf24"/>
@@ -291,7 +291,7 @@ window.VEHICLE_ILLUSTRATIONS = {
   </g>
 </svg>`,
 
-  "tata-magic": `<svg viewBox="0 0 200 90" fill="none" xmlns="http://www.w3.org/2000/svg" class="vehicle-illustration-svg">
+  "tata-magic": `<svg width="100%" height="100%" viewBox="0 0 200 90" fill="none" xmlns="http://www.w3.org/2000/svg" class="vehicle-illustration-svg">
   <defs>
     <linearGradient id="magicWhite" x1="0" y1="24" x2="0" y2="72" gradientUnits="userSpaceOnUse">
       <stop offset="0%" stop-color="#ffffff"/>
@@ -329,7 +329,7 @@ window.VEHICLE_ILLUSTRATIONS = {
   </g>
 </svg>`,
 
-  "private-bus": `<svg viewBox="0 0 200 90" fill="none" xmlns="http://www.w3.org/2000/svg" class="vehicle-illustration-svg">
+  "private-bus": `<svg width="100%" height="100%" viewBox="0 0 200 90" fill="none" xmlns="http://www.w3.org/2000/svg" class="vehicle-illustration-svg">
   <defs>
     <linearGradient id="busRed" x1="0" y1="20" x2="0" y2="72" gradientUnits="userSpaceOnUse">
       <stop offset="0%" stop-color="#dc2626"/>
@@ -376,7 +376,7 @@ window.VEHICLE_ILLUSTRATIONS = {
   </g>
 </svg>`,
 
-  "force-traveler": `<svg viewBox="0 0 200 90" fill="none" xmlns="http://www.w3.org/2000/svg" class="vehicle-illustration-svg">
+  "force-traveler": `<svg width="100%" height="100%" viewBox="0 0 200 90" fill="none" xmlns="http://www.w3.org/2000/svg" class="vehicle-illustration-svg">
   <defs>
     <linearGradient id="travellerBody" x1="0" y1="20" x2="0" y2="72" gradientUnits="userSpaceOnUse">
       <stop offset="0%" stop-color="#ffffff"/>
@@ -414,7 +414,7 @@ window.VEHICLE_ILLUSTRATIONS = {
   </g>
 </svg>`,
 
-  "taxi": `<svg viewBox="0 0 200 90" fill="none" xmlns="http://www.w3.org/2000/svg" class="vehicle-illustration-svg">
+  "taxi": `<svg width="100%" height="100%" viewBox="0 0 200 90" fill="none" xmlns="http://www.w3.org/2000/svg" class="vehicle-illustration-svg">
   <defs>
     <linearGradient id="taxiBody" x1="0" y1="32" x2="0" y2="72" gradientUnits="userSpaceOnUse">
       <stop offset="0%" stop-color="#ffffff"/>
@@ -453,7 +453,7 @@ window.VEHICLE_ILLUSTRATIONS = {
   </g>
 </svg>`,
 
-  "suv-taxi": `<svg viewBox="0 0 200 90" fill="none" xmlns="http://www.w3.org/2000/svg" class="vehicle-illustration-svg">
+  "suv-taxi": `<svg width="100%" height="100%" viewBox="0 0 200 90" fill="none" xmlns="http://www.w3.org/2000/svg" class="vehicle-illustration-svg">
   <defs>
     <linearGradient id="suvTitanium" x1="0" y1="28" x2="0" y2="72" gradientUnits="userSpaceOnUse">
       <stop offset="0%" stop-color="#475569"/>

@@ -1374,6 +1374,16 @@ function renderVehicleCards() {
         </div>
       `;
 
+    const illustrationHtml = isPhoto
+      ? `<img 
+          src="${primaryImg}" 
+          alt="${v.label}" 
+          class="vehicle-illustration-img" 
+          loading="lazy" 
+          onerror="this.outerHTML=window.getVehicleIllustrationSvg('${v.key}')" 
+        />`
+      : (window.getVehicleIllustrationSvg ? window.getVehicleIllustrationSvg(v.key) : `<img src="${primaryImg}" alt="${v.label}" class="vehicle-illustration-img" />`);
+
     card.innerHTML = `
       <div class="vehicle-illustration-showcase">
         <div class="showcase-top-left">
@@ -1382,13 +1392,7 @@ function renderVehicleCards() {
         <div class="showcase-top-right">
           ${fareBadge}
         </div>
-        <img 
-          src="${primaryImg}" 
-          alt="${v.label}" 
-          class="vehicle-illustration-img" 
-          loading="lazy" 
-          onerror="if (this.src.indexOf('.jpg') !== -1) { this.src='${fallbackSvg}'; } else { this.outerHTML=window.getVehicleIllustrationSvg('${v.key}'); }" 
-        />
+        ${illustrationHtml}
         <div class="showcase-bottom-left">
           <span class="hallmark-pill">${hallmarkText}</span>
         </div>
@@ -1606,15 +1610,18 @@ function calculateAndRender() {
     const assetVersion = window.location.protocol === "file:" ? "" : "?v=1.1.0";
     const isPhoto = ["shared-cab", "mini-bus", "auto"].includes(v.key);
     const primaryImg = isPhoto ? `images/vehicles/${v.key}.jpg${assetVersion}` : `images/vehicles/${v.key}.svg${assetVersion}`;
-    const fallbackSvg = `images/vehicles/${v.key}.svg${assetVersion}`;
-    heroVehiclePreview.innerHTML = `
-      <img 
-        src="${primaryImg}" 
-        alt="${v.label}" 
-        class="vehicle-illustration-img" 
-        onerror="if (this.src.indexOf('.jpg') !== -1) { this.src='${fallbackSvg}'; } else { this.outerHTML=window.getVehicleIllustrationSvg('${v.key}'); }" 
-      />
-    `;
+    if (isPhoto) {
+      heroVehiclePreview.innerHTML = `
+        <img 
+          src="${primaryImg}" 
+          alt="${v.label}" 
+          class="vehicle-illustration-img" 
+          onerror="this.outerHTML=window.getVehicleIllustrationSvg('${v.key}')" 
+        />
+      `;
+    } else {
+      heroVehiclePreview.innerHTML = window.getVehicleIllustrationSvg ? window.getVehicleIllustrationSvg(v.key) : `<img src="${primaryImg}" alt="${v.label}" class="vehicle-illustration-img" />`;
+    }
   }
 
   if (fareRouteSummary) {
