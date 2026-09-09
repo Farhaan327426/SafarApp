@@ -935,34 +935,6 @@
         });
       }
 
-      // 3. Web Speech API Speech-to-Text
-      const micBtn = document.getElementById("micBtn");
-      if (micBtn && ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
-        const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
-        const recognition = new SpeechRec();
-        recognition.lang = "en-IN";
-
-        micBtn.addEventListener("click", () => {
-          micBtn.textContent = "🔴";
-          try {
-            recognition.start();
-          } catch (e) {
-            console.warn(e);
-          }
-        });
-
-        recognition.onresult = (evt) => {
-          if (queryInput && evt.results && evt.results[0]) {
-            queryInput.value = evt.results[0][0].transcript;
-            micBtn.textContent = "🎙️";
-            if (checkBtn) checkBtn.click();
-          }
-        };
-
-        recognition.onerror = () => { micBtn.textContent = "🎙️"; };
-        recognition.onend = () => { micBtn.textContent = "🎙️"; };
-      }
-
       // Modal Close Handlers
       const closeDisputeModal = document.getElementById("closeDisputeModal");
       if (closeDisputeModal && disputeModal) {

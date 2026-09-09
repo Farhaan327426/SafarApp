@@ -2201,6 +2201,9 @@ function attachListeners() {
 
   // Modal triggers & Minimizer Tab
   const hideModal = () => {
+    if (window.SafarHelpAssistant && typeof window.SafarHelpAssistant.stopVoiceRecording === "function") {
+      window.SafarHelpAssistant.stopVoiceRecording(false);
+    }
     if (helpModal) {
       if (typeof window.safarCloseModal === "function") {
         window.safarCloseModal(helpModal);
