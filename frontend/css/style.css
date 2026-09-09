@@ -3542,6 +3542,104 @@ body.driver-low-power * {
   margin-top: 8px;
 }
 
+/* AI Legal Verdict Header Banner */
+.ai-verdict-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%);
+  border: 1.5px solid #86efac;
+  border-radius: var(--radius-md);
+  padding: 12px 16px;
+  margin-bottom: 16px;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+[data-theme="dark"] .ai-verdict-banner {
+  background: linear-gradient(135deg, #064e3b 0%, #065f46 100%);
+  border-color: #059669;
+}
+
+.ai-verdict-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.ai-bot-avatar {
+  font-size: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background: #ffffff;
+  border-radius: var(--radius-md);
+  border: 1px solid #86efac;
+  box-shadow: 0 2px 6px rgba(16, 185, 129, 0.15);
+}
+
+[data-theme="dark"] .ai-bot-avatar {
+  background: #022c22;
+  border-color: #059669;
+}
+
+.ai-verdict-title {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: #065f46;
+}
+
+[data-theme="dark"] .ai-verdict-title {
+  color: #6ee7b7;
+}
+
+.ai-verdict-sub {
+  font-size: 0.78rem;
+  color: #047857;
+  font-weight: 500;
+}
+
+[data-theme="dark"] .ai-verdict-sub {
+  color: #a7f3d0;
+}
+
+.ai-voice-speak-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #059669;
+  color: #ffffff;
+  border: none;
+  border-radius: 9999px;
+  padding: 8px 16px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 6px rgba(5, 150, 105, 0.25);
+  user-select: none;
+}
+
+.ai-voice-speak-btn:hover {
+  background: #047857;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(5, 150, 105, 0.35);
+}
+
+.ai-voice-speak-btn.speaking {
+  background: #dc2626 !important;
+  box-shadow: 0 0 0 4px rgba(220, 38, 38, 0.25);
+  animation: aiSpeakingPulse 1.2s infinite ease-in-out;
+}
+
+@keyframes aiSpeakingPulse {
+  0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.5); }
+  50% { transform: scale(1.03); box-shadow: 0 0 0 8px rgba(220, 38, 38, 0); }
+  100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(220, 38, 38, 0); }
+}
+
 .solution-header {
   border-bottom: 1px solid var(--color-border-subtle);
   padding-bottom: 14px;

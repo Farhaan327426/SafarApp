@@ -2201,8 +2201,13 @@ function attachListeners() {
 
   // Modal triggers & Minimizer Tab
   const hideModal = () => {
-    if (window.SafarHelpAssistant && typeof window.SafarHelpAssistant.stopVoiceRecording === "function") {
-      window.SafarHelpAssistant.stopVoiceRecording(false);
+    if (window.SafarHelpAssistant) {
+      if (typeof window.SafarHelpAssistant.stopVoiceRecording === "function") {
+        window.SafarHelpAssistant.stopVoiceRecording(false);
+      }
+      if (typeof window.SafarHelpAssistant.stopAiSpeech === "function") {
+        window.SafarHelpAssistant.stopAiSpeech();
+      }
     }
     if (helpModal) {
       if (typeof window.safarCloseModal === "function") {

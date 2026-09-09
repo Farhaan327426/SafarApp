@@ -562,8 +562,26 @@ Logged via Safar J&K Transit Portal.`;
       problem.suggestedAuthorities.includes(d.number) || problem.suggestedAuthorities.includes(d.display)
     );
 
+    const isSpeaking = isAiSpeakingVoice;
+
     return `
       <div class="ai-solution-box" id="ai-solution-box">
+        <!-- Safar AI Legal Verdict Header Banner -->
+        <div class="ai-verdict-banner">
+          <div class="ai-verdict-info">
+            <span class="ai-bot-avatar">🤖</span>
+            <div>
+              <div class="ai-verdict-title">Safar AI Legal Verdict</div>
+              <div class="ai-verdict-sub">Statutory Analysis &amp; Commuter Defense Plan</div>
+            </div>
+          </div>
+          <button type="button" id="ai-voice-speak-btn" class="ai-voice-speak-btn${isSpeaking ? ' speaking' : ''}" 
+                  title="${isSpeaking ? 'Stop voice readout' : 'Listen to AI answer aloud'}"
+                  aria-label="${isSpeaking ? 'Stop voice readout' : 'Listen to AI answer aloud'}">
+            <span>${isSpeaking ? '⏹️ Stop Voice' : '🔊 Speak Answer'}</span>
+          </button>
+        </div>
+
         <div class="solution-header">
           <div class="solution-badge-row">
             <span class="sol-badge red">⚖️ Legal Violation</span>
@@ -845,15 +863,105 @@ Logged via Safar J&K Transit Portal.`;
   }
 
   /* ─────────────────────────────────────────────────────────────────
-     VOICE PROBLEM ASSISTANT ("WHAT IS THE PROBLEM?")
+     VOICE PROBLEM ASSISTANT ("WHAT IS THE PROBLEM?") & SAFAR AI VOICE
   ───────────────────────────────────────────────────────────────── */
 
   let activeSpeechRec = null;
   let isListeningVoice = false;
+  let isAiSpeakingVoice = false;
   let voiceSilenceTimer = null;
   let voiceSafetyTimeout = null;
 
-  function executeProblemResolution(query) {
+  function getAiSpokenText(problem) {
+    if (!problem) return "";
+    return `Safar AI Legal Verdict: In case of ${problem.title}. Under ${problem.law}, the statutory penalty is ${problem.penalty}. Here is what to tell the driver: ${problem.scriptEnglish}`;
+  }
+
+  function updateAiVoiceBtnUI(isSpeaking) {
+    const btn = document.getElementById("ai-voice-speak-btn");
+    if (!btn) return;
+    if (isSpeaking) {
+      btn.classList.add("speaking");
+      btn.innerHTML = '<span>⏹️ Stop Voice</span>';
+      btn.setAttribute("title", "Stop voice readout");
+      btn.setAttribute("aria-label", "Stop voice readout");
+    } else {
+      btn.classList.remove("speaking");
+      btn.innerHTML = '<span>🔊 Speak Answer</span>';
+      btn.setAttribute("title", "Listen to AI answer aloud");
+      btn.setAttribute("aria-label", "Listen to AI answer aloud");
+    }
+  }
+
+  function speakAiUtterance(text) {
+    if (typeof window === 'undefined' || !window.speechSynthesis) return;
+    try {
+      window.speechSynthesis.cancel();
+      if (!text) {
+        isAiSpeakingVoice = false;
+        updateAiVoiceBtnUI(false);
+        return;
+      }
+      const utter = new SpeechSynthesisUtterance(text);
+      utter.rate = 0.95;
+      utter.pitch = 1.0;
+      utter.lang = 'en-IN';
+
+      const voices = window.speechSynthesis.getVoices ? window.speechSynthesis.getVoices() : [];
+      const englishVoice = voices.find(v => v.lang && (v.lang.includes('en-IN') || v.lang.includes('en_IN'))) ||
+                           voices.find(v => v.lang && v.lang.startsWith('en'));
+      if (englishVoice) {
+        utter.voice = englishVoice;
+      }
+
+      utter.onstart = () => {
+        isAiSpeakingVoice = true;
+        updateAiVoiceBtnUI(true);
+        updateVoiceStatus("🔊 Safar AI is reading out your legal verdict...", "info", true);
+      };
+
+      utter.onend = () => {
+        isAiSpeakingVoice = false;
+        updateAiVoiceBtnUI(false);
+        updateVoiceStatus("", "info", false);
+      };
+
+      utter.onerror = (e) => {
+        console.warn("[SpeechSynthesis Error]", e);
+        isAiSpeakingVoice = false;
+        updateAiVoiceBtnUI(false);
+      };
+
+      window.speechSynthesis.speak(utter);
+    } catch (e) {
+      console.warn("[SpeechSynthesis Exception]", e);
+      isAiSpeakingVoice = false;
+      updateAiVoiceBtnUI(false);
+    }
+  }
+
+  function stopAiSpeech() {
+    if (typeof window !== 'undefined' && window.speechSynthesis) {
+      try {
+        window.speechSynthesis.cancel();
+      } catch (_) {}
+    }
+    isAiSpeakingVoice = false;
+    updateAiVoiceBtnUI(false);
+  }
+
+  function toggleAiVoiceSpeech() {
+    if (isAiSpeakingVoice) {
+      stopAiSpeech();
+      updateVoiceStatus("⏹️ Voice readout stopped.", "info", false);
+    } else {
+      if (!state.selectedProblem) return;
+      const text = getAiSpokenText(state.selectedProblem);
+      speakAiUtterance(text);
+    }
+  }
+
+  function executeProblemResolution(query, autoSpeak = false) {
     if (!query || !query.trim()) return;
     const clean = query.trim();
     state.customQuery = clean;
@@ -862,6 +970,12 @@ Logged via Safar J&K Transit Portal.`;
     const solBox = document.getElementById('ai-solution-render');
     if (solBox) {
       solBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+    if (autoSpeak && state.selectedProblem) {
+      const textToSpeak = getAiSpokenText(state.selectedProblem);
+      setTimeout(() => {
+        speakAiUtterance(textToSpeak);
+      }, 350);
     }
   }
 
@@ -888,7 +1002,7 @@ Logged via Safar J&K Transit Portal.`;
     if (isListening) {
       micBtn.classList.add("recording");
       micBtn.innerHTML = '<span class="mic-stop-icon">⏹️</span>';
-      micBtn.setAttribute("title", "Listening... Tap to Stop & Solve Problem");
+      micBtn.setAttribute("title", "Listening... Tap to Stop & Answer");
       micBtn.setAttribute("aria-label", "Stop Voice Recording");
     } else {
       micBtn.classList.remove("recording");
@@ -919,12 +1033,12 @@ Logged via Safar J&K Transit Portal.`;
 
     const input = document.getElementById("help-custom-input");
     if (triggerSubmit && input && input.value.trim()) {
-      updateVoiceStatus(`✅ Analyzing: "${input.value.trim()}"...`, "success", false);
-      executeProblemResolution(input.value.trim());
+      updateVoiceStatus(`✅ Analyzing problem: "${input.value.trim()}"...`, "success", false);
+      executeProblemResolution(input.value.trim(), true);
     }
   }
 
-  function toggleVoiceRecording() {
+  async function toggleVoiceRecording() {
     const micBtn = document.getElementById("micBtn");
     const input = document.getElementById("help-custom-input");
     const sheet = document.getElementById("voiceProblemModal");
@@ -933,6 +1047,34 @@ Logged via Safar J&K Transit Portal.`;
     if (isListeningVoice) {
       stopVoiceRecording(true);
       return;
+    }
+
+    // Stop any ongoing speech
+    stopAiSpeech();
+
+    // 1. Explicitly prompt for & verify microphone permission
+    if (typeof navigator !== 'undefined' && navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+      try {
+        updateVoiceStatus("🔒 Requesting microphone permission from browser...", "info", true);
+        const micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        // Permission granted: stop temporary tracks so SpeechRecognition can acquire hardware mic
+        if (micStream && micStream.getTracks) {
+          micStream.getTracks().forEach(track => track.stop());
+        }
+      } catch (permErr) {
+        console.warn("[Microphone Permission Denied/Unavailable]", permErr);
+        setMicBtnState(false);
+        if (sheet) {
+          sheet.classList.remove("hidden");
+          sheet.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+        if (permErr.name === 'NotAllowedError' || permErr.name === 'PermissionDeniedError') {
+          updateVoiceStatus("⚠️ Microphone permission denied. Please allow microphone access or choose your problem below:", "warning", false);
+        } else {
+          updateVoiceStatus("⚠️ Microphone not accessible. Please tap your problem below or type:", "warning", false);
+        }
+        return;
+      }
     }
 
     const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -948,7 +1090,7 @@ Logged via Safar J&K Transit Portal.`;
 
         isListeningVoice = true;
         setMicBtnState(true);
-        updateVoiceStatus("🔴 Listening... Tell me: What is the problem?", "listening", true);
+        updateVoiceStatus("🎙️ Microphone active! Listening... Tell me: What is the problem?", "listening", true);
         if (sheet) sheet.classList.remove("hidden");
 
         // 14-second automatic safety fallback
@@ -968,6 +1110,7 @@ Logged via Safar J&K Transit Portal.`;
           isListeningVoice = true;
           setMicBtnState(true);
           if (sheet) sheet.classList.remove("hidden");
+          updateVoiceStatus("🎙️ Microphone active! Listening... Tell me: What is the problem?", "listening", true);
         };
 
         recognition.onresult = (evt) => {
@@ -1009,7 +1152,7 @@ Logged via Safar J&K Transit Portal.`;
           if (evt.error === "not-allowed" || evt.error === "service-not-allowed") {
             updateVoiceStatus("⚠️ Microphone permission needed. Select your issue below or type.", "warning", false);
           } else if (evt.error === "network") {
-            updateVoiceStatus("⚠️ Speech service requires web server. Tap your problem below or type.", "warning", false);
+            updateVoiceStatus("⚠️ Speech service requires web server. Tap your problem below or type:", "warning", false);
           } else {
             updateVoiceStatus("🎙️ What is the problem? Choose or speak your issue below:", "info", false);
           }
@@ -1053,6 +1196,7 @@ Logged via Safar J&K Transit Portal.`;
     const switcher = e.target.closest('.help-switcher-btn');
     if (switcher) {
       stopVoiceRecording(false);
+      stopAiSpeech();
       state.activeTab = switcher.dataset.tab;
       renderHelpModal();
       return;
@@ -1075,6 +1219,12 @@ Logged via Safar J&K Transit Portal.`;
       return;
     }
 
+    // AI voice speak button toggle
+    if (e.target.closest('#ai-voice-speak-btn')) {
+      toggleAiVoiceSpeech();
+      return;
+    }
+
     // Close voice sheet button
     if (e.target.closest('#closeVoiceSheetBtn')) {
       const sheet = document.getElementById('voiceProblemModal');
@@ -1088,7 +1238,7 @@ Logged via Safar J&K Transit Portal.`;
       const probId = probChip.dataset.probId;
       const prob = PROBLEMS.find(p => p.id === probId);
       if (prob) {
-        executeProblemResolution(prob.title);
+        executeProblemResolution(prob.title, true);
       }
       return;
     }
@@ -1250,7 +1400,10 @@ Logged via Safar J&K Transit Portal.`;
     renderHelpModal,
     evaluateCustomProblem,
     stopVoiceRecording,
-    toggleVoiceRecording
+    toggleVoiceRecording,
+    speakAiUtterance,
+    stopAiSpeech,
+    toggleAiVoiceSpeech
   };
 })();
 
