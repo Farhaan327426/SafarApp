@@ -857,6 +857,82 @@ function renderDatalist() {
   });
 }
 
+// Route profile & zone detection helper for main UI
+function getRouteProfileMain(fromStr, toStr) {
+  const f = (fromStr || "").toLowerCase().trim();
+  const t = (toStr || "").toLowerCase().trim();
+  if (!f || !t) return null;
+
+  const isJammuLoc = (str) => {
+    return [
+      "jammu", "katra", "reasi", "udhampur", "patnitop", "sanasar", "chenani",
+      "batote", "banihal", "ramban", "doda", "bhaderwah", "kishtwar", "rajouri",
+      "poonch", "surankote", "mendhar", "bafliaz", "akhnoor", "sunderbani",
+      "gandhi nagar", "janipur", "narwal", "bikram chowk", "satwari", "bantalab",
+      "rs pura", "kathua", "samba", "hiranagar", "billawar", "basohli"
+    ].some((k) => str.includes(k));
+  };
+
+  const isKashmirLoc = (str) => {
+    return [
+      "srinagar", "lal chowk", "dal lake", "hazratbal", "batamaloo", "parimpora",
+      "pantha chowk", "soura", "nowhatta", "dalgate", "trc", "shalteng", "qamarwari",
+      "tengpora", "sanat nagar", "rawalpore", "chanapora", "nigeen", "rainawari",
+      "gulmarg", "tangmarg", "pahalgam", "sonmarg", "doodhpathri", "yusmarg",
+      "aharbal", "gurez", "kokernag", "verinag", "daksum", "anantnag", "bijbehara",
+      "awantipora", "pampore", "pulwama", "tral", "shopian", "kulgam", "qazigund",
+      "budgam", "chadoora", "magam", "beerwah", "khansahib", "ganderbal", "kangan",
+      "baramulla", "sopore", "pattan", "uri", "bandipora", "kupwara", "handwara",
+      "langate", "karnah", "charar-e-sharief"
+    ].some((k) => str.includes(k));
+  };
+
+  const isSrinagarCore = (str) => {
+    return [
+      "srinagar", "lal chowk", "dal lake", "hazratbal", "batamaloo", "parimpora",
+      "pantha chowk", "soura", "nowhatta", "dalgate", "trc", "qamarwari", "sanat nagar",
+      "chanapora", "nigeen", "rainawari", "hyderpora", "rambagh", "humhama"
+    ].some((k) => str.includes(k));
+  };
+
+  const isJammuCore = (str) => {
+    return [
+      "jammu", "gandhi nagar", "janipur", "narwal", "bikram chowk", "satwari",
+      "bantalab", "canal road", "jewel chowk", "talab tillo"
+    ].some((k) => str.includes(k));
+  };
+
+  const fromJammu = isJammuLoc(f);
+  const toJammu = isJammuLoc(t);
+  const fromKashmir = isKashmirLoc(f);
+  const toKashmir = isKashmirLoc(t);
+
+  let region = "kashmir";
+  if ((fromJammu && toKashmir) || (fromKashmir && toJammu)) {
+    region = "both";
+  } else if (fromJammu || toJammu) {
+    region = "jammu";
+  }
+
+  const isIntercity =
+    region === "both" ||
+    (isJammuCore(f) && (t.includes("katra") || t.includes("udhampur") || t.includes("rajouri") || t.includes("doda") || t.includes("kathua") || t.includes("samba"))) ||
+    (isJammuCore(t) && (f.includes("katra") || f.includes("udhampur") || f.includes("rajouri") || f.includes("doda") || f.includes("kathua") || f.includes("samba"))) ||
+    (isSrinagarCore(f) && (t.includes("baramulla") || t.includes("sopore") || t.includes("anantnag") || t.includes("pahalgam") || t.includes("gulmarg") || t.includes("kupwara") || t.includes("gurez") || t.includes("sonmarg") || t.includes("shopian") || t.includes("kulgam") || t.includes("pulwama"))) ||
+    (isSrinagarCore(t) && (f.includes("baramulla") || f.includes("sopore") || f.includes("anantnag") || f.includes("pahalgam") || f.includes("gulmarg") || f.includes("kupwara") || f.includes("gurez") || f.includes("sonmarg") || f.includes("shopian") || f.includes("kulgam") || f.includes("pulwama")));
+
+  return {
+    region,
+    isIntercity,
+    fromJammu,
+    toJammu,
+    fromKashmir,
+    toKashmir,
+    isSrinagarCore: isSrinagarCore(f) && isSrinagarCore(t),
+    isJammuCore: isJammuCore(f) && isJammuCore(t)
+  };
+}
+
 // Vehicle Operational Distance & Corridor Viability Matrix
 function getVehicleRouteViability(vehicleKey, km, from = "", to = "") {
   const dist = Number(km) || 0;
@@ -870,6 +946,8 @@ function getVehicleRouteViability(vehicleKey, km, from = "", to = "") {
     };
   }
 
+  const profile = from && to ? getRouteProfileMain(from, to) : null;
+
   switch (vehicleKey) {
     case "e-rickshaw":
       if (dist > 10) {
@@ -878,6 +956,16 @@ function getVehicleRouteViability(vehicleKey, km, from = "", to = "") {
           maxKm: 10,
           vehicleName: "E-Rickshaw (Toto / Cart)",
           reason: `E-Rickshaws operate exclusively on short municipal feeder hops (up to 10 km). They cannot run on long-distance or inter-district highway corridors (${dist} km).`,
+          alternativeKey: "shared-cab",
+          alternativeName: "Shared Maxi-Cab (Sumo/Bolero)",
+        };
+      }
+      if (profile && profile.isIntercity) {
+        return {
+          isViable: false,
+          maxKm: 10,
+          vehicleName: "E-Rickshaw (Toto / Cart)",
+          reason: `E-Rickshaws operate strictly within local municipal limits and cannot ply on inter-district highway corridors (${dist} km).`,
           alternativeKey: "shared-cab",
           alternativeName: "Shared Maxi-Cab (Sumo/Bolero)",
         };
@@ -895,6 +983,16 @@ function getVehicleRouteViability(vehicleKey, km, from = "", to = "") {
           alternativeName: "Shared Maxi-Cab (Sumo/Bolero)",
         };
       }
+      if (profile && profile.isIntercity) {
+        return {
+          isViable: false,
+          maxKm: 15,
+          vehicleName: "E-Auto (Smart Metered)",
+          reason: `E-Autos operate strictly within urban municipal limits and do not service inter-district highway routes (${dist} km).`,
+          alternativeKey: "shared-cab",
+          alternativeName: "Shared Maxi-Cab (Sumo/Bolero)",
+        };
+      }
       break;
 
     case "auto":
@@ -908,15 +1006,35 @@ function getVehicleRouteViability(vehicleKey, km, from = "", to = "") {
           alternativeName: "Shared Maxi-Cab or Sedan Taxi",
         };
       }
+      if (profile && profile.isIntercity) {
+        return {
+          isViable: false,
+          maxKm: 25,
+          vehicleName: "Auto-Rickshaw (Petrol/CNG)",
+          reason: `Auto-Rickshaws operate strictly within municipal limits and do not service inter-district highway corridors (${dist} km).`,
+          alternativeKey: "shared-cab",
+          alternativeName: "Shared Maxi-Cab or Sedan Taxi",
+        };
+      }
       break;
 
     case "vikram-tempo":
-      if (dist > 20) {
+      if (profile && (profile.region === "kashmir" || profile.fromKashmir || profile.toKashmir)) {
+        return {
+          isViable: false,
+          maxKm: 20,
+          vehicleName: "Vikram Tempo (Jammu City)",
+          reason: "Vikram Tempos operate exclusively in Jammu City and are not operational in Kashmir Division.",
+          alternativeKey: "mini-bus",
+          alternativeName: "Mini Bus (Matador) or Shared Cab",
+        };
+      }
+      if (dist > 20 || (profile && profile.isIntercity)) {
         return {
           isViable: false,
           maxKm: 20,
           vehicleName: "Vikram / Safa Tempo",
-          reason: `Vikram Tempos run on designated short urban corridors in Jammu (up to 20 km) and cannot ply long-distance routes (${dist} km).`,
+          reason: `Vikram Tempos run on designated short urban corridors in Jammu (up to 20 km) and cannot ply on inter-district or long-distance routes (${dist} km).`,
           alternativeKey: "mini-bus",
           alternativeName: "Mini Bus (Matador) or Shared Cab",
         };
@@ -929,9 +1047,19 @@ function getVehicleRouteViability(vehicleKey, km, from = "", to = "") {
           isViable: false,
           maxKm: 35,
           vehicleName: "Tata Magic / Feeder 4-Wheeler",
-          reason: `Tata Magic / Feeder vans operate on short rural-urban feeder stages (up to 35 km) and do not operate across long-distance highways (${dist} km).`,
+          reason: `Tata Magic feeder vans operate on short rural-urban feeder stages (up to 35 km) and do not operate across long-distance highways (${dist} km).`,
           alternativeKey: "mini-bus",
           alternativeName: "Mini Bus (Matador) or Shared Cab",
+        };
+      }
+      if (profile && profile.isSrinagarCore) {
+        return {
+          isViable: false,
+          maxKm: 35,
+          vehicleName: "Tata Magic / Feeder 4-Wheeler",
+          reason: "Tata Magic feeder vans are prohibited on Srinagar core municipal routes (serviced by Matadors, E-Autos and Smart City buses).",
+          alternativeKey: "mini-bus",
+          alternativeName: "Mini Bus (Matador)",
         };
       }
       break;
@@ -945,6 +1073,16 @@ function getVehicleRouteViability(vehicleKey, km, from = "", to = "") {
           reason: `Matadors / Mini Buses operate on intra-district stage routes (up to 70 km). Long-distance inter-district transit (${dist} km) is serviced by 2+2 Big Buses or Shared Maxi-Cabs.`,
           alternativeKey: "private-bus",
           alternativeName: "Private 2+2 Big Bus or Shared Cab",
+        };
+      }
+      if (profile && profile.region === "both") {
+        return {
+          isViable: false,
+          maxKm: 70,
+          vehicleName: "Mini Bus / Matador (407)",
+          reason: `Matadors and Mini-Buses do not operate across the inter-divisional Jammu–Srinagar highway corridor (${dist} km). Commuters use 2+2 Big Buses or Shared Maxi-Cabs.`,
+          alternativeKey: "shared-cab",
+          alternativeName: "Shared Maxi-Cab (Sumo/Bolero)",
         };
       }
       break;
@@ -1046,7 +1184,7 @@ function renderContextAlerts() {
       <div style="background: #fff2f2; border: 1px solid #fca5a5; color: #991b1b; padding: 12px 14px; border-radius: 14px; margin-bottom: 10px; font-size: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
         <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
           <strong>⚠️ Route Not Serviced by ${chosenVeh.label}</strong>
-          <span style="font-size: 10px; font-weight: 800; background: #fee2e2; color: #b91c1c; padding: 2px 8px; border-radius: 9999px; border: 1px solid #f87171;">Fare Not Available</span>
+          <span style="font-size: 10px; font-weight: 800; background: #fee2e2; color: #b91c1c; padding: 2px 8px; border-radius: 9999px; border: 1px solid #f87171;">No Fare Available</span>
         </div>
         <p style="margin: 4px 0 0; color: #7f1d1d; font-size: 11px; line-height: 1.4;">${viability.reason} For <strong>${currentFrom} ➔ ${currentTo}</strong> (${km} km), commuters use <strong>${viability.alternativeName}</strong>.</p>
         <button id="switch-viable-vehicle-btn" style="margin-top: 8px; background: #dc2626; color: #ffffff; border: none; padding: 5px 10px; border-radius: 8px; font-size: 11px; font-weight: 700; cursor: pointer;">
@@ -1138,7 +1276,7 @@ function renderVehicleCards() {
     const isSelected = v.key === currentVehicleKey;
     const cardViability = getVehicleRouteViability(v.key, currentDistance, currentFrom, currentTo);
     const card = document.createElement("button");
-    card.className = `vehicle-card ${isSelected ? "selected" : ""}`;
+    card.className = `vehicle-card ${isSelected ? "selected" : ""} ${hasRoute && !cardViability.isViable ? "unavailable-on-route" : ""}`;
     
     let cardFare = 0;
     if (cardViability.isViable) {
@@ -1210,7 +1348,7 @@ function renderVehicleCards() {
     }
 
     const fareBadge = hasRoute && !cardViability.isViable
-      ? `<span style="font-weight: 700; font-size: 10px; background: #fee2e2; color: #b91c1c; padding: 2px 6px; border-radius: 6px; border: 1px solid #fca5a5;">Not Available</span>`
+      ? `<span style="font-weight: 800; font-size: 10px; background: #fee2e2; color: #b91c1c; padding: 2px 7px; border-radius: 6px; border: 1px solid #fca5a5; letter-spacing: 0.2px;">No Fare Available</span>`
       : hasRoute && cardFare > 0
       ? `<span style="font-weight: 800; font-size: 11px; background: #eef4ed; color: #234b4c; padding: 2px 7px; border-radius: 6px; border: 1px solid #d2e4d4;">₹ ${cardFare}</span>`
       : `<span style="font-weight: 700; font-size: 10px; background: #edf3eb; color: #557b72; padding: 2px 6px; border-radius: 6px;">${v.calcType === "urban-stage" ? "₹8-₹18" : v.calcType === "stage-slab" ? "₹9-₹26" : `₹${v.perKm}/km`}</span>`;
@@ -1220,6 +1358,20 @@ function renderVehicleCards() {
     const hallmarkText = visualMeta?.name || v.label;
 
     const assetVersion = window.location.protocol === "file:" ? "" : "?v=1.1.0";
+    const footerHtml = hasRoute && !cardViability.isViable
+      ? `
+        <div class="vehicle-card-footer" style="background: #fff5f5; border-top: 1px solid #fed7d7;">
+          <span style="color: #991b1b; font-size: 10px; font-weight: 600;">Not Serviced</span>
+          <strong style="color: #b91c1c; font-size: 10.5px; font-weight: 800;">No Fare Available</strong>
+        </div>
+      `
+      : `
+        <div class="vehicle-card-footer">
+          <span>${footerBaseText}</span>
+          <strong>${footerRateText}</strong>
+        </div>
+      `;
+
     card.innerHTML = `
       <div class="vehicle-card-header">
         <span class="vehicle-badge">${v.badge}</span>
@@ -1235,15 +1387,16 @@ function renderVehicleCards() {
         </div>
         <p>${v.sublabel}</p>
       </div>
-      <div class="vehicle-card-footer">
-        <span>${footerBaseText}</span>
-        <strong>${footerRateText}</strong>
-      </div>
+      ${footerHtml}
     `;
     card.addEventListener("click", () => {
       currentVehicleKey = v.key;
       calculateAndRender();
-      showToast(`Selected ${v.label}`);
+      if (hasRoute && !cardViability.isViable) {
+        showToast(`No fare available for ${v.label} on this route`);
+      } else {
+        showToast(`Selected ${v.label}`);
+      }
     });
     vehicleCardsContainer.appendChild(card);
   });
@@ -1414,7 +1567,7 @@ function calculateAndRender() {
         break;
     }
   } else if (!viability.isViable) {
-    formulaDesc = `Route not serviced (Exceeds ${viability.maxKm} km operational range)`;
+    formulaDesc = `No Fare Available — Route not serviced by ${v.label}`;
   } else {
     formulaDesc = `Official rate: ₹${v.perKm}/km`;
   }
@@ -1454,8 +1607,10 @@ function calculateAndRender() {
   if (displayPriceVal) {
     if (!hasRoute) {
       displayPriceVal.textContent = "₹ —";
+      displayPriceVal.style.fontSize = "";
+      displayPriceVal.style.color = "";
     } else if (!viability.isViable) {
-      displayPriceVal.textContent = "Fare Not Available";
+      displayPriceVal.textContent = "No Fare Available";
       displayPriceVal.style.fontSize = "24px";
       displayPriceVal.style.color = "#ffcaca";
     } else {
@@ -1471,7 +1626,7 @@ function calculateAndRender() {
     if (!hasRoute) {
       displayPriceBasis.textContent = "(Choose route to calculate)";
     } else if (!viability.isViable) {
-      displayPriceBasis.textContent = `(${v.label} does not operate on ${km} km route)`;
+      displayPriceBasis.textContent = `(No Fare Available — ${v.label} does not service this route)`;
     } else if (!v.isPerSeat) {
       displayPriceBasis.textContent = `(Entire ${v.label})`;
     } else if (currentPriceMode === "full-cab") {
@@ -1483,13 +1638,35 @@ function calculateAndRender() {
 
   const mathVehicleName = document.getElementById("math-vehicle-name");
   if (mathVehicleName) mathVehicleName.textContent = v.label;
-  if (mathDistanceLabel) mathDistanceLabel.textContent = formulaDesc;
-  if (mathDistanceCost) mathDistanceCost.textContent = hasRoute && km > 0 ? `${km} KM` : "—";
+  if (mathDistanceLabel) {
+    mathDistanceLabel.textContent = !viability.isViable && hasRoute
+      ? `Route not serviced by ${v.label}`
+      : formulaDesc;
+  }
+  if (mathDistanceCost) {
+    if (!hasRoute) {
+      mathDistanceCost.textContent = "—";
+      mathDistanceCost.style.color = "";
+    } else if (!viability.isViable) {
+      mathDistanceCost.textContent = "No Fare Available";
+      mathDistanceCost.style.color = "#b91c1c";
+    } else {
+      mathDistanceCost.textContent = `${km} KM`;
+      mathDistanceCost.style.color = "";
+    }
+  }
+  if (mathBaseFare) {
+    mathBaseFare.textContent = !viability.isViable && hasRoute ? "—" : (base > 0 ? formatRupees(base) : "—");
+  }
+  if (mathAdjustment) {
+    mathAdjustment.textContent = !viability.isViable && hasRoute ? "—" : (adj > 0 ? formatRupees(adj) : "—");
+  }
   if (mathTotalFare) {
     if (!hasRoute) {
       mathTotalFare.textContent = "₹ —";
+      mathTotalFare.style.color = "";
     } else if (!viability.isViable) {
-      mathTotalFare.textContent = "Fare Not Available";
+      mathTotalFare.textContent = "No Fare Available";
       mathTotalFare.style.color = "#b91c1c";
     } else {
       mathTotalFare.textContent = formatRupees(finalFare);

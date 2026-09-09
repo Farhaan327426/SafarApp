@@ -522,6 +522,13 @@ export function getVehicleRouteViability(vehicleKey, km, from = "", to = "") {
     };
   }
 
+  let profile = null;
+  if (from && to) {
+    try {
+      profile = resolveRouteProfile(from, to);
+    } catch (e) {}
+  }
+
   switch (vehicleKey) {
     case "e-rickshaw":
       if (dist > 10) {
@@ -530,6 +537,16 @@ export function getVehicleRouteViability(vehicleKey, km, from = "", to = "") {
           maxKm: 10,
           vehicleName: "E-Rickshaw (Toto / Cart)",
           reason: `E-Rickshaws operate exclusively on short municipal feeder hops (up to 10 km). They cannot run on long-distance or inter-district highway corridors (${dist} km).`,
+          alternativeKey: "shared-cab",
+          alternativeName: "Shared Maxi-Cab (Sumo/Bolero)",
+        };
+      }
+      if (profile && profile.routeType === "intercity") {
+        return {
+          isViable: false,
+          maxKm: 10,
+          vehicleName: "E-Rickshaw (Toto / Cart)",
+          reason: `E-Rickshaws operate strictly within local municipal limits and cannot ply on inter-district highway corridors (${dist} km).`,
           alternativeKey: "shared-cab",
           alternativeName: "Shared Maxi-Cab (Sumo/Bolero)",
         };
@@ -547,6 +564,16 @@ export function getVehicleRouteViability(vehicleKey, km, from = "", to = "") {
           alternativeName: "Shared Maxi-Cab (Sumo/Bolero)",
         };
       }
+      if (profile && profile.routeType === "intercity") {
+        return {
+          isViable: false,
+          maxKm: 15,
+          vehicleName: "E-Auto (Smart Metered)",
+          reason: `E-Autos operate strictly within urban municipal limits and do not service inter-district highway routes (${dist} km).`,
+          alternativeKey: "shared-cab",
+          alternativeName: "Shared Maxi-Cab (Sumo/Bolero)",
+        };
+      }
       break;
 
     case "auto":
@@ -560,17 +587,60 @@ export function getVehicleRouteViability(vehicleKey, km, from = "", to = "") {
           alternativeName: "Shared Maxi-Cab or Sedan Taxi",
         };
       }
+      if (profile && profile.routeType === "intercity") {
+        return {
+          isViable: false,
+          maxKm: 25,
+          vehicleName: "Auto-Rickshaw (Petrol/CNG)",
+          reason: `Auto-Rickshaws operate strictly within municipal limits and do not service inter-district highway corridors (${dist} km).`,
+          alternativeKey: "shared-cab",
+          alternativeName: "Shared Maxi-Cab or Sedan Taxi",
+        };
+      }
       break;
 
     case "vikram-tempo":
-      if (dist > 20) {
+      if (profile && (profile.region === "kashmir" || (profile.districts && !profile.districts.includes("jammu")))) {
+        return {
+          isViable: false,
+          maxKm: 20,
+          vehicleName: "Vikram Tempo (Jammu City)",
+          reason: "Vikram Tempos operate exclusively in Jammu City and are not operational in Kashmir Division or outside Jammu district.",
+          alternativeKey: "mini-bus",
+          alternativeName: "Mini Bus (Matador) or Shared Cab",
+        };
+      }
+      if (dist > 20 || (profile && profile.routeType === "intercity")) {
         return {
           isViable: false,
           maxKm: 20,
           vehicleName: "Vikram Tempo (Jammu City)",
           reason: `Vikram Tempos run on designated short urban corridors in Jammu (up to 20 km) and cannot ply on inter-district mountain routes (${dist} km).`,
-          alternativeKey: "shared-cab",
-          alternativeName: "Shared Maxi-Cab (Sumo/Bolero)",
+          alternativeKey: "mini-bus",
+          alternativeName: "Mini Bus (Matador) or Shared Cab",
+        };
+      }
+      break;
+
+    case "tata-magic":
+      if (dist > 35) {
+        return {
+          isViable: false,
+          maxKm: 35,
+          vehicleName: "Tata Magic / Feeder 4-Wheeler",
+          reason: `Tata Magic feeder vans operate on short rural-urban feeder stages (up to 35 km) and do not operate across long-distance highways (${dist} km).`,
+          alternativeKey: "mini-bus",
+          alternativeName: "Mini Bus (Matador) or Shared Cab",
+        };
+      }
+      if (profile && profile.routeType === "intracity" && profile.districts && profile.districts.includes("srinagar")) {
+        return {
+          isViable: false,
+          maxKm: 35,
+          vehicleName: "Tata Magic / Feeder 4-Wheeler",
+          reason: "Tata Magic feeder vans are not permitted on Srinagar core municipal routes (serviced by Matadors, E-Autos and Smart City buses).",
+          alternativeKey: "mini-bus",
+          alternativeName: "Mini Bus (Matador)",
         };
       }
       break;
@@ -584,6 +654,16 @@ export function getVehicleRouteViability(vehicleKey, km, from = "", to = "") {
           reason: `Matadors and Mini-Buses operate on sub-district stage routes (up to 70 km). For journeys exceeding 70 km (${dist} km), use 2+2 Big Buses or Shared Maxi-Cabs.`,
           alternativeKey: "bus-2x2",
           alternativeName: "Private 2+2 Big Bus or Shared Cab",
+        };
+      }
+      if (profile && profile.region === "both") {
+        return {
+          isViable: false,
+          maxKm: 70,
+          vehicleName: "Matador (Mini-Bus)",
+          reason: `Matadors and Mini-Buses do not operate across the inter-divisional Jammu–Srinagar highway corridor (${dist} km). Commuters use 2+2 Big Buses or Shared Maxi-Cabs.`,
+          alternativeKey: "shared-cab",
+          alternativeName: "Shared Maxi-Cab (Sumo/Bolero)",
         };
       }
       break;

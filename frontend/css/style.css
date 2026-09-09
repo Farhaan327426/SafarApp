@@ -1075,6 +1075,23 @@ body {
   box-shadow: 0 4px 14px rgba(35, 75, 76, 0.08);
 }
 
+.vehicle-card.unavailable-on-route {
+  background: #fdfaf8;
+  border-color: #ebdcd5;
+  opacity: 0.92;
+}
+
+.vehicle-card.unavailable-on-route:hover {
+  border-color: #fca5a5;
+  background: #fff8f8;
+}
+
+.vehicle-card.unavailable-on-route.selected {
+  background: #fff1f1;
+  border-color: #dc2626;
+  box-shadow: 0 4px 14px rgba(220, 38, 38, 0.08);
+}
+
 .vehicle-card-top {
   display: flex;
   align-items: flex-start;

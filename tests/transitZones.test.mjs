@@ -4,6 +4,7 @@ import {
   VEHICLE_OPERATIONAL_ZONES,
   resolveRouteProfile,
   filterEligibleVehicles,
+  getVehicleRouteViability,
 } from "../src/data/transitZones.js";
 
 // Mock vehicle catalog matching vehicleOptions structure
@@ -160,5 +161,39 @@ describe("SAFAR Statutory Vehicle Operational Zones & Corridor Profiles", () => 
     assert.ok(!eligible.includes("auto"), "Auto Rickshaw must be excluded from cross-division highway");
     assert.ok(!eligible.includes("e-auto"), "E-Auto must be excluded from cross-division highway");
     assert.ok(!eligible.includes("e-rickshaw"), "E-Rickshaw must be excluded from cross-division highway");
+  });
+
+  test("Vehicle Operational Viability on Specific Routes (No Fare Available)", () => {
+    // 1. Vikram Tempo in Kashmir (Lal Chowk -> Dal Lake) must NOT be viable
+    const vikramKashmir = getVehicleRouteViability("vikram-tempo", 4, "Lal Chowk", "Dal Lake (Dalgate)");
+    assert.equal(vikramKashmir.isViable, false, "Vikram Tempo must not be viable in Kashmir Division");
+    assert.ok(vikramKashmir.reason.includes("Jammu City"), "Reason must mention Jammu City exclusivity");
+
+    // 2. Vikram Tempo in Jammu Intracity (4 km) must be viable
+    const vikramJammu = getVehicleRouteViability("vikram-tempo", 4, "Jammu Tawi Station", "Gandhi Nagar (Jammu)");
+    assert.equal(vikramJammu.isViable, true, "Vikram Tempo must be viable in Jammu intracity");
+
+    // 3. E-Rickshaw on 12 km or Intercity Route must NOT be viable
+    const eRickshawLong = getVehicleRouteViability("e-rickshaw", 12, "Lal Chowk", "Srinagar Airport");
+    assert.equal(eRickshawLong.isViable, false, "E-Rickshaw must not be viable beyond 10km");
+
+    const eRickshawIntercity = getVehicleRouteViability("e-rickshaw", 8, "Srinagar", "Budgam");
+    assert.equal(eRickshawIntercity.isViable, false, "E-Rickshaw must not be viable on intercity corridor");
+
+    // 4. Auto Rickshaw on Intercity Route (Srinagar -> Baramulla, 54km) must NOT be viable
+    const autoIntercity = getVehicleRouteViability("auto", 54, "Srinagar", "Baramulla");
+    assert.equal(autoIntercity.isViable, false, "Auto Rickshaw must not be viable on intercity highway corridor");
+
+    // 5. Tata Magic in Srinagar municipal core must NOT be viable
+    const tataMagicCore = getVehicleRouteViability("tata-magic", 4, "Lal Chowk", "Dal Lake (Dalgate)");
+    assert.equal(tataMagicCore.isViable, false, "Tata Magic must not be viable in Srinagar core municipal routes");
+
+    // 6. Mini Bus on Cross-Division Route (Jammu -> Srinagar, 250km) must NOT be viable
+    const miniBusHighway = getVehicleRouteViability("mini-bus", 250, "Jammu", "Srinagar");
+    assert.equal(miniBusHighway.isViable, false, "Mini Bus must not be viable on Jammu-Srinagar mountain corridor");
+
+    // 7. Shared Cab on Cross-Division Route (Jammu -> Srinagar, 250km) MUST be viable
+    const sharedCabHighway = getVehicleRouteViability("shared-cab", 250, "Jammu", "Srinagar");
+    assert.equal(sharedCabHighway.isViable, true, "Shared Cab must be viable on Jammu-Srinagar corridor");
   });
 });

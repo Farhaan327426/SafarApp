@@ -89,7 +89,7 @@ export function useFareCalculator({
         localAdjustment: 0,
         totalSingle: 0,
         fullCabCost: 0,
-        formulaDesc: `Route not serviced (Exceeds ${viability.maxKm} km operational range)`,
+        formulaDesc: `No Fare Available — Route not serviced by ${vehicle.name || vehicle.label || 'this vehicle'}`,
         perKmRate: 0
       };
     }

@@ -1535,7 +1535,7 @@ export default function App() {
                               <div className="absolute top-2 right-2">
                                 {hasRoute && !cardViability.isViable ? (
                                   <span className="text-[10px] font-bold text-[#b91c1c] bg-[#fee2e2] px-2 py-0.5 rounded-md border border-[#fca5a5] shadow-xs">
-                                    Not Available
+                                    No Fare Available
                                   </span>
                                 ) : hasRoute && cardFare > 0 ? (
                                   <span className="text-[11px] font-black text-[#234b4c] bg-[#ffffff] px-2 py-0.5 rounded-lg border border-[#d2e4d4] shadow-xs">
@@ -1578,11 +1578,13 @@ export default function App() {
                             {/* Card Footer */}
                             <div className="mt-2.5 pt-2 border-t border-[#e2eae0] flex items-center justify-between text-[11px]">
                               <span className="text-[#78908a] text-[10.5px]">
-                                {v.isPerSeat ? "Per Seat" : "Full Cab"}
+                                {hasRoute && !cardViability.isViable ? "Not Serviced" : v.isPerSeat ? "Per Seat" : "Full Cab"}
                               </span>
                               <div className="flex items-center gap-1.5">
-                                <span className="font-bold text-[#234b4c]">
-                                  {v.calcType === "stage-slab"
+                                <span className={`font-bold ${!cardViability.isViable && hasRoute ? "text-[#b91c1c] text-[10.5px]" : "text-[#234b4c]"}`}>
+                                  {!cardViability.isViable && hasRoute
+                                    ? "No Fare Available"
+                                    : v.calcType === "stage-slab"
                                     ? "Stage Slabs"
                                     : v.calcType === "urban-stage"
                                     ? "Urban Slabs"
@@ -1689,7 +1691,7 @@ export default function App() {
                                 <h3 className="font-bold text-xs text-[#234b4c] truncate">{v.label}</h3>
                                 {hasRoute && !cardViability.isViable ? (
                                   <span className="text-[9px] font-bold text-[#b91c1c] bg-[#fee2e2] px-1.5 py-0.5 rounded border border-[#fca5a5]">
-                                    NA
+                                    No Fare Available
                                   </span>
                                 ) : hasRoute && cardFare > 0 ? (
                                   <span className="text-[11px] font-black text-[#234b4c]">
@@ -1997,7 +1999,7 @@ export default function App() {
                             Route Not Serviced by {chosenVehicle.label}
                           </p>
                           <span className="text-[10px] font-extrabold bg-[#fee2e2] text-[#b91c1c] px-2 py-0.5 rounded-full border border-[#f87171] shrink-0">
-                            Fare Not Available
+                            No Fare Available
                           </span>
                         </div>
                         <p className="text-[11px] mt-1 text-[#7f1d1d] leading-relaxed">
@@ -2152,7 +2154,7 @@ export default function App() {
                           ? "No Registered Vehicle"
                           : fareParts.isViable && displayFare > 0
                           ? `₹${displayFare.toLocaleString("en-IN")}`
-                          : "Fare Not Available"}
+                          : "No Fare Available"}
                       </span>
                       <span className="text-xs text-[#f2bd70] font-semibold">
                         {!hasRoute
@@ -2160,7 +2162,7 @@ export default function App() {
                           : fareParts.isZeroEligible
                           ? "(No registered vehicle category operates this route)"
                           : !fareParts.isViable
-                          ? `(${chosenVehicle.label} does not operate on ${distance} km route)`
+                          ? `(No Fare Available — ${chosenVehicle.label} does not service this route)`
                           : !chosenVehicle.isPerSeat
                           ? `(Entire ${chosenVehicle.label})`
                           : priceMode === "full-cab"
@@ -2307,7 +2309,7 @@ export default function App() {
                         {hasRoute && fareParts.isViable && displayFare > 0
                           ? `₹${displayFare.toLocaleString("en-IN")}`
                           : hasRoute && !fareParts.isViable
-                          ? "Fare Not Available"
+                          ? "No Fare Available"
                           : "₹ —"}
                       </span>
                     </div>
