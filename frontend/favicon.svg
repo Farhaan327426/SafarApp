@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#1e4647" />
+      <stop offset="50%" stop-color="#234b4c" />
+      <stop offset="100%" stop-color="#122829" />
+    </linearGradient>
+    <linearGradient id="goldCurbs" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f59e0b" />
+      <stop offset="100%" stop-color="#d97706" />
+    </linearGradient>
+    <linearGradient id="arrowLeft" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff" />
+      <stop offset="100%" stop-color="#f1f5f9" />
+    </linearGradient>
+    <linearGradient id="arrowRight" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#e2e8f0" />
+      <stop offset="100%" stop-color="#cbd5e1" />
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="130%">
+      <feDropShadow dx="0" dy="6" stdDeviation="6" flood-opacity="0.35" />
+    </filter>
+  </defs>
+  
+  <!-- Squircle Base with Gold Rim -->
+  <rect x="14" y="14" width="484" height="484" rx="116" fill="url(#bgGrad)" stroke="#e5a93b" stroke-width="4" stroke-opacity="0.85" />
+  
+  <!-- Mountain Peaks (Pir Panjal) -->
+  <polygon points="80,340 190,195 280,340" fill="#265c5e" />
+  <polygon points="232,340 322,195 432,340" fill="#265c5e" />
+  <polygon points="140,340 256,140 372,340" fill="#307274" />
+  
+  <!-- Snowcap -->
+  <polygon points="256,140 290,190 268,180 256,186 244,180 222,190" fill="#f4f8f2" />
+  
+  <!-- Mountain Highway Road -->
+  <polygon points="160,455 238,290 274,290 352,455" fill="#122426" />
+  <line x1="160" y1="455" x2="238" y2="290" stroke="url(#goldCurbs)" stroke-width="6" stroke-linecap="round" />
+  <line x1="352" y1="455" x2="274" y2="290" stroke="url(#goldCurbs)" stroke-width="6" stroke-linecap="round" />
+  
+  <!-- Dashed Highway Centerline -->
+  <line x1="256" y1="445" x2="256" y2="405" stroke="#f59e0b" stroke-width="8" stroke-linecap="round" />
+  <line x1="256" y1="385" x2="256" y2="355" stroke="#f59e0b" stroke-width="6" stroke-linecap="round" />
+  <line x1="256" y1="340" x2="256" y2="320" stroke="#f59e0b" stroke-width="5" stroke-linecap="round" />
+  <line x1="256" y1="310" x2="256" y2="298" stroke="#f59e0b" stroke-width="4" stroke-linecap="round" />
+  
+  <!-- Waypoint Beacon -->
+  <circle cx="256" cy="268" r="18" fill="#e5a93b" stroke="#ffffff" stroke-width="3" />
+  <circle cx="256" cy="268" r="8" fill="#ffffff" />
+  
+  <!-- Chiseled 3D Forward Navigation Arrow -->
+  <g filter="url(#shadow)">
+    <polygon points="256,64 156,195 256,158" fill="url(#arrowLeft)" />
+    <polygon points="256,64 356,195 256,158" fill="url(#arrowRight)" />
+    <line x1="256" y1="64" x2="256" y2="158" stroke="#d36b3d" stroke-width="4" stroke-linecap="round" />
+  </g>
+</svg>
