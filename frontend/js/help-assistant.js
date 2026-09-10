@@ -1038,7 +1038,7 @@ Logged via Safar J&K Transit Portal.`;
     }
   }
 
-  async function toggleVoiceRecording() {
+  function toggleVoiceRecording() {
     const micBtn = document.getElementById("micBtn");
     const input = document.getElementById("help-custom-input");
     const sheet = document.getElementById("voiceProblemModal");
@@ -1049,33 +1049,8 @@ Logged via Safar J&K Transit Portal.`;
       return;
     }
 
-    // Stop any ongoing speech
+    // Stop any ongoing AI voice speech
     stopAiSpeech();
-
-    // 1. Explicitly prompt for & verify microphone permission
-    if (typeof navigator !== 'undefined' && navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-      try {
-        updateVoiceStatus("🔒 Requesting microphone permission from browser...", "info", true);
-        const micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        // Permission granted: stop temporary tracks so SpeechRecognition can acquire hardware mic
-        if (micStream && micStream.getTracks) {
-          micStream.getTracks().forEach(track => track.stop());
-        }
-      } catch (permErr) {
-        console.warn("[Microphone Permission Denied/Unavailable]", permErr);
-        setMicBtnState(false);
-        if (sheet) {
-          sheet.classList.remove("hidden");
-          sheet.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-        }
-        if (permErr.name === 'NotAllowedError' || permErr.name === 'PermissionDeniedError') {
-          updateVoiceStatus("⚠️ Microphone permission denied. Please allow microphone access or choose your problem below:", "warning", false);
-        } else {
-          updateVoiceStatus("⚠️ Microphone not accessible. Please tap your problem below or type:", "warning", false);
-        }
-        return;
-      }
-    }
 
     const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
     let started = false;
@@ -1090,7 +1065,7 @@ Logged via Safar J&K Transit Portal.`;
 
         isListeningVoice = true;
         setMicBtnState(true);
-        updateVoiceStatus("🎙️ Microphone active! Listening... Tell me: What is the problem?", "listening", true);
+        updateVoiceStatus("🎙️ Starting microphone... Please click 'Allow' if prompted.", "listening", true);
         if (sheet) sheet.classList.remove("hidden");
 
         // 14-second automatic safety fallback
@@ -1110,7 +1085,7 @@ Logged via Safar J&K Transit Portal.`;
           isListeningVoice = true;
           setMicBtnState(true);
           if (sheet) sheet.classList.remove("hidden");
-          updateVoiceStatus("🎙️ Microphone active! Listening... Tell me: What is the problem?", "listening", true);
+          updateVoiceStatus("🔴 Listening... Tell me: What is the problem?", "listening", true);
         };
 
         recognition.onresult = (evt) => {
@@ -1150,9 +1125,15 @@ Logged via Safar J&K Transit Portal.`;
           if (sheet) sheet.classList.remove("hidden");
 
           if (evt.error === "not-allowed" || evt.error === "service-not-allowed") {
-            updateVoiceStatus("⚠️ Microphone permission needed. Select your issue below or type.", "warning", false);
+            if (typeof window !== "undefined" && window.location && window.location.protocol === "file:") {
+              updateVoiceStatus("⚠️ Browsers restrict microphone on local file:// URLs. Run via dev server (http://localhost) or tap your problem below:", "warning", false);
+            } else {
+              updateVoiceStatus("⚠️ Microphone blocked. Click the 🔒 or 🎙️ icon in your address bar to Allow, or tap your problem below:", "warning", false);
+            }
+          } else if (evt.error === "no-speech") {
+            updateVoiceStatus("🎙️ No speech detected. Tap mic to try again, or tap your problem below:", "info", false);
           } else if (evt.error === "network") {
-            updateVoiceStatus("⚠️ Speech service requires web server. Tap your problem below or type:", "warning", false);
+            updateVoiceStatus("⚠️ Speech recognition requires internet connection. Tap your problem below or type:", "warning", false);
           } else {
             updateVoiceStatus("🎙️ What is the problem? Choose or speak your issue below:", "info", false);
           }
