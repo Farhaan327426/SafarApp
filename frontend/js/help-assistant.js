@@ -771,40 +771,6 @@ Logged via Safar J&K Transit Portal.`;
           ${buildSolutionCard(state.selectedProblem)}
         </div>
 
-        <!-- Real-Time Crowd Telemetry & Evidence Quick Row -->
-        <div class="defense-dual-grid" style="margin-top: 20px;">
-          <!-- Crowdsourced Occupancy Telemetry -->
-          <div class="card occupancy-card">
-            <div class="section-title-row">
-              <div class="sec-title-wrap">
-                <span class="sec-icon">👥</span>
-                <h3>1-Tap Vehicle Crowd Status</h3>
-              </div>
-              <small>Real-time passenger safety reports</small>
-            </div>
-            <div class="occupancy-buttons">
-              <button class="occ-btn occ-green" type="button" data-level="SEATS_AVAILABLE">🟢 Seating Available</button>
-              <button class="occ-btn occ-yellow" type="button" data-level="STANDING_ONLY">🟡 Standing Room</button>
-              <button class="occ-btn occ-red" type="button" data-level="SEVERE_OVERLOAD">🔴 Severe Overload</button>
-            </div>
-          </div>
-
-          <!-- Evidence Locker Quick Box -->
-          <div class="card grievance-quick-box">
-            <div class="section-title-row">
-              <div class="sec-title-wrap">
-                <span class="sec-icon">⚖️</span>
-                <h3>Evidence Locker &amp; Action</h3>
-              </div>
-              <small>Report under MVA Sec 194A / 192A</small>
-            </div>
-            <div class="grid-2col">
-              <input type="text" id="quickPlateInput" placeholder="Vehicle No (e.g. JK01 AB 1234)" />
-              <button id="openEvidenceModalBtn" class="btn btn-danger" type="button">File 1-Tap Report</button>
-            </div>
-          </div>
-        </div>
-
       </div>
 
       <!-- ── TAB 2: OFFICIAL DIRECTORY ── -->
@@ -1319,42 +1285,6 @@ Logged via Safar J&K Transit Portal.`;
         copyNumBtn.textContent = '✓';
         setTimeout(() => copyNumBtn.textContent = '📋', 1800);
       });
-      return;
-    }
-
-    // 1-Click Occupancy Telemetry
-    const occBtn = e.target.closest('.occ-btn');
-    if (occBtn) {
-      const level = occBtn.dataset.level;
-      const fromVal = document.getElementById("input-from")?.value?.trim() || "";
-      const toVal = document.getElementById("input-to")?.value?.trim() || "";
-      const currentRoute = (fromVal && toVal) ? `${fromVal} ➔ ${toVal}` : "Active Transit Corridor";
-      const vehiclePlate = document.getElementById("quickPlateInput")?.value?.trim() || "COMMUTER-REPORT";
-
-      if (window.SafarCrowdRadar) {
-        window.SafarCrowdRadar.recordOccupancy(vehiclePlate, currentRoute, level);
-      }
-      const msg = `Recorded: ${occBtn.textContent.trim()} for ${currentRoute}.`;
-      if (typeof window.showToast === "function") {
-        window.showToast(msg);
-      }
-      return;
-    }
-
-    // Evidence Locker quick button
-    if (e.target.closest('#openEvidenceModalBtn')) {
-      const quickPlate = document.getElementById("quickPlateInput");
-      const dossierPlate = document.getElementById("dossierPlate");
-      if (quickPlate && dossierPlate && quickPlate.value.trim()) {
-        dossierPlate.value = quickPlate.value.trim();
-      }
-      const evidenceModal = document.getElementById("evidenceModal");
-      if (typeof window.safarOpenModal === "function" && evidenceModal) {
-        window.safarOpenModal(evidenceModal);
-      } else if (evidenceModal) {
-        evidenceModal.hidden = false;
-        evidenceModal.classList.remove("hidden");
-      }
       return;
     }
   }
