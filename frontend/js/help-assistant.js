@@ -742,6 +742,12 @@ Logged via Safar J&K Transit Portal.`;
                 <span class="chip-ico">❄️</span> <strong>Highway blocked / Snow</strong> <small>شاہراہ بند / برفباری</small>
               </button>
             </div>
+            <div class="voice-sheet-footer" style="margin-top: 12px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; font-size: 11.5px; color: var(--color-text-muted);">
+              <span>💡 Tap any problem above — Safar AI will solve it &amp; speak aloud.</span>
+              <button type="button" id="requestMicPermissionBtn" class="voice-chip" style="background: var(--color-surface); border: 1px solid var(--color-primary); color: var(--color-primary); font-weight: 600; cursor: pointer;">
+                🎙️ Grant Mic Access
+              </button>
+            </div>
           </div>
 
           <!-- 1-Tap Quick Problem Chips -->
@@ -1038,6 +1044,27 @@ Logged via Safar J&K Transit Portal.`;
     }
   }
 
+  async function requestMicrophoneAccess() {
+    if (typeof navigator !== 'undefined' && navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+      try {
+        updateVoiceStatus("🔒 Requesting microphone permission from browser...", "info", true);
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        if (stream && stream.getTracks) {
+          stream.getTracks().forEach(t => t.stop());
+        }
+        updateVoiceStatus("✅ Microphone permission granted! Starting voice recognition...", "success", true);
+        setTimeout(() => {
+          toggleVoiceRecording();
+        }, 350);
+      } catch (err) {
+        console.warn("[requestMicrophoneAccess error]", err);
+        updateVoiceStatus("ℹ️ To enable mic: Click the 🔒 icon next to the URL ➔ Set Microphone to 'Allow' ➔ Refresh page.", "info", false);
+      }
+    } else {
+      updateVoiceStatus("🎙️ What is the problem? Choose or speak your issue below:", "info", false);
+    }
+  }
+
   function toggleVoiceRecording() {
     const micBtn = document.getElementById("micBtn");
     const input = document.getElementById("help-custom-input");
@@ -1052,6 +1079,17 @@ Logged via Safar J&K Transit Portal.`;
     // Stop any ongoing AI voice speech
     stopAiSpeech();
 
+    // If commuter already typed their query, immediately solve & speak!
+    if (input && input.value.trim()) {
+      executeProblemResolution(input.value.trim(), true);
+      return;
+    }
+
+    // Always reveal the interactive 1-tap problems sheet
+    if (sheet) {
+      sheet.classList.remove("hidden");
+    }
+
     const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
     let started = false;
 
@@ -1065,8 +1103,7 @@ Logged via Safar J&K Transit Portal.`;
 
         isListeningVoice = true;
         setMicBtnState(true);
-        updateVoiceStatus("🎙️ Starting microphone... Please click 'Allow' if prompted.", "listening", true);
-        if (sheet) sheet.classList.remove("hidden");
+        updateVoiceStatus("🎙️ Listening... Tell me: What is the problem?", "listening", true);
 
         // 14-second automatic safety fallback
         clearTimeout(voiceSafetyTimeout);
@@ -1124,16 +1161,13 @@ Logged via Safar J&K Transit Portal.`;
           setMicBtnState(false);
           if (sheet) sheet.classList.remove("hidden");
 
+          // Do NOT show blocking warning; seamlessly guide to problem resolution
           if (evt.error === "not-allowed" || evt.error === "service-not-allowed") {
-            if (typeof window !== "undefined" && window.location && window.location.protocol === "file:") {
-              updateVoiceStatus("⚠️ Browsers restrict microphone on local file:// URLs. Run via dev server (http://localhost) or tap your problem below:", "warning", false);
-            } else {
-              updateVoiceStatus("⚠️ Microphone blocked. Click the 🔒 or 🎙️ icon in your address bar to Allow, or tap your problem below:", "warning", false);
-            }
+            updateVoiceStatus("🎙️ What is the problem? Choose or speak your issue below — Safar AI will solve & speak verdict:", "info", false);
           } else if (evt.error === "no-speech") {
             updateVoiceStatus("🎙️ No speech detected. Tap mic to try again, or tap your problem below:", "info", false);
           } else if (evt.error === "network") {
-            updateVoiceStatus("⚠️ Speech recognition requires internet connection. Tap your problem below or type:", "warning", false);
+            updateVoiceStatus("🎙️ Offline mode active. Tap your problem below — Safar AI will solve & speak verdict:", "info", false);
           } else {
             updateVoiceStatus("🎙️ What is the problem? Choose or speak your issue below:", "info", false);
           }
@@ -1173,6 +1207,12 @@ Logged via Safar J&K Transit Portal.`;
   ───────────────────────────────────────────────────────────────── */
 
   function handleContainerClick(e) {
+    // Grant mic permission button inside sheet
+    if (e.target.closest('#requestMicPermissionBtn')) {
+      requestMicrophoneAccess();
+      return;
+    }
+
     // Tab switcher
     const switcher = e.target.closest('.help-switcher-btn');
     if (switcher) {
