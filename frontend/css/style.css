@@ -5265,3 +5265,255 @@ body.driver-low-power * {
   border-color: #b8d4bb;
 }
 
+/* ─────────────────────────────────────────────────────────────────
+   SAFAR VOICE ASSISTANT 2.0 — MULTILINGUAL, CONVERSATION & SAFETY
+───────────────────────────────────────────────────────────────── */
+
+/* Language Selector Pills */
+.voice-lang-selector {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(35, 75, 76, 0.06);
+  padding: 3px 6px;
+  border-radius: 20px;
+  border: 1px solid rgba(35, 75, 76, 0.15);
+}
+
+[data-theme="dark"] .voice-lang-selector {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+.lang-sel-label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  margin-right: 2px;
+}
+
+.lang-pill {
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 12px;
+  padding: 2px 8px;
+  font-size: 0.74rem;
+  font-weight: 600;
+  color: var(--color-text-main);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.lang-pill:hover {
+  background: rgba(35, 75, 76, 0.1);
+}
+
+.lang-pill.active {
+  background: #234b4c;
+  color: #ffffff;
+  border-color: #234b4c;
+}
+
+[data-theme="dark"] .lang-pill.active {
+  background: #2dd4bf;
+  color: #0f172a;
+  border-color: #2dd4bf;
+}
+
+/* Status Waiting */
+.voice-status-banner.status-waiting {
+  background: rgba(245, 158, 11, 0.12);
+  border: 1px solid rgba(245, 158, 11, 0.35);
+  color: #b45309;
+}
+
+[data-theme="dark"] .voice-status-banner.status-waiting {
+  background: rgba(245, 158, 11, 0.2);
+  border-color: rgba(245, 158, 11, 0.45);
+  color: #fcd34d;
+}
+
+/* Conversational Clarification Card */
+.conversational-clarify-card {
+  margin-top: 12px;
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  border-left: 4px solid #f59e0b;
+  border-radius: 10px;
+  padding: 12px 14px;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  animation: slideInDown 0.25s ease-out;
+}
+
+[data-theme="dark"] .conversational-clarify-card {
+  background: rgba(245, 158, 11, 0.12);
+  border-color: rgba(245, 158, 11, 0.3);
+  border-left-color: #f59e0b;
+}
+
+.clarify-icon {
+  font-size: 1.3rem;
+  line-height: 1;
+}
+
+.clarify-content {
+  flex: 1;
+}
+
+.clarify-content strong {
+  font-size: 0.82rem;
+  color: #b45309;
+  display: block;
+  margin-bottom: 2px;
+}
+
+.clarify-content p {
+  margin: 0 0 8px 0;
+  font-size: 0.88rem;
+  color: var(--color-text-main);
+  font-weight: 500;
+}
+
+.clarify-mic-btn {
+  background: #f59e0b;
+  color: #ffffff;
+  border: none;
+  border-radius: 16px;
+  padding: 5px 12px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.clarify-mic-btn:hover {
+  background: #d97706;
+}
+
+/* Consequential Action Confirmation Dialog */
+.action-confirm-dialog {
+  margin-top: 14px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-left: 4px solid #ef4444;
+  border-radius: 10px;
+  padding: 14px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  animation: slideInDown 0.25s ease-out;
+}
+
+[data-theme="dark"] .action-confirm-dialog {
+  background: rgba(239, 68, 68, 0.12);
+  border-color: rgba(239, 68, 68, 0.3);
+  border-left-color: #ef4444;
+}
+
+.confirm-icon {
+  font-size: 1.4rem;
+}
+
+.confirm-content {
+  flex: 1;
+}
+
+.confirm-content strong {
+  font-size: 0.84rem;
+  color: #dc2626;
+  display: block;
+  margin-bottom: 3px;
+}
+
+.confirm-content p {
+  margin: 0 0 10px 0;
+  font-size: 0.9rem;
+  color: var(--color-text-main);
+  font-weight: 500;
+}
+
+.confirm-btn-row {
+  display: flex;
+  gap: 8px;
+}
+
+.confirm-yes-btn {
+  background: #ef4444;
+  color: #ffffff;
+  border: none;
+  border-radius: 6px;
+  padding: 6px 14px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.confirm-yes-btn:hover {
+  background: #dc2626;
+}
+
+.confirm-no-btn {
+  background: #e5e7eb;
+  color: #374151;
+  border: none;
+  border-radius: 6px;
+  padding: 6px 14px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.confirm-no-btn:hover {
+  background: #d1d5db;
+}
+
+/* Verification Seal Badge */
+.verification-seal-badge {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  background: rgba(16, 185, 129, 0.08);
+  border: 1px solid rgba(16, 185, 129, 0.25);
+  border-radius: 8px;
+  padding: 6px 12px;
+  margin-bottom: 12px;
+  font-size: 0.78rem;
+  color: #065f46;
+}
+
+[data-theme="dark"] .verification-seal-badge {
+  background: rgba(16, 185, 129, 0.15);
+  border-color: rgba(16, 185, 129, 0.35);
+  color: #6ee7b7;
+}
+
+/* Conversational Turn Context Pill */
+.turn-context-pill {
+  background: var(--color-surface-hover, #f8fafc);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 6px 10px;
+  margin-bottom: 12px;
+  font-size: 0.76rem;
+  color: var(--color-text-muted);
+  line-height: 1.4;
+}
+
+.dir-verified {
+  display: inline-block;
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: #059669;
+  background: rgba(16, 185, 129, 0.1);
+  padding: 1px 6px;
+  border-radius: 10px;
+  margin-left: 6px;
+}
+
+
