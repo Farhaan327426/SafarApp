@@ -482,7 +482,7 @@ const SafarHelpAssistant = (() => {
     };
   }
 
-  function generateComplaintText(problem, routeContext = '') {
+  function generateComplaintText(problem) {
     const fromLoc = window.currentFrom || 'Origin';
     const toLoc   = window.currentTo || 'Destination';
     const routeStr = (fromLoc !== 'Origin' && toLoc !== 'Destination') ? `${fromLoc} to ${toLoc}` : 'J&K Transit Corridor';
@@ -862,6 +862,9 @@ Logged via Safar J&K Transit Portal.`;
     }
   }
 
+  // FIX #4: Restructured to handle async getVoices() via onvoiceschanged.
+  // Previously getVoices() was called synchronously and returned [] on first
+  // invocation in most browsers, so utter.voice was never set.
   function speakAiUtterance(text) {
     if (typeof window === 'undefined' || !window.speechSynthesis) return;
     try {
@@ -871,17 +874,11 @@ Logged via Safar J&K Transit Portal.`;
         updateAiVoiceBtnUI(false);
         return;
       }
+
       const utter = new SpeechSynthesisUtterance(text);
       utter.rate = 0.95;
       utter.pitch = 1.0;
       utter.lang = 'en-IN';
-
-      const voices = window.speechSynthesis.getVoices ? window.speechSynthesis.getVoices() : [];
-      const englishVoice = voices.find(v => v.lang && (v.lang.includes('en-IN') || v.lang.includes('en_IN'))) ||
-                           voices.find(v => v.lang && v.lang.startsWith('en'));
-      if (englishVoice) {
-        utter.voice = englishVoice;
-      }
 
       utter.onstart = () => {
         isAiSpeakingVoice = true;
@@ -901,7 +898,28 @@ Logged via Safar J&K Transit Portal.`;
         updateAiVoiceBtnUI(false);
       };
 
-      window.speechSynthesis.speak(utter);
+      function doSpeak() {
+        const voices = window.speechSynthesis.getVoices();
+        const preferredVoice =
+          voices.find(v => v.lang && (v.lang === 'en-IN' || v.lang === 'en_IN')) ||
+          voices.find(v => v.lang && v.lang.startsWith('en'));
+        if (preferredVoice) utter.voice = preferredVoice;
+        window.speechSynthesis.speak(utter);
+      }
+
+      const voices = window.speechSynthesis.getVoices();
+      if (voices && voices.length > 0) {
+        doSpeak();
+      } else if ('onvoiceschanged' in window.speechSynthesis) {
+        // Voices load asynchronously on Chrome/Edge — wait for the event
+        window.speechSynthesis.onvoiceschanged = () => {
+          window.speechSynthesis.onvoiceschanged = null;
+          doSpeak();
+        };
+      } else {
+        // Safari and others: speak immediately with default voice
+        window.speechSynthesis.speak(utter);
+      }
     } catch (e) {
       console.warn("[SpeechSynthesis Exception]", e);
       isAiSpeakingVoice = false;
@@ -913,6 +931,10 @@ Logged via Safar J&K Transit Portal.`;
     if (typeof window !== 'undefined' && window.speechSynthesis) {
       try {
         window.speechSynthesis.cancel();
+        // Clear any pending onvoiceschanged callback
+        if ('onvoiceschanged' in window.speechSynthesis) {
+          window.speechSynthesis.onvoiceschanged = null;
+        }
       } catch (_) {}
     }
     isAiSpeakingVoice = false;
@@ -1000,39 +1022,20 @@ Logged via Safar J&K Transit Portal.`;
       sheet.classList.add("hidden");
     }
 
-    const input = document.getElementById("help-custom-input");
+    // FIX #1 (partial): Always use a fresh getElementById here — not a closure
+    // reference captured before a potential renderHelpModal() call.
+    const input = document.getElementById('help-custom-input');
     if (triggerSubmit && input && input.value.trim()) {
       updateVoiceStatus(`✅ Analyzing problem: "${input.value.trim()}"...`, "success", false);
       executeProblemResolution(input.value.trim(), true);
     }
   }
 
-  async function requestMicrophoneAccess() {
-    if (typeof navigator !== 'undefined' && navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-      try {
-        updateVoiceStatus("🔒 Requesting microphone permission from browser...", "info", true);
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        if (stream && stream.getTracks) {
-          stream.getTracks().forEach(t => t.stop());
-        }
-        updateVoiceStatus("✅ Microphone permission granted! Starting voice recognition...", "success", true);
-        setTimeout(() => {
-          toggleVoiceRecording();
-        }, 350);
-      } catch (err) {
-        console.warn("[requestMicrophoneAccess error]", err);
-        const sheet = document.getElementById("voiceProblemModal");
-        if (sheet) sheet.classList.remove("hidden");
-        updateVoiceStatus("🎙️ What is the problem? Choose or speak your issue below:", "info", false);
-      }
-    } else {
-      updateVoiceStatus("🎙️ What is the problem? Choose or speak your issue below:", "info", false);
-    }
-  }
-
+  // FIX #1: Removed `const input = document.getElementById(...)` from the top
+  // of this function. All callbacks that need the input element now call
+  // document.getElementById() directly, so they always get the live DOM node
+  // even after a renderHelpModal() re-render has replaced the old element.
   function toggleVoiceRecording() {
-    const micBtn = document.getElementById("micBtn");
-    const input = document.getElementById("help-custom-input");
     const sheet = document.getElementById("voiceProblemModal");
 
     // Toggle off if currently listening
@@ -1044,13 +1047,18 @@ Logged via Safar J&K Transit Portal.`;
     // Stop any ongoing AI voice speech
     stopAiSpeech();
 
-    // If commuter already typed their query, immediately solve & speak!
-    if (input && input.value.trim()) {
-      executeProblemResolution(input.value.trim(), true);
+    // If the user already typed a query, solve it immediately without starting mic
+    const existingVal = (() => {
+      const el = document.getElementById("help-custom-input");
+      return el ? el.value.trim() : '';
+    })();
+
+    if (existingVal) {
+      executeProblemResolution(existingVal, true);
       return;
     }
 
-    // Always reveal the interactive 1-tap problems sheet
+    // Reveal the interactive 1-tap problems fallback sheet
     if (sheet) {
       sheet.classList.remove("hidden");
     }
@@ -1073,20 +1081,22 @@ Logged via Safar J&K Transit Portal.`;
         // 14-second automatic safety fallback
         clearTimeout(voiceSafetyTimeout);
         voiceSafetyTimeout = setTimeout(() => {
-          if (isListeningVoice) {
-            if (input && input.value.trim()) {
-              stopVoiceRecording(true);
-            } else {
-              stopVoiceRecording(false);
-              updateVoiceStatus("⌛ Tap an issue below or type what happened.", "info", false);
-            }
+          if (!isListeningVoice) return;
+          // FIX #1: Fresh DOM query — the element may have been re-rendered
+          const liveInput = document.getElementById("help-custom-input");
+          if (liveInput && liveInput.value.trim()) {
+            stopVoiceRecording(true);
+          } else {
+            stopVoiceRecording(false);
+            updateVoiceStatus("⌛ Tap an issue below or type what happened.", "info", false);
           }
         }, 14000);
 
         recognition.onstart = () => {
           isListeningVoice = true;
           setMicBtnState(true);
-          if (sheet) sheet.classList.remove("hidden");
+          const s = document.getElementById("voiceProblemModal");
+          if (s) s.classList.remove("hidden");
           updateVoiceStatus("🔴 Listening... Tell me: What is the problem?", "listening", true);
         };
 
@@ -1104,7 +1114,9 @@ Logged via Safar J&K Transit Portal.`;
 
           const combined = (finalText || interimText).trim();
           if (combined) {
-            if (input) input.value = combined;
+            // FIX #1: Fresh DOM query instead of stale closure reference
+            const liveInput = document.getElementById("help-custom-input");
+            if (liveInput) liveInput.value = combined;
             updateVoiceStatus(`🎙️ Hearing: "${combined}"`, "listening", true);
 
             if (finalText) {
@@ -1124,9 +1136,9 @@ Logged via Safar J&K Transit Portal.`;
           clearTimeout(voiceSafetyTimeout);
           isListeningVoice = false;
           setMicBtnState(false);
-          if (sheet) sheet.classList.remove("hidden");
+          const s = document.getElementById("voiceProblemModal");
+          if (s) s.classList.remove("hidden");
 
-          // Do NOT show blocking warning; seamlessly guide to problem resolution
           if (evt.error === "not-allowed" || evt.error === "service-not-allowed") {
             updateVoiceStatus("🎙️ What is the problem? Choose or speak your issue below — Safar AI will solve & speak verdict:", "info", false);
           } else if (evt.error === "no-speech") {
@@ -1139,12 +1151,13 @@ Logged via Safar J&K Transit Portal.`;
         };
 
         recognition.onend = () => {
-          if (isListeningVoice) {
-            isListeningVoice = false;
-            setMicBtnState(false);
-            if (input && input.value.trim()) {
-              stopVoiceRecording(true);
-            }
+          if (!isListeningVoice) return; // already stopped externally
+          isListeningVoice = false;
+          setMicBtnState(false);
+          // FIX #1: Fresh DOM query
+          const liveInput = document.getElementById("help-custom-input");
+          if (liveInput && liveInput.value.trim()) {
+            stopVoiceRecording(true);
           }
         };
 
@@ -1159,11 +1172,44 @@ Logged via Safar J&K Transit Portal.`;
 
     if (!started) {
       setMicBtnState(false);
-      if (sheet) {
-        sheet.classList.remove("hidden");
-        sheet.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      const s = document.getElementById("voiceProblemModal");
+      if (s) {
+        s.classList.remove("hidden");
+        s.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
       }
       updateVoiceStatus("🎙️ What is the problem? Choose or speak your issue below:", "info", false);
+    }
+  }
+
+  /* ─────────────────────────────────────────────────────────────────
+     CLIPBOARD HELPER — FIX #5: central fallback for HTTP / denied cases
+  ───────────────────────────────────────────────────────────────── */
+
+  function copyToClipboard(text, btn, successLabel, resetLabel) {
+    function applySuccess() {
+      btn.textContent = successLabel;
+      setTimeout(() => { btn.textContent = resetLabel; }, 2000);
+    }
+    function fallback() {
+      try {
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        ta.style.cssText = 'position:fixed;opacity:0;pointer-events:none';
+        document.body.appendChild(ta);
+        ta.focus();
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+        applySuccess();
+      } catch (_) {
+        btn.textContent = '⚠️ Copy Failed';
+        setTimeout(() => { btn.textContent = resetLabel; }, 2000);
+      }
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(applySuccess).catch(fallback);
+    } else {
+      fallback();
     }
   }
 
@@ -1172,11 +1218,8 @@ Logged via Safar J&K Transit Portal.`;
   ───────────────────────────────────────────────────────────────── */
 
   function handleContainerClick(e) {
-    // Grant mic permission button inside sheet
-    if (e.target.closest('#requestMicPermissionBtn')) {
-      requestMicrophoneAccess();
-      return;
-    }
+    // FIX #7: Removed dead #requestMicPermissionBtn handler — the button is
+    // never rendered in any template, so the handler was unreachable.
 
     // Tab switcher
     const switcher = e.target.closest('.help-switcher-btn');
@@ -1188,9 +1231,14 @@ Logged via Safar J&K Transit Portal.`;
       return;
     }
 
-    // Problem tile selection
+    // FIX #2: Stop voice recording and speech before re-rendering on tile click.
+    // Previously, the live recognition session kept running after renderHelpModal()
+    // replaced the DOM, leaving the captured `input` reference pointing to a
+    // detached (invisible) node.
     const tile = e.target.closest('.help-prob-tile');
     if (tile) {
+      stopVoiceRecording(false);
+      stopAiSpeech();
       const probId = tile.dataset.probId;
       state.selectedProblem = PROBLEMS.find(p => p.id === probId) || null;
       renderHelpModal();
@@ -1218,13 +1266,22 @@ Logged via Safar J&K Transit Portal.`;
       return;
     }
 
-    // Voice quick scenario chips & voice-problem option chips
+    // FIX #3: Voice chips now directly resolve the known problem rather than
+    // routing through evaluateCustomProblem() string-matching on prob.title,
+    // which was fragile and bypassed the intent of chip selection.
     const probChip = e.target.closest('.voice-chip, .voice-prob-chip');
     if (probChip) {
+      stopVoiceRecording(false);
+      stopAiSpeech();
       const probId = probChip.dataset.probId;
       const prob = PROBLEMS.find(p => p.id === probId);
       if (prob) {
-        executeProblemResolution(prob.title, true);
+        state.selectedProblem = prob;
+        state.customQuery = prob.title;
+        renderHelpModal();
+        const solBox = document.getElementById('ai-solution-render');
+        if (solBox) solBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        setTimeout(() => speakAiUtterance(getAiSpokenText(prob)), 350);
       }
       return;
     }
@@ -1239,58 +1296,57 @@ Logged via Safar J&K Transit Portal.`;
       return;
     }
 
-    // Directory category filter
+    // FIX #8: Directory category pills — stop recording before re-render
     const dirPill = e.target.closest('.dir-pill');
     if (dirPill) {
+      stopVoiceRecording(false);
+      stopAiSpeech();
       state.directoryFilter = dirPill.dataset.cat;
       renderHelpModal();
       return;
     }
 
-    // Directory clear search
+    // FIX #8: Directory clear search — stop recording before re-render
     if (e.target.closest('#dir-clear-search')) {
+      stopVoiceRecording(false);
+      stopAiSpeech();
       state.searchQuery = '';
       renderHelpModal();
       return;
     }
 
-    // Copy script button
+    // FIX #5: Copy script — use central clipboard helper with fallback
     const copyScriptBtn = e.target.closest('.copy-script-btn');
     if (copyScriptBtn) {
       const text = decodeURIComponent(copyScriptBtn.dataset.copyText);
-      navigator.clipboard.writeText(text).then(() => {
-        copyScriptBtn.textContent = '✓ Script Copied!';
-        setTimeout(() => copyScriptBtn.textContent = '📋 Copy Spoken Script', 2000);
-      });
+      copyToClipboard(text, copyScriptBtn, '✓ Script Copied!', '📋 Copy Spoken Script');
       return;
     }
 
-    // Copy complaint button
+    // FIX #5: Copy complaint — use central clipboard helper with fallback
     const copyComplaintBtn = e.target.closest('.copy-complaint-btn');
     if (copyComplaintBtn) {
       const text = decodeURIComponent(copyComplaintBtn.dataset.copyText);
-      navigator.clipboard.writeText(text).then(() => {
-        copyComplaintBtn.textContent = '✓ Grievance Copied!';
-        setTimeout(() => copyComplaintBtn.textContent = '📋 Copy Grievance Text', 2000);
-      });
+      copyToClipboard(text, copyComplaintBtn, '✓ Grievance Copied!', '📋 Copy Grievance Text');
       return;
     }
 
-    // Copy number button
+    // FIX #5: Copy number — use central clipboard helper with fallback
     const copyNumBtn = e.target.closest('.dir-copy-btn');
     if (copyNumBtn) {
       const num = copyNumBtn.dataset.copyNum;
-      navigator.clipboard.writeText(num).then(() => {
-        copyNumBtn.textContent = '✓';
-        setTimeout(() => copyNumBtn.textContent = '📋', 1800);
-      });
+      copyToClipboard(num, copyNumBtn, '✓', '📋');
       return;
     }
   }
 
+  // FIX #6: Directory search now also updates the clear button visibility
+  // live as the user types, without requiring a full renderHelpModal() call.
   function handleContainerInput(e) {
     if (e.target.id === 'dir-search-input') {
       state.searchQuery = e.target.value;
+
+      // Update the contacts list
       const list = document.querySelector('.dir-contacts-list');
       if (list) {
         let filtered = DIRECTORY;
@@ -1307,6 +1363,22 @@ Logged via Safar J&K Transit Portal.`;
           );
         }
         list.innerHTML = buildAuthorityCards(filtered);
+      }
+
+      // FIX #6: Toggle the clear button without a full re-render
+      const searchWrap = document.querySelector('.dir-search-wrap');
+      if (searchWrap) {
+        const existing = searchWrap.querySelector('#dir-clear-search');
+        if (state.searchQuery && !existing) {
+          const clearBtn = document.createElement('button');
+          clearBtn.type = 'button';
+          clearBtn.id = 'dir-clear-search';
+          clearBtn.className = 'dir-clear-btn';
+          clearBtn.textContent = '✕';
+          searchWrap.appendChild(clearBtn);
+        } else if (!state.searchQuery && existing) {
+          existing.remove();
+        }
       }
     }
 
