@@ -1232,8 +1232,34 @@ export default function App() {
             </button>
 
             <div className="flex items-center gap-2.5">
-              <div className="relative flex items-center justify-center w-10 h-10 rounded-2xl bg-[#234b4c] text-[#f2bd70] shadow-[0_4px_12px_rgba(35,75,76,0.25)]">
-                <Navigation size={20} className="transform -rotate-12" />
+              <div className="relative flex items-center justify-center w-10 h-10 rounded-2xl bg-gradient-to-br from-[#245253] to-[#1a3c3d] text-[#f2bd70] shadow-[0_4px_14px_rgba(35,75,76,0.28)] border border-[#3b7374]/30 hover:scale-105 transition-transform">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                  <defs>
+                    <linearGradient id="reactStarGold" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stopColor="#fffbeb"/>
+                      <stop offset="45%" stopColor="#fbbf24"/>
+                      <stop offset="100%" stopColor="#d97706"/>
+                    </linearGradient>
+                    <linearGradient id="reactStarShade" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stopColor="#d97706"/>
+                      <stop offset="100%" stopColor="#92400e"/>
+                    </linearGradient>
+                    <linearGradient id="reactOrbit" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stopColor="#34d399"/>
+                      <stop offset="100%" stopColor="#f59e0b"/>
+                    </linearGradient>
+                  </defs>
+                  <path d="M3.5 15.5C4.8 19 9 21.5 13.5 21C18 20.5 21.2 16.8 21 12.2C20.8 8.8 18.2 5.8 15 4.8" stroke="url(#reactOrbit)" strokeWidth="1.8" strokeLinecap="round" strokeDasharray="28 8"/>
+                  <polygon points="12,2 12,12 8.5,8.5" fill="url(#reactStarGold)"/>
+                  <polygon points="12,2 15.5,8.5 12,12" fill="url(#reactStarShade)"/>
+                  <polygon points="22,12 12,12 15.5,8.5" fill="url(#reactStarGold)"/>
+                  <polygon points="22,12 15.5,15.5 12,12" fill="url(#reactStarShade)"/>
+                  <polygon points="12,22 12,12 15.5,15.5" fill="url(#reactStarGold)"/>
+                  <polygon points="12,22 8.5,15.5 12,12" fill="url(#reactStarShade)"/>
+                  <polygon points="2,12 12,12 8.5,15.5" fill="url(#reactStarGold)"/>
+                  <polygon points="2,12 8.5,8.5 12,12" fill="url(#reactStarShade)"/>
+                  <circle cx="12" cy="12" r="2.2" fill="#ffffff" stroke="#f59e0b" strokeWidth="0.8"/>
+                </svg>
                 <span className="absolute -top-1 -right-1 flex h-2.5 w-2.5">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#d36b3d] opacity-75"></span>
                   <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-[#d36b3d]"></span>
@@ -1628,7 +1654,7 @@ export default function App() {
       {/* Footer */}
       <footer className="border-t border-[#dce5dc] bg-[#fbfcf8] mt-12 py-6 px-4 sm:px-6 lg:px-8 text-xs text-[#78908a]">
         <div className="max-w-7xl mx-auto flex items-center justify-center gap-2">
-          <Navigation size={15} className="text-[#234b4c]" />
+          <Compass size={15} className="text-[#234b4c]" />
           <span className="font-bold text-[#234b4c]">SAFAR</span>
           <span dir="rtl" lang="ur" className="font-semibold text-[#4a6d65]">منزل سے بہتر ہے سفر</span>
         </div>
