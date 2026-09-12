@@ -153,6 +153,13 @@ body {
   border: 1px solid #d8e3d8;
 }
 
+.brand-subtitle {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+
 .brand-urdu {
   font-size: 15px;
   font-weight: 700;
@@ -1832,12 +1839,14 @@ body {
   flex-direction: column;
   gap: 8px;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
+  text-align: center;
 }
 
 @media (min-width: 640px) {
   .footer-container {
     flex-direction: row;
+    justify-content: center;
   }
 }
 

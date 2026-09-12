@@ -1245,6 +1245,9 @@ export default function App() {
                   <span className="px-1.5 py-0.5 text-[10px] font-bold uppercase rounded-md bg-[#eaf0e9] text-[#557b72] border border-[#d8e3d8]">
                     J&K
                   </span>
+                  <span className="text-xs text-[#78908a] font-medium hidden md:inline">
+                    — Simple, Transparent J&K Transit Fare Guide
+                  </span>
                 </div>
                 <p className="text-[12px] text-[#4a6d65] font-bold hidden sm:block tracking-wide" dir="rtl" lang="ur">
                   منزل سے بہتر ہے سفر
@@ -1624,21 +1627,10 @@ export default function App() {
 
       {/* Footer */}
       <footer className="border-t border-[#dce5dc] bg-[#fbfcf8] mt-12 py-6 px-4 sm:px-6 lg:px-8 text-xs text-[#78908a]">
-        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-2">
-            <Navigation size={15} className="text-[#234b4c]" />
-            <span className="font-bold text-[#234b4c]">SAFAR</span>
-            <span dir="rtl" lang="ur" className="font-semibold text-[#4a6d65]">منزل سے بہتر ہے سفر</span>
-            <span>— Simple, Transparent J&K Transit Fare Guide</span>
-          </div>
-
-          <div className="flex items-center gap-4 text-[11px]">
-            <button onClick={() => setShowHelpModal(true)} className="hover:text-[#234b4c]">
-              How it Works
-            </button>
-            <span className="text-[#dce5dc]">|</span>
-            <span>24/7 Helpline: <strong>1033</strong></span>
-          </div>
+        <div className="max-w-7xl mx-auto flex items-center justify-center gap-2">
+          <Navigation size={15} className="text-[#234b4c]" />
+          <span className="font-bold text-[#234b4c]">SAFAR</span>
+          <span dir="rtl" lang="ur" className="font-semibold text-[#4a6d65]">منزل سے بہتر ہے سفر</span>
         </div>
       </footer>
 
