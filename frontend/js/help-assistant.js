@@ -743,10 +743,7 @@ Logged via Safar J&K Transit Portal.`;
               </button>
             </div>
             <div class="voice-sheet-footer" style="margin-top: 12px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; font-size: 11.5px; color: var(--color-text-muted);">
-              <span>💡 Tap any problem above — Safar AI will solve it &amp; speak aloud.</span>
-              <button type="button" id="requestMicPermissionBtn" class="voice-chip" style="background: var(--color-surface); border: 1px solid var(--color-primary); color: var(--color-primary); font-weight: 600; cursor: pointer;">
-                🎙️ Grant Mic Access
-              </button>
+              <span>💡 Tap any issue above or type below — Safar AI will solve it &amp; speak aloud.</span>
             </div>
           </div>
 
@@ -1024,7 +1021,9 @@ Logged via Safar J&K Transit Portal.`;
         }, 350);
       } catch (err) {
         console.warn("[requestMicrophoneAccess error]", err);
-        updateVoiceStatus("ℹ️ To enable mic: Click the 🔒 icon next to the URL ➔ Set Microphone to 'Allow' ➔ Refresh page.", "info", false);
+        const sheet = document.getElementById("voiceProblemModal");
+        if (sheet) sheet.classList.remove("hidden");
+        updateVoiceStatus("🎙️ What is the problem? Choose or speak your issue below:", "info", false);
       }
     } else {
       updateVoiceStatus("🎙️ What is the problem? Choose or speak your issue below:", "info", false);
