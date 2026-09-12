@@ -31,11 +31,15 @@ import {
   Eye,
   LayoutGrid,
   List,
+  Monitor,
+  Smartphone,
 } from "lucide-react";
 import ConductorSlipModal from "./components/ConductorSlipModal.jsx";
 import VehicleIllustration, {
   VEHICLE_VISUAL_META,
 } from "./components/VehicleIllustration.jsx";
+import DesktopView from "./components/DesktopView.jsx";
+import MobileView from "./components/MobileView.jsx";
 import {
   VEHICLE_OPERATIONAL_ZONES,
   resolveRouteProfile,
@@ -881,6 +885,45 @@ function resolveRouteInfo(loc1, loc2, userRegionOverride = null) {
   };
 }
 
+const recentEstimatesList = [
+  {
+    route: "Srinagar ➔ Gulmarg",
+    meta: "51 KM • Mountain Pass • 1h 35m",
+    amount: "₹96 / seat",
+    from: "Srinagar",
+    to: "Gulmarg",
+    distance: 51,
+    vehicleKey: "mini-bus",
+  },
+  {
+    route: "Jammu ➔ Katra",
+    meta: "49 KM • Expressway Foothills • 1h 14m",
+    amount: "₹180 / seat",
+    from: "Jammu",
+    to: "Katra",
+    distance: 49,
+    vehicleKey: "shared-cab",
+  },
+  {
+    route: "Lal Chowk ➔ Dal Lake (Dalgate)",
+    meta: "4 KM • City Lake Boulevard • 10m",
+    amount: "₹60 flat",
+    from: "Lal Chowk",
+    to: "Dal Lake (Dalgate)",
+    distance: 4,
+    vehicleKey: "e-rickshaw",
+  },
+  {
+    route: "Anantnag ➔ Srinagar",
+    meta: "53 KM • NH-44 Valley Expressway • 1h 20m",
+    amount: "₹87 / seat",
+    from: "Anantnag",
+    to: "Srinagar",
+    distance: 53,
+    vehicleKey: "mini-bus",
+  },
+];
+
 export default function App() {
   const [activeNav, setActiveNav] = useState("Fare calculator");
   const [from, setFrom] = useState("");
@@ -895,9 +938,43 @@ export default function App() {
   const [showConductorSlip, setShowConductorSlip] = useState(false);
   const [searchFromFocus, setSearchFromFocus] = useState(false);
   const [searchToFocus, setSearchToFocus] = useState(false);
-  const [vehicleViewMode, setVehicleViewMode] = useState("visual"); // 'visual' | 'compact'
+  const [vehicleViewMode, setVehicleViewMode] = useState("visual"); // 'visual' | 'table'
   const [showFleetGuide, setShowFleetGuide] = useState(false);
   const [inspectedVehicleKey, setInspectedVehicleKey] = useState(null);
+
+  // Viewport Mode: 'auto' | 'pc' | 'mobile'
+  const [viewportMode, setViewportMode] = useState(() => {
+    return typeof window !== "undefined"
+      ? localStorage.getItem("safar_viewport_mode") || "auto"
+      : "auto";
+  });
+  const [isScreenMobile, setIsScreenMobile] = useState(
+    typeof window !== "undefined" ? window.innerWidth < 1024 : false
+  );
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsScreenMobile(window.innerWidth < 1024);
+    };
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  const handleViewportChange = (mode) => {
+    setViewportMode(mode);
+    if (typeof window !== "undefined") {
+      localStorage.setItem("safar_viewport_mode", mode);
+    }
+    showToast(
+      mode === "auto"
+        ? "Auto device view detection enabled"
+        : mode === "pc"
+        ? "Switched to PC Command Center view"
+        : "Switched to Mobile App view"
+    );
+  };
+
+  const effectiveView = viewportMode === "auto" ? (isScreenMobile ? "mobile" : "pc") : viewportMode;
 
   const [userRegionOverride, setUserRegionOverride] = useState(null);
 
@@ -1207,7 +1284,46 @@ export default function App() {
 
           {/* Right Action Utilities */}
           <div className="flex items-center gap-2 sm:gap-3">
-            <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[#edf5ee] border border-[#d2e4d4] text-[11px] text-[#426a54] font-medium">
+            {/* Dedicated PC / Mobile View Switcher */}
+            <div className="flex items-center p-1 bg-[#edf3eb] rounded-xl border border-[#dce5dc]" title="Switch between PC Command Center and Mobile App interfaces">
+              <button
+                onClick={() => handleViewportChange("auto")}
+                className={`px-2 py-1 rounded-lg text-[10.5px] font-bold transition ${
+                  viewportMode === "auto"
+                    ? "bg-[#234b4c] text-[#f4f6ed] shadow-xs"
+                    : "text-[#557b72] hover:text-[#234b4c]"
+                }`}
+                title="Automatically adapt to screen width"
+              >
+                Auto
+              </button>
+              <button
+                onClick={() => handleViewportChange("pc")}
+                className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10.5px] font-bold transition ${
+                  viewportMode === "pc"
+                    ? "bg-[#234b4c] text-[#f4f6ed] shadow-xs"
+                    : "text-[#557b72] hover:text-[#234b4c]"
+                }`}
+                title="Force PC / Desktop Command Center view"
+              >
+                <Monitor size={12} />
+                <span className="hidden sm:inline">PC</span>
+              </button>
+              <button
+                onClick={() => handleViewportChange("mobile")}
+                className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10.5px] font-bold transition ${
+                  viewportMode === "mobile"
+                    ? "bg-[#234b4c] text-[#f4f6ed] shadow-xs"
+                    : "text-[#557b72] hover:text-[#234b4c]"
+                }`}
+                title="Force Mobile App view"
+              >
+                <Smartphone size={12} />
+                <span className="hidden sm:inline">Mobile</span>
+              </button>
+            </div>
+
+            <div className="hidden xl:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[#edf5ee] border border-[#d2e4d4] text-[11px] text-[#426a54] font-medium">
               <span className="relative flex h-2 w-2">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#529b68] opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-[#529b68]"></span>
@@ -1219,11 +1335,11 @@ export default function App() {
             <button
               id="helpModalTriggerBtn"
               onClick={() => setShowHelpModal((prev) => !prev)}
-              className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold rounded-xl text-[#345657] bg-[#f0f4ee] hover:bg-[#e4ece2] border border-[#dce5dc] transition cursor-pointer shadow-xs"
+              className="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-xl text-[#345657] bg-[#f0f4ee] hover:bg-[#e4ece2] border border-[#dce5dc] transition cursor-pointer shadow-xs"
               title="SAFAR Official Help, Passenger Rights & Helplines"
             >
               <CircleHelp size={16} className="text-[#d36b3d]" />
-              <span>Help &amp; Rights</span>
+              <span className="hidden xs:inline">Help &amp; Rights</span>
             </button>
           </div>
         </div>
@@ -1289,1102 +1405,106 @@ export default function App() {
       {/* Main App Body */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
         {activeNav === "Fare calculator" && (
-          <div className="space-y-6">
-            {/* Hero Card */}
-            <section className="bg-gradient-to-r from-[#234b4c] via-[#2c5b5c] to-[#345657] rounded-3xl p-6 sm:p-8 text-[#f4f6ed] shadow-lg relative overflow-hidden">
-              <div className="relative z-10 max-w-3xl">
-                <h1 className="text-2xl sm:text-4xl font-extrabold tracking-tight leading-tight">
-                  Know what you owe <br className="hidden sm:block" />
-                  before you go.
-                </h1>
-                <p className="mt-2 text-xs sm:text-sm text-[#c7dad0] leading-relaxed">
-                  Statutory fare estimates for Shared Cabs, Autos, Matadors, and Private Taxis — every route, every mode, across Jammu & Kashmir.
-                </p>
-              </div>
-            </section>
-
-            {/* Quick 1-Click Popular Corridor Pills (Adapted to Selected Vehicle) */}
-            <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
-              <span className="text-xs font-bold text-[#78908a] uppercase tracking-wider shrink-0 flex items-center gap-1">
-                <Compass size={14} /> Quick Trips ({chosenVehicle.label.split(" ")[0]}):
-              </span>
-              {activePresets.map((preset) => (
-                <button
-                  key={`${preset.from}-${preset.to}`}
-                  onClick={() => handleSelectPreset(preset)}
-                  className={`px-3 py-1.5 rounded-full text-xs font-semibold shrink-0 border transition-all ${
-                    from === preset.from && to === preset.to
-                      ? "bg-[#234b4c] text-[#f4f6ed] border-[#234b4c] shadow-sm"
-                      : "bg-[#fbfcf8] text-[#345657] border-[#dce5dc] hover:border-[#74a181] hover:bg-[#edf5ee]"
-                  }`}
-                >
-                  {preset.from} ➔ {preset.to} ({preset.distance} km)
-                </button>
-              ))}
+          effectiveView === "pc" ? (
+            <DesktopView
+              from={from}
+              to={to}
+              distance={distance}
+              setDistance={setDistance}
+              handleFromChange={handleFromChange}
+              handleToChange={handleToChange}
+              handleSwap={handleSwap}
+              handleLocationPick={handleLocationPick}
+              searchFromFocus={searchFromFocus}
+              setSearchFromFocus={setSearchFromFocus}
+              searchToFocus={searchToFocus}
+              setSearchToFocus={setSearchToFocus}
+              vehicle={vehicle}
+              setVehicle={setVehicle}
+              chosenVehicle={chosenVehicle}
+              eligibleVehicles={eligibleVehicles}
+              visibleVehicles={visibleVehicles}
+              vehicleCategories={vehicleCategories}
+              vehicleCategoryFilter={vehicleCategoryFilter}
+              setVehicleCategoryFilter={setVehicleCategoryFilter}
+              categoryCounts={categoryCounts}
+              vehicleViewMode={vehicleViewMode}
+              setVehicleViewMode={setVehicleViewMode}
+              activePresets={activePresets}
+              handleSelectPreset={handleSelectPreset}
+              popularLocations={popularLocations}
+              currentRouteMeta={currentRouteMeta}
+              currentRouteProfile={currentRouteProfile}
+              terrainRegion={terrainRegion}
+              setTerrainRegion={setTerrainRegion}
+              userRegionOverride={userRegionOverride}
+              setUserRegionOverride={setUserRegionOverride}
+              contextAlerts={contextAlerts}
+              fareParts={fareParts}
+              displayFare={displayFare}
+              priceMode={priceMode}
+              setPriceMode={setPriceMode}
+              handleShare={handleShare}
+              setShowConductorSlip={setShowConductorSlip}
+              setShowFleetGuide={setShowFleetGuide}
+              setInspectedVehicleKey={setInspectedVehicleKey}
+              showToast={showToast}
+              hasRoute={hasRoute}
+            />
+          ) : (
+            <div className={isScreenMobile ? "w-full" : "max-w-md mx-auto py-2"}>
+              {!isScreenMobile && (
+                <div className="mb-3 text-center">
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-[#edf5ee] text-[#234b4c] border border-[#d2e4d4] shadow-xs">
+                    📱 Mobile View Mode Active (Use Top Switcher for PC View)
+                  </span>
+                </div>
+              )}
+              <MobileView
+                from={from}
+                to={to}
+                distance={distance}
+                setDistance={setDistance}
+                handleFromChange={handleFromChange}
+                handleToChange={handleToChange}
+                handleSwap={handleSwap}
+                handleLocationPick={handleLocationPick}
+                searchFromFocus={searchFromFocus}
+                setSearchFromFocus={setSearchFromFocus}
+                searchToFocus={searchToFocus}
+                setSearchToFocus={setSearchToFocus}
+                vehicle={vehicle}
+                setVehicle={setVehicle}
+                chosenVehicle={chosenVehicle}
+                eligibleVehicles={eligibleVehicles}
+                visibleVehicles={visibleVehicles}
+                vehicleCategories={vehicleCategories}
+                vehicleCategoryFilter={vehicleCategoryFilter}
+                setVehicleCategoryFilter={setVehicleCategoryFilter}
+                categoryCounts={categoryCounts}
+                activePresets={activePresets}
+                handleSelectPreset={handleSelectPreset}
+                popularLocations={popularLocations}
+                currentRouteMeta={currentRouteMeta}
+                currentRouteProfile={currentRouteProfile}
+                terrainRegion={terrainRegion}
+                setTerrainRegion={setTerrainRegion}
+                userRegionOverride={userRegionOverride}
+                setUserRegionOverride={setUserRegionOverride}
+                contextAlerts={contextAlerts}
+                fareParts={fareParts}
+                displayFare={displayFare}
+                priceMode={priceMode}
+                setPriceMode={setPriceMode}
+                handleShare={handleShare}
+                setShowConductorSlip={setShowConductorSlip}
+                setShowFleetGuide={setShowFleetGuide}
+                setInspectedVehicleKey={setInspectedVehicleKey}
+                showToast={showToast}
+                hasRoute={hasRoute}
+              />
             </div>
-
-            {/* Main Interactive Calculation Grid */}
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-              {/* Left Column: Vehicle Selection First (Step 1) & Route Builder (Step 2) (7 Cols) */}
-              <div className="lg:col-span-7 space-y-6">
-                
-                {/* Step 1: Vehicle Selection Cards */}
-                <div className="bg-[#fbfcf8] border border-[#dce5dc] rounded-3xl p-5 sm:p-7 shadow-sm">
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 mb-4 border-b border-[#e5ece3]">
-                    <div className="flex items-center gap-2.5">
-                      <div className="w-8 h-8 rounded-xl bg-[#234b4c] text-[#f2bd70] flex items-center justify-center font-black text-xs shadow-xs">
-                        1
-                      </div>
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <h2 className="text-base font-bold text-[#234b4c]">Choose Your Vehicle Mode</h2>
-                          <span className="hidden sm:inline-block text-[10px] font-bold bg-[#eef4ed] text-[#3f6e5b] border border-[#d2e4d4] px-2 py-0.5 rounded-full">
-                            Visual Setup
-                          </span>
-                        </div>
-                        <p className="text-[11px] text-[#78908a]">
-                          Official statutory tariffs & authentic visual models across Jammu & Kashmir (11 Categories)
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-2 self-start sm:self-auto">
-                      {/* View Mode Toggle */}
-                      <div className="flex items-center p-1 bg-[#edf3eb] rounded-xl border border-[#dce5dc]">
-                        <button
-                          onClick={() => setVehicleViewMode("visual")}
-                          className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold transition ${
-                            vehicleViewMode === "visual"
-                              ? "bg-[#234b4c] text-[#f4f6ed] shadow-xs"
-                              : "text-[#557b72] hover:text-[#234b4c]"
-                          }`}
-                          title="Visual Vehicle Cards with Renders"
-                        >
-                          <LayoutGrid size={13} />
-                          <span className="hidden xs:inline">Visual</span>
-                        </button>
-                        <button
-                          onClick={() => setVehicleViewMode("compact")}
-                          className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold transition ${
-                            vehicleViewMode === "compact"
-                              ? "bg-[#234b4c] text-[#f4f6ed] shadow-xs"
-                              : "text-[#557b72] hover:text-[#234b4c]"
-                          }`}
-                          title="Compact List View"
-                        >
-                          <List size={13} />
-                          <span className="hidden xs:inline">Compact</span>
-                        </button>
-                      </div>
-
-                      {/* Fleet Guide Modal Button */}
-                      <button
-                        onClick={() => {
-                          setInspectedVehicleKey(vehicle);
-                          setShowFleetGuide(true);
-                        }}
-                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#eef4ed] text-[#234b4c] hover:bg-[#dfebe0] border border-[#d2e4d4] text-xs font-bold transition shadow-xs"
-                        title="Open Vehicle Identification & Recognition Guide"
-                      >
-                        <Eye size={13} className="text-[#3f6e5b]" />
-                        <span>Fleet Guide</span>
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Category Filter Tabs */}
-                  <div className="flex items-center gap-1.5 overflow-x-auto pb-2 mb-3.5 scrollbar-none">
-                    {vehicleCategories.map((cat) => {
-                      const count = categoryCounts[cat.key] ?? 0;
-                      return (
-                        <button
-                          key={cat.key}
-                          onClick={() => setVehicleCategoryFilter(cat.key)}
-                          className={`px-3 py-1 rounded-xl text-xs font-bold shrink-0 transition ${
-                            vehicleCategoryFilter === cat.key
-                              ? "bg-[#234b4c] text-[#f4f6ed] shadow-xs"
-                              : "bg-[#f0f4ee] text-[#557b72] hover:bg-[#e4ece2]"
-                          }`}
-                        >
-                          {cat.label.replace(/\(\d+\)/, `(${count})`)}
-                        </button>
-                      );
-                    })}
-                  </div>
-
-                  {/* Pre-selection Neutral Route Guidance Banner (Gap 4) */}
-                  {!hasRoute && (
-                    <div className="p-3.5 mb-3.5 rounded-2xl bg-[#eef4ed] border border-[#d2e4d4] flex items-center gap-2.5 text-xs text-[#234b4c]">
-                      <Info size={16} className="text-[#3f6e5b] shrink-0" />
-                      <span>
-                        Select your route in Step 2 to view authorized statutory vehicles for your specific corridor.
-                      </span>
-                    </div>
-                  )}
-
-                  {/* Vehicle Grid & Secondary Rule: Zero-Eligible State */}
-                  {hasRoute && visibleVehicles.length === 0 ? (
-                    <div className="p-8 rounded-2xl bg-[#fdf5f2] border border-[#f3d3c8] text-center my-2">
-                      <div className="w-12 h-12 mx-auto mb-3 rounded-2xl bg-[#fee2e2] flex items-center justify-center text-[#b91c1c] shadow-xs">
-                        <ShieldAlert size={24} />
-                      </div>
-                      <h3 className="font-bold text-base text-[#9a3412]">
-                        No registered vehicle category operates this route.
-                      </h3>
-                      <p className="text-xs text-[#78908a] mt-2 max-w-md mx-auto leading-relaxed">
-                        Under official J&amp;K Transport Department licensing, no registered vehicle category is authorized to service this route corridor ({currentRouteProfile?.region?.toUpperCase()} • {currentRouteProfile?.routeType?.toUpperCase()}). Please adjust your pickup and drop points or choose another route.
-                      </p>
-                    </div>
-                  ) : vehicleViewMode === "visual" ? (
-                    /* Visual Rich Cards View (Uber / Chalo Style) */
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                      {visibleVehicles.map((v) => {
-                        const selected = vehicle === v.key || vehicle === v.id;
-                        const km = Number(distance) || 0;
-                        const cardViability = getVehicleRouteViability(v.key, km, from, to);
-                        const visualMeta = VEHICLE_VISUAL_META[v.key];
-                        let cardFare = 0;
-                        if (km > 0 && cardViability.isViable) {
-                          switch (v.calcType) {
-                            case "e-rickshaw":
-                              cardFare = Math.max(15, Math.round(km * 15));
-                              break;
-                            case "e-auto":
-                              cardFare = km <= 1 ? 25 : 25 + Math.round((km - 1) * 20);
-                              break;
-                            case "stage-slab":
-                              if (km <= 3) cardFare = 9;
-                              else if (km <= 5) cardFare = 14;
-                              else if (km <= 10) cardFare = 17;
-                              else if (km <= 15) cardFare = 20;
-                              else if (km <= 20) cardFare = 26;
-                              else cardFare = 26 + Math.round((km - 20) * 1.40);
-                              break;
-                            case "urban-stage":
-                              if (km <= 3) cardFare = 8;
-                              else if (km <= 6) cardFare = 12;
-                              else if (km <= 10) cardFare = 15;
-                              else cardFare = 18;
-                              break;
-                            case "tourist-group":
-                              cardFare = Math.max(25, Math.round(km * 2.25));
-                              break;
-                            case "stage-carriage":
-                              {
-                                const rate = terrainRegion === "kashmir-plain" ? 1.64 : terrainRegion === "kashmir-hill" ? 1.88 : terrainRegion === "jammu-plain" ? 1.12 : 1.59;
-                                cardFare = Math.max(10, Math.round(km * rate));
-                              }
-                              break;
-                            case "stage-carriage-big":
-                              {
-                                const rate = terrainRegion === "kashmir-plain" ? 1.40 : terrainRegion === "kashmir-hill" ? 1.64 : terrainRegion === "jammu-plain" ? 1.12 : 1.59;
-                                cardFare = Math.max(10, Math.round(km * rate));
-                              }
-                              break;
-                            case "metered-auto":
-                              cardFare = km <= 2 ? 45 : 45 + Math.round((km - 2) * 7.4);
-                              break;
-                            default:
-                              cardFare = Math.max(15, v.base + Math.round(km * v.perKm) + (v.key === "suv-taxi" ? 20 : 0));
-                              break;
-                          }
-                        }
-
-                        return (
-                          <button
-                            key={v.key}
-                            onClick={() => {
-                              setVehicle(v.key);
-                              showToast(`Selected ${v.label}`);
-                            }}
-                            className={`group relative p-3 rounded-2xl text-left border-2 transition-all flex flex-col justify-between ${
-                              selected
-                                ? "bg-[#f4f7f2] border-[#234b4c] shadow-md ring-2 ring-[#234b4c]/10"
-                                : !cardViability.isViable && hasRoute
-                                ? "bg-[#fdfaf8] border-[#ebdcd5] hover:border-[#d99f90] opacity-90"
-                                : "bg-[#fbfcf8] border-[#e2eae0] hover:border-[#adc9b2] hover:bg-[#f8faf6]"
-                            }`}
-                          >
-                            {/* Vehicle Illustration Showcase Container */}
-                            <div
-                              className={`w-full h-24 rounded-xl relative overflow-hidden flex items-center justify-center p-2 mb-2.5 transition-colors border ${
-                                selected
-                                  ? "bg-gradient-to-b from-[#e7f0ea] to-[#d6e7db] border-[#234b4c]/30"
-                                  : "bg-gradient-to-b from-[#f5f8f3] to-[#ebf1e9] border-[#e0eae0] group-hover:from-[#eef4ec] group-hover:to-[#e4ece2]"
-                              }`}
-                            >
-                              <VehicleIllustration
-                                vehicleKey={v.key}
-                                className="w-full h-full object-contain filter drop-shadow-xs transform group-hover:scale-105 transition-transform duration-300"
-                              />
-
-                              {/* Top-Left Badge: Vehicle Badge */}
-                              <div className="absolute top-2 left-2 flex items-center gap-1">
-                                <span
-                                  className={`text-[9.5px] font-bold px-2 py-0.5 rounded-md shadow-xs ${
-                                    selected
-                                      ? "bg-[#234b4c] text-[#f4f6ed]"
-                                      : "bg-[#234b4c]/80 text-[#f4f6ed] backdrop-blur-xs"
-                                  }`}
-                                >
-                                  {v.badge}
-                                </span>
-                              </div>
-
-                              {/* Top-Right Badge: Calculated Fare or Status */}
-                              <div className="absolute top-2 right-2">
-                                {hasRoute && !cardViability.isViable ? (
-                                  <span className="text-[10px] font-bold text-[#b91c1c] bg-[#fee2e2] px-2 py-0.5 rounded-md border border-[#fca5a5] shadow-xs">
-                                    No Fare Available
-                                  </span>
-                                ) : hasRoute && cardFare > 0 ? (
-                                  <span className="text-[11px] font-black text-[#234b4c] bg-[#ffffff] px-2 py-0.5 rounded-lg border border-[#d2e4d4] shadow-xs">
-                                    ₹{cardFare}
-                                  </span>
-                                ) : (
-                                  <span className="text-[10px] font-bold text-[#557b72] bg-[#ffffff]/90 px-2 py-0.5 rounded-md border border-[#e2eae0] shadow-xs">
-                                    {v.calcType === "urban-stage" ? "₹8-₹18" : v.calcType === "stage-slab" ? "₹9-₹26" : `₹${v.perKm}/km`}
-                                  </span>
-                                )}
-                              </div>
-
-                              {/* Bottom-Left Hallmark Tag */}
-                              <div className="absolute bottom-1.5 left-2">
-                                <span className="text-[9px] font-semibold text-[#557b72] bg-white/85 px-1.5 py-0.5 rounded border border-[#dce5dc]/60 truncate max-w-[170px] inline-block">
-                                  {visualMeta?.name || v.label}
-                                </span>
-                              </div>
-                            </div>
-
-                            {/* Card Content */}
-                            <div>
-                              <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-1.5">
-                                  <h3 className="font-bold text-[13px] text-[#234b4c]">{v.label}</h3>
-                                  {selected && <CheckCircle2 size={14} className="text-[#557b72]" />}
-                                </div>
-                                <span className="text-[10px] font-bold text-[#3f6e5b] bg-[#edf3eb] px-1.5 py-0.5 rounded">
-                                  {v.capacity}
-                                </span>
-                              </div>
-                              <p className="text-[11px] font-medium text-[#78908a] mt-0.5">{v.sublabel}</p>
-                            </div>
-
-                            {/* Card Footer */}
-                            <div className="mt-2.5 pt-2 border-t border-[#e2eae0] flex items-center justify-between text-[11px]">
-                              <span className="text-[#78908a] text-[10.5px]">
-                                {hasRoute && !cardViability.isViable ? "Not Serviced" : v.isPerSeat ? "Per Seat" : "Full Cab"}
-                              </span>
-                              <div className="flex items-center gap-1.5">
-                                <span className={`font-bold ${!cardViability.isViable && hasRoute ? "text-[#b91c1c] text-[10.5px]" : "text-[#234b4c]"}`}>
-                                  {!cardViability.isViable && hasRoute
-                                    ? "No Fare Available"
-                                    : v.calcType === "stage-slab"
-                                    ? "Stage Slabs"
-                                    : v.calcType === "urban-stage"
-                                    ? "Urban Slabs"
-                                    : v.calcType === "tourist-group"
-                                    ? "₹2.25/km"
-                                    : v.calcType === "e-auto"
-                                    ? "₹20/km"
-                                    : v.calcType === "metered-auto"
-                                    ? "₹7.40/km"
-                                    : `₹${v.perKm}/km`}
-                                </span>
-                                <button
-                                  type="button"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    setInspectedVehicleKey(v.key);
-                                    setShowFleetGuide(true);
-                                  }}
-                                  className="text-[10px] text-[#78908a] hover:text-[#234b4c] p-0.5 rounded hover:bg-[#edf3eb]"
-                                  title="View Identification Specs"
-                                >
-                                  <Eye size={12} />
-                                </button>
-                              </div>
-                            </div>
-                          </button>
-                        );
-                      })}
-                    </div>
-                  ) : (
-                    /* Compact List View */
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                      {visibleVehicles.map((v) => {
-                        const selected = vehicle === v.key || vehicle === v.id;
-                        const km = Number(distance) || 0;
-                        const cardViability = getVehicleRouteViability(v.key, km, from, to);
-                        let cardFare = 0;
-                        if (km > 0 && cardViability.isViable) {
-                          switch (v.calcType) {
-                            case "e-rickshaw":
-                              cardFare = Math.max(15, Math.round(km * 15));
-                              break;
-                            case "e-auto":
-                              cardFare = km <= 1 ? 25 : 25 + Math.round((km - 1) * 20);
-                              break;
-                            case "stage-slab":
-                              if (km <= 3) cardFare = 9;
-                              else if (km <= 5) cardFare = 14;
-                              else if (km <= 10) cardFare = 17;
-                              else if (km <= 15) cardFare = 20;
-                              else if (km <= 20) cardFare = 26;
-                              else cardFare = 26 + Math.round((km - 20) * 1.40);
-                              break;
-                            case "urban-stage":
-                              if (km <= 3) cardFare = 8;
-                              else if (km <= 6) cardFare = 12;
-                              else if (km <= 10) cardFare = 15;
-                              else cardFare = 18;
-                              break;
-                            case "tourist-group":
-                              cardFare = Math.max(25, Math.round(km * 2.25));
-                              break;
-                            case "stage-carriage":
-                              {
-                                const rate = terrainRegion === "kashmir-plain" ? 1.64 : terrainRegion === "kashmir-hill" ? 1.88 : terrainRegion === "jammu-plain" ? 1.12 : 1.59;
-                                cardFare = Math.max(10, Math.round(km * rate));
-                              }
-                              break;
-                            case "stage-carriage-big":
-                              {
-                                const rate = terrainRegion === "kashmir-plain" ? 1.40 : terrainRegion === "kashmir-hill" ? 1.64 : terrainRegion === "jammu-plain" ? 1.12 : 1.59;
-                                cardFare = Math.max(10, Math.round(km * rate));
-                              }
-                              break;
-                            case "metered-auto":
-                              cardFare = km <= 2 ? 45 : 45 + Math.round((km - 2) * 7.4);
-                              break;
-                            default:
-                              cardFare = Math.max(15, v.base + Math.round(km * v.perKm) + (v.key === "suv-taxi" ? 20 : 0));
-                              break;
-                          }
-                        }
-
-                        return (
-                          <button
-                            key={v.key}
-                            onClick={() => {
-                              setVehicle(v.key);
-                              showToast(`Selected ${v.label}`);
-                            }}
-                            className={`p-3 rounded-2xl text-left border-2 transition-all flex items-center gap-3 ${
-                              selected
-                                ? "bg-[#f4f7f2] border-[#234b4c] shadow-md ring-2 ring-[#234b4c]/10"
-                                : !cardViability.isViable && hasRoute
-                                ? "bg-[#fdfaf8] border-[#ebdcd5] hover:border-[#d99f90] opacity-90"
-                                : "bg-[#fbfcf8] border-[#e2eae0] hover:border-[#adc9b2] hover:bg-[#f8faf6]"
-                            }`}
-                          >
-                            <div className="w-16 h-12 shrink-0 rounded-xl bg-[#edf3eb] p-1 flex items-center justify-center border border-[#dce5dc] overflow-hidden">
-                              <VehicleIllustration vehicleKey={v.key} className="w-full h-full object-contain" />
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center justify-between gap-1">
-                                <h3 className="font-bold text-xs text-[#234b4c] truncate">{v.label}</h3>
-                                {hasRoute && !cardViability.isViable ? (
-                                  <span className="text-[9px] font-bold text-[#b91c1c] bg-[#fee2e2] px-1.5 py-0.5 rounded border border-[#fca5a5]">
-                                    No Fare Available
-                                  </span>
-                                ) : hasRoute && cardFare > 0 ? (
-                                  <span className="text-[11px] font-black text-[#234b4c]">
-                                    ₹{cardFare}
-                                  </span>
-                                ) : (
-                                  <span className="text-[9.5px] font-bold text-[#557b72]">
-                                    {v.calcType === "urban-stage" ? "₹8-₹18" : v.calcType === "stage-slab" ? "₹9-₹26" : `₹${v.perKm}/km`}
-                                  </span>
-                                )}
-                              </div>
-                              <p className="text-[10px] text-[#78908a] truncate">{v.sublabel}</p>
-                              <div className="flex items-center gap-1 mt-1 text-[9.5px] text-[#557b72]">
-                                <span>{v.capacity}</span>
-                                <span>•</span>
-                                <span className="font-semibold">{v.badge}</span>
-                              </div>
-                            </div>
-                          </button>
-                        );
-                      })}
-                    </div>
-                  )}
-                </div>
-
-                {/* Step 2: Route Builder Box */}
-                <div className="bg-[#fbfcf8] border border-[#dce5dc] rounded-3xl p-5 sm:p-7 shadow-sm">
-                  <div className="flex items-center justify-between pb-4 mb-5 border-b border-[#e5ece3]">
-                    <div className="flex items-center gap-2.5">
-                      <div className="w-8 h-8 rounded-xl bg-[#234b4c] text-[#f2bd70] flex items-center justify-center font-black text-xs shadow-xs">
-                        2
-                      </div>
-                      <div>
-                        <h2 className="text-base font-bold text-[#234b4c]">Where are you traveling?</h2>
-                        <p className="text-[11px] text-[#78908a]">Enter boarding point & drop-off destination in J&K</p>
-                      </div>
-                    </div>
-
-                    <button
-                      onClick={() => {
-                        setFrom("");
-                        setTo("");
-                        setDistance("");
-                        setTerrainRegion("kashmir-plain");
-                        showToast("Cleared route inputs. Choose your points!");
-                      }}
-                      className="flex items-center gap-1 text-xs font-semibold text-[#78908a] hover:text-[#d36b3d] transition"
-                    >
-                      <RefreshCw size={13} />
-                      <span>Clear</span>
-                    </button>
-                  </div>
-
-                  {/* Route Inputs with Swap Action */}
-                  <div className="relative grid grid-cols-1 sm:grid-cols-[1fr_48px_1fr] items-center gap-3">
-                    {/* From Input */}
-                    <div className="relative">
-                      <label className="block text-[11px] font-bold text-[#78908a] uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
-                        <span className="w-2 h-2 rounded-full bg-[#d36b3d]"></span> Boarding Point (Pickup)
-                      </label>
-                      <div className="relative">
-                        <MapPin size={18} className="absolute left-3.5 top-3.5 text-[#d36b3d]" />
-                        <input
-                          type="text"
-                          value={from}
-                          onFocus={() => setSearchFromFocus(true)}
-                          onChange={(e) => handleFromChange(e.target.value)}
-                          placeholder="e.g. Srinagar, Lal Chowk, Katra"
-                          className="w-full pl-10 pr-3 py-3 rounded-2xl bg-[#f6f8f3] border border-[#dce5dc] text-sm font-bold text-[#234b4c] focus:outline-none focus:ring-2 focus:ring-[#74a181] focus:bg-[#fbfcf8] transition"
-                        />
-                      </div>
-
-                      {/* Autocomplete Dropdown for FROM */}
-                      {searchFromFocus && (
-                        <div className="absolute top-full mt-1 left-0 right-0 bg-[#fbfcf8] border border-[#dce5dc] rounded-2xl shadow-xl p-2 z-30 max-h-56 overflow-y-auto">
-                          <div className="flex items-center justify-between px-2 py-1 border-b border-[#e5ece3] mb-1">
-                            <p className="text-[10px] font-bold text-[#78908a] uppercase">
-                              Alphabetical Hubs (A-Z)
-                            </p>
-                            <span className="text-[9px] font-bold text-[#557b72] bg-[#edf5ee] px-1.5 py-0.5 rounded">
-                              22 Districts
-                            </span>
-                          </div>
-                          {popularLocations
-                            .filter((loc) => loc.toLowerCase().includes(from.toLowerCase()))
-                            .sort((a, b) => a.localeCompare(b))
-                            .map((loc) => (
-                              <button
-                                key={loc}
-                                onClick={() => handleLocationPick("from", loc)}
-                                className="w-full text-left px-2.5 py-1.5 rounded-lg text-xs font-semibold text-[#345657] hover:bg-[#edf5ee] flex items-center justify-between transition"
-                              >
-                                <span className="flex items-center gap-1.5">
-                                  <span className="w-5 h-5 rounded-md bg-[#eaf0e9] text-[#234b4c] text-[10px] font-extrabold flex items-center justify-center">
-                                    {loc[0].toUpperCase()}
-                                  </span>
-                                  <span>{loc}</span>
-                                </span>
-                                <ChevronRight size={13} className="text-[#78908a]" />
-                              </button>
-                            ))}
-                          <button
-                            onClick={() => setSearchFromFocus(false)}
-                            className="w-full mt-1.5 text-center text-[11px] font-bold text-[#78908a] py-1 hover:text-[#d36b3d]"
-                          >
-                            Close
-                          </button>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Swap Button */}
-                    <div className="flex justify-center my-1 sm:my-0">
-                      <button
-                        onClick={handleSwap}
-                        className="w-10 h-10 rounded-2xl bg-[#edf3eb] hover:bg-[#dce9dc] border border-[#dce5dc] text-[#345657] flex items-center justify-center transition-all hover:scale-105 active:scale-95 shadow-sm"
-                        title="Swap Origin & Destination"
-                        aria-label="Swap Route"
-                      >
-                        <ArrowDownUp size={16} />
-                      </button>
-                    </div>
-
-                    {/* To Input */}
-                    <div className="relative">
-                      <label className="block text-[11px] font-bold text-[#78908a] uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
-                        <span className="w-2 h-2 rounded-full bg-[#557b72]"></span> Deboarding Point (Drop-off)
-                      </label>
-                      <div className="relative">
-                        <MapPinned size={18} className="absolute left-3.5 top-3.5 text-[#557b72]" />
-                        <input
-                          type="text"
-                          value={to}
-                          onFocus={() => setSearchToFocus(true)}
-                          onChange={(e) => handleToChange(e.target.value)}
-                          placeholder="e.g. Gulmarg, Pahalgam, Jammu"
-                          className="w-full pl-10 pr-3 py-3 rounded-2xl bg-[#f6f8f3] border border-[#dce5dc] text-sm font-bold text-[#234b4c] focus:outline-none focus:ring-2 focus:ring-[#74a181] focus:bg-[#fbfcf8] transition"
-                        />
-                      </div>
-
-                      {/* Autocomplete Dropdown for TO */}
-                      {searchToFocus && (
-                        <div className="absolute top-full mt-1 left-0 right-0 bg-[#fbfcf8] border border-[#dce5dc] rounded-2xl shadow-xl p-2 z-30 max-h-56 overflow-y-auto">
-                          <div className="flex items-center justify-between px-2 py-1 border-b border-[#e5ece3] mb-1">
-                            <p className="text-[10px] font-bold text-[#78908a] uppercase">
-                              Alphabetical Destinations (A-Z)
-                            </p>
-                            <span className="text-[9px] font-bold text-[#557b72] bg-[#edf5ee] px-1.5 py-0.5 rounded">
-                              22 Districts
-                            </span>
-                          </div>
-                          {popularLocations
-                            .filter((loc) => loc.toLowerCase().includes(to.toLowerCase()))
-                            .sort((a, b) => a.localeCompare(b))
-                            .map((loc) => (
-                              <button
-                                key={loc}
-                                onClick={() => handleLocationPick("to", loc)}
-                                className="w-full text-left px-2.5 py-1.5 rounded-lg text-xs font-semibold text-[#345657] hover:bg-[#edf5ee] flex items-center justify-between transition"
-                              >
-                                <span className="flex items-center gap-1.5">
-                                  <span className="w-5 h-5 rounded-md bg-[#eaf0e9] text-[#234b4c] text-[10px] font-extrabold flex items-center justify-center">
-                                    {loc[0].toUpperCase()}
-                                  </span>
-                                  <span>{loc}</span>
-                                </span>
-                                <ChevronRight size={13} className="text-[#78908a]" />
-                              </button>
-                            ))}
-                          <button
-                            onClick={() => setSearchToFocus(false)}
-                            className="w-full mt-1.5 text-center text-[11px] font-bold text-[#78908a] py-1 hover:text-[#d36b3d]"
-                          >
-                            Close
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Real-time Dynamic Route & Highway Distance Card */}
-                  <div className="mt-4 p-3.5 rounded-2xl bg-[#edf5ee] border border-[#d2e4d4] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                    <div className="flex items-center gap-2.5">
-                      <div className="w-8 h-8 rounded-xl bg-[#234b4c] text-[#f2bd70] flex items-center justify-center font-bold text-xs shrink-0">
-                        <Route size={16} />
-                      </div>
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs font-extrabold text-[#234b4c]">
-                            {hasRoute ? `${from} ➔ ${to}` : "Choose Boarding & Deboarding Points"}
-                          </span>
-                          {hasRoute && (
-                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#345657] text-[#f4f6ed]">
-                              {distance || 0} KM
-                            </span>
-                          )}
-                        </div>
-                        <p className="text-[11px] text-[#557b72] font-medium mt-0.5">
-                          {hasRoute
-                            ? `⏱️ Approx ${currentRouteMeta.duration} · 🏔️ ${currentRouteMeta.terrain}`
-                            : "Select starting point and destination to calculate statutory fare"}
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-2 self-end sm:self-auto">
-                      <span className="text-[11px] font-bold text-[#78908a] hidden md:inline">
-                        Manual override:
-                      </span>
-                      <div className="relative w-24">
-                        <input
-                          type="number"
-                          min="1"
-                          max="800"
-                          value={distance}
-                          onChange={(e) => setDistance(e.target.value)}
-                          placeholder="KM"
-                          className="w-full py-1 pl-2 pr-7 rounded-xl bg-[#fbfcf8] border border-[#c5d8c8] text-xs font-bold text-[#234b4c] focus:outline-none focus:ring-2 focus:ring-[#74a181]"
-                        />
-                        <span className="absolute right-2 top-1.5 text-[10px] font-bold text-[#78908a]">
-                          KM
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Border / Mountain Gateway Ambiguity Confirmation Prompt (Risk 3) */}
-                  {hasRoute && currentRouteProfile?.isAmbiguous && (
-                    <div className="mt-3.5 p-3.5 rounded-2xl bg-[#fefce8] border border-[#fef08a] flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-[#854d0e] shadow-xs">
-                      <div className="flex items-start sm:items-center gap-2">
-                        <Info size={16} className="text-[#ca8a04] shrink-0 mt-0.5 sm:mt-0" />
-                        <div>
-                          <p className="font-bold text-[12px] text-[#713f12]">Gateway Waypoint Detected:</p>
-                          <p className="text-[11px] text-[#854d0e] mt-0.5">
-                            {currentRouteProfile.ambiguityNote || "Border / Gateway corridor detected. Confirm travel division:"}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-1.5 shrink-0">
-                        <button
-                          onClick={() => setUserRegionOverride("jammu")}
-                          className={`px-3 py-1 rounded-xl text-xs font-bold transition ${
-                            userRegionOverride === "jammu"
-                              ? "bg-[#854d0e] text-[#fefce8] shadow-xs"
-                              : "bg-[#fef9c3] hover:bg-[#fef08a] text-[#854d0e] border border-[#fde047]"
-                          }`}
-                        >
-                          Jammu Division
-                        </button>
-                        <button
-                          onClick={() => setUserRegionOverride("kashmir")}
-                          className={`px-3 py-1 rounded-xl text-xs font-bold transition ${
-                            userRegionOverride === "kashmir"
-                              ? "bg-[#854d0e] text-[#fefce8] shadow-xs"
-                              : "bg-[#fef9c3] hover:bg-[#fef08a] text-[#854d0e] border border-[#fde047]"
-                          }`}
-                        >
-                          Kashmir Division
-                        </button>
-                        <button
-                          onClick={() => setUserRegionOverride("both")}
-                          className={`px-3 py-1 rounded-xl text-xs font-bold transition ${
-                            userRegionOverride === "both"
-                              ? "bg-[#854d0e] text-[#fefce8] shadow-xs"
-                              : "bg-[#fef9c3] hover:bg-[#fef08a] text-[#854d0e] border border-[#fde047]"
-                          }`}
-                        >
-                          Cross-Division
-                        </button>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Real-time Contextual Alerts (Batamaloo Redirect, Winter Mountain Closures, Frontier & Pilgrimage) */}
-                  {contextAlerts.isBatamalooNorthRedirect && (
-                    <div className="mt-3.5 p-3 rounded-2xl bg-[#fdf5eb] border border-[#f0cfa0] text-[#784319] text-xs flex items-start gap-2.5">
-                      <AlertTriangle size={16} className="text-[#d36b3d] shrink-0 mt-0.5" />
-                      <div>
-                        <p className="font-bold text-[12px]">Stand Shift Notice (Parimpora Terminal):</p>
-                        <p className="text-[11px] mt-0.5 text-[#8f5223]">
-                          North-bound cabs & buses depart from <strong>Parimpora Regional Stand</strong>. From Batamaloo, take a local city Matador/E-Auto (₹10–15) to Parimpora for Baramulla, Sopore, Kupwara & Uri.
-                        </p>
-                      </div>
-                    </div>
-                  )}
-
-                  {contextAlerts.isWinterClosure && (
-                    <div className="mt-3.5 p-3 rounded-2xl bg-[#ebf3f7] border border-[#a8c9db] text-[#1f4860] text-xs flex items-start gap-2.5">
-                      <Snowflake size={16} className="text-[#2b6cb0] shrink-0 mt-0.5" />
-                      <div>
-                        <p className="font-bold text-[12px]">Seasonal Mountain Pass Advisory:</p>
-                        <p className="text-[11px] mt-0.5 text-[#2c5282]">
-                          High-altitude corridors (Mughal Road / Sinthan Top / Razdan Pass) are closed in winter due to snow. Regular transit routes divert via NH-44 highway.
-                        </p>
-                      </div>
-                    </div>
-                  )}
-
-                  {hasRoute && !contextAlerts.viability.isViable && (
-                    <div className="mt-3.5 p-3.5 rounded-2xl bg-[#fff2f2] border border-[#fca5a5] text-[#991b1b] text-xs flex items-start gap-2.5 shadow-sm">
-                      <ShieldAlert size={18} className="text-[#dc2626] shrink-0 mt-0.5" />
-                      <div className="flex-1">
-                        <div className="flex items-center justify-between gap-2">
-                          <p className="font-bold text-[12px] text-[#991b1b]">
-                            Route Not Serviced by {chosenVehicle.label}
-                          </p>
-                          <span className="text-[10px] font-extrabold bg-[#fee2e2] text-[#b91c1c] px-2 py-0.5 rounded-full border border-[#f87171] shrink-0">
-                            No Fare Available
-                          </span>
-                        </div>
-                        <p className="text-[11px] mt-1 text-[#7f1d1d] leading-relaxed">
-                          {contextAlerts.viability.reason} For <strong>{from || "Origin"} ➔ {to || "Destination"}</strong> ({distance} km), commuters use <strong>{contextAlerts.viability.alternativeName}</strong>.
-                        </p>
-                        <button
-                          onClick={() => {
-                            setVehicle(contextAlerts.viability.alternativeKey);
-                            showToast(`Switched to ${contextAlerts.viability.alternativeName}`);
-                          }}
-                          className="mt-2 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#dc2626] text-white font-bold text-[11px] hover:bg-[#b91c1c] transition shadow-xs"
-                        >
-                          <ArrowRight size={12} />
-                          Switch to {contextAlerts.viability.alternativeName}
-                        </button>
-                      </div>
-                    </div>
-                  )}
-
-                  {contextAlerts.isFrontier && (
-                    <div className="mt-3.5 p-3 rounded-2xl bg-[#f0f4ee] border border-[#c3d8c6] text-[#234b4c] text-xs flex items-start gap-2.5">
-                      <ShieldCheck size={16} className="text-[#557b72] shrink-0 mt-0.5" />
-                      <div>
-                        <p className="font-bold text-[12px]">Frontier / Border Transit Zone:</p>
-                        <p className="text-[11px] mt-0.5 text-[#345657]">
-                          Movement through border/pass areas (Gurez, Karnah, Uri border) is subject to civil/army convoy timings, identity verification, and weather clearance.
-                        </p>
-                      </div>
-                    </div>
-                  )}
-
-                  {contextAlerts.isPilgrimage && (
-                    <div className="mt-3.5 p-3 rounded-2xl bg-[#fbf5e6] border border-[#f0d898] text-[#6b4710] text-xs flex items-start gap-2.5">
-                      <Sparkles size={16} className="text-[#b7791f] shrink-0 mt-0.5" />
-                      <div>
-                        <p className="font-bold text-[12px]">Pilgrimage Corridor Statutory Tariffs:</p>
-                        <p className="text-[11px] mt-0.5 text-[#744210]">
-                          Official registered stand rates apply for Shri Mata Vaishno Devi (Katra) and Shri Amarnathji Yatra base camps (Baltal & Nunwan).
-                        </p>
-                      </div>
-                    </div>
-                  )}
-
-                  {contextAlerts.isRangeWarning && (
-                    <div className="mt-3.5 p-3 rounded-2xl bg-[#fff8eb] border border-[#f9dca2] text-[#8a5314] text-xs flex items-start gap-2.5">
-                      <Zap size={16} className="text-[#d36b3d] shrink-0 mt-0.5" />
-                      <div>
-                        <p className="font-bold text-[12px]">Urban Range Notice:</p>
-                        <p className="text-[11px] mt-0.5 text-[#975a16]">
-                          E-Rickshaws and E-Autos operate within municipal limits (1–8 km). For highway transit ({distance} km), commuters use Shared Maxi-Cabs or Matadors.
-                        </p>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Distance & Region Controls */}
-                  <div className="mt-3 pt-3 border-t border-[#eaf0e9] flex flex-wrap items-center justify-between gap-2 text-xs">
-                    <div className="flex items-center gap-1.5 text-[#557b72]">
-                      <Navigation size={13} className="text-[#d36b3d]" />
-                      <span className="text-[11px]">
-                        <strong>Corridor:</strong> {hasRoute ? currentRouteMeta.highway : "Select route"}
-                      </span>
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                      <span className="text-[11px] font-bold text-[#345657]">Region/Terrain:</span>
-                      <select
-                        value={terrainRegion}
-                        onChange={(e) => setTerrainRegion(e.target.value)}
-                        className="py-1 px-2 rounded-xl bg-[#f6f8f3] border border-[#dce5dc] text-xs font-bold text-[#234b4c] focus:outline-none focus:ring-2 focus:ring-[#74a181]"
-                      >
-                        <option value="kashmir-plain">Kashmir Plains (₹1.64/km)</option>
-                        <option value="kashmir-hill">Kashmir Hilly (₹1.88/km)</option>
-                        <option value="jammu-plain">Jammu Plains (₹1.12/km)</option>
-                        <option value="jammu-hill">Jammu Hilly (₹1.59/km)</option>
-                      </select>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Right Column: Live Fare Result Card & Breakdown (5 Cols) */}
-              <div className="lg:col-span-5 space-y-6">
-                {/* Result Evergreen Hero Card */}
-                <div className="relative bg-gradient-to-br from-[#234b4c] via-[#204445] to-[#183637] rounded-3xl p-6 sm:p-7 text-[#f4f6ed] shadow-xl overflow-hidden border border-[#3c6b69]">
-                  <div className="relative z-10 flex items-start justify-between">
-                    <div>
-                      <div className="inline-flex items-center gap-1.5 text-[10px] font-extrabold uppercase tracking-widest text-[#f2bd70] bg-[#f2bd70]/15 px-2.5 py-1 rounded-full border border-[#f2bd70]/25">
-                        <CircleGauge size={13} />
-                        <span>Official Fare Estimate</span>
-                      </div>
-                      {hasRoute && (
-                        <p className="text-xs text-[#c4d6cb] mt-2 font-medium">
-                          {from} <ArrowRight size={12} className="inline mx-1" /> {to}
-                        </p>
-                      )}
-                    </div>
-
-                    <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold border ${
-                      hasRoute && fareParts.isZeroEligible
-                        ? "bg-[#782323] text-[#fca5a5] border-[#a33737]"
-                        : hasRoute && !fareParts.isViable
-                        ? "bg-[#782323] text-[#fca5a5] border-[#a33737]"
-                        : "bg-[#386260] text-[#cbe1d3] border-[#4d7f7c]"
-                    }`}>
-                      {hasRoute && fareParts.isZeroEligible
-                        ? "No Category"
-                        : hasRoute && !fareParts.isViable
-                        ? "Non-Serviced Route"
-                        : "Verified Rate"}
-                    </span>
-                  </div>
-
-                  {/* Price Mode Switcher (Per Seat vs Full Cab) */}
-                  {chosenVehicle.isPerSeat && fareParts.isViable && !fareParts.isZeroEligible ? (
-                    <div className="relative z-10 mt-4 flex items-center bg-[#183637]/70 p-1 rounded-xl border border-[#386260]">
-                      <button
-                        onClick={() => setPriceMode("per-seat")}
-                        className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition ${
-                          priceMode === "per-seat"
-                            ? "bg-[#d36b3d] text-[#ffffff] shadow-sm"
-                            : "text-[#c4d6cb] hover:text-[#ffffff]"
-                        }`}
-                      >
-                        Per Seat Fare
-                      </button>
-                      <button
-                        onClick={() => setPriceMode("full-cab")}
-                        className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition ${
-                          priceMode === "full-cab"
-                            ? "bg-[#d36b3d] text-[#ffffff] shadow-sm"
-                            : "text-[#c4d6cb] hover:text-[#ffffff]"
-                        }`}
-                      >
-                        Entire Vehicle ({chosenVehicle.seatsMultiplier} Seats)
-                      </button>
-                    </div>
-                  ) : null}
-
-                  {/* Big Live Price Display */}
-                  <div className="relative z-10 mt-4">
-                    <p className="text-[11px] text-[#aac2b3] font-medium">Govt Approved Fare Range</p>
-                    <div className="flex flex-col sm:flex-row sm:items-baseline gap-2 mt-1">
-                      <span className={`tracking-tight font-black ${
-                        !hasRoute || (fareParts.isViable && displayFare > 0)
-                          ? "text-4xl sm:text-5xl text-[#ffffff]"
-                          : "text-2xl sm:text-3xl text-[#ffcaca]"
-                      }`}>
-                        {!hasRoute
-                          ? "₹ —"
-                          : fareParts.isZeroEligible
-                          ? "No Registered Vehicle"
-                          : fareParts.isViable && displayFare > 0
-                          ? `₹${displayFare.toLocaleString("en-IN")}`
-                          : "No Fare Available"}
-                      </span>
-                      <span className="text-xs text-[#f2bd70] font-semibold">
-                        {!hasRoute
-                          ? "(Choose route to calculate)"
-                          : fareParts.isZeroEligible
-                          ? "(No registered vehicle category operates this route)"
-                          : !fareParts.isViable
-                          ? `(No Fare Available — ${chosenVehicle.label} does not service this route)`
-                          : !chosenVehicle.isPerSeat
-                          ? `(Entire ${chosenVehicle.label})`
-                          : priceMode === "full-cab"
-                          ? `(Entire Vehicle - ${chosenVehicle.seatsMultiplier} Seats)`
-                          : "(Per Passenger Seat)"}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Selected Vehicle Visual Showcase & Road Recognition */}
-                  <div className="relative z-10 mt-4 pt-3.5 border-t border-[#3c6b69]/70">
-                    <div className="p-3 rounded-2xl bg-[#142e2f]/90 border border-[#386260]/80 flex flex-col sm:flex-row items-center gap-3 shadow-inner">
-                      <div className="w-full sm:w-36 h-20 shrink-0 bg-gradient-to-b from-[#193a3c] to-[#102728] rounded-xl p-1.5 flex items-center justify-center border border-[#3c6b69]/60 overflow-hidden relative group">
-                        <VehicleIllustration
-                          vehicleKey={chosenVehicle.key}
-                          className="w-full h-full object-contain filter drop-shadow-xs transform group-hover:scale-105 transition-transform duration-300"
-                        />
-                        <span className="absolute bottom-1 right-1 text-[8.5px] font-black px-1.5 py-0.5 rounded bg-[#234b4c] text-[#f2bd70] border border-[#386260]/60">
-                          {chosenVehicle.badge}
-                        </span>
-                      </div>
-                      <div className="flex-1 min-w-0 text-left w-full">
-                        <div className="flex items-center justify-between gap-1">
-                          <h4 className="text-xs font-black text-[#ffffff] truncate">
-                            {VEHICLE_VISUAL_META[chosenVehicle.key]?.name || chosenVehicle.label}
-                          </h4>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setInspectedVehicleKey(chosenVehicle.key);
-                              setShowFleetGuide(true);
-                            }}
-                            className="text-[10px] font-bold text-[#f2bd70] hover:underline flex items-center gap-0.5 shrink-0"
-                          >
-                            <span>Spotting Tip</span>
-                            <ChevronRight size={11} />
-                          </button>
-                        </div>
-                        <p className="text-[10.5px] text-[#b4d2c2] line-clamp-1 mt-0.5 font-medium">
-                          <strong className="text-[#ffffff]">Hallmark:</strong> {VEHICLE_VISUAL_META[chosenVehicle.key]?.hallmark}
-                        </p>
-                        <div className="mt-1.5 flex flex-wrap items-center gap-1.5 text-[10px]">
-                          <span className="bg-[#1b3d3f] text-[#cde2d6] px-2 py-0.5 rounded-md border border-[#386260]/70 font-semibold">
-                            👥 {chosenVehicle.capacity}
-                          </span>
-                          <span className="bg-[#1b3d3f] text-[#cde2d6] px-2 py-0.5 rounded-md border border-[#386260]/70 font-semibold truncate max-w-[190px]" title={VEHICLE_VISUAL_META[chosenVehicle.key]?.luggage}>
-                            🧳 {VEHICLE_VISUAL_META[chosenVehicle.key]?.luggage?.split("(")[0]}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Quick Specs Pill Row */}
-                  <div className="relative z-10 grid grid-cols-2 gap-2 mt-3 pt-3 border-t border-[#3c6b69]/70 text-xs">
-                    <div className="bg-[#183637]/50 p-2.5 rounded-xl border border-[#386260]/60">
-                      <p className="text-[10px] text-[#aac2b3]">Vehicle Type</p>
-                      <p className="font-bold text-[#ffffff] truncate mt-0.5">{chosenVehicle.label}</p>
-                    </div>
-                    <div className="bg-[#183637]/50 p-2.5 rounded-xl border border-[#386260]/60">
-                      <p className="text-[10px] text-[#aac2b3]">Calculated Distance</p>
-                      <p className="font-bold text-[#ffffff] mt-0.5">{hasRoute && distance ? `${distance} KM` : "—"}</p>
-                    </div>
-                  </div>
-
-                  {/* Share, Pass & Helpline Actions */}
-                  <div className="relative z-10 mt-4 flex items-center gap-2">
-                    <button
-                      onClick={handleShare}
-                      className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl bg-[#f4f6ed] text-[#234b4c] font-bold text-xs hover:bg-[#e4eae0] transition shadow-sm"
-                    >
-                      <Share2 size={14} />
-                      <span>Copy / Share</span>
-                    </button>
-                    {hasRoute && fareParts.isViable && displayFare > 0 && (
-                      <button
-                        onClick={() => setShowConductorSlip(true)}
-                        className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl bg-[#d36b3d] text-[#ffffff] font-bold text-xs hover:bg-[#c05e32] transition shadow-sm"
-                        title="Generate Digital Fare Pass"
-                      >
-                        <QrCode size={14} />
-                        <span>Fare Pass</span>
-                      </button>
-                    )}
-                    <button
-                      onClick={() => showToast("Helpline 1033 is available 24/7 across J&K")}
-                      className="p-2.5 rounded-xl bg-[#183637] text-[#f2bd70] hover:bg-[#152e2f] border border-[#386260] transition"
-                      title="Helpline 1033"
-                    >
-                      <PhoneCall size={16} />
-                    </button>
-                  </div>
-                </div>
-
-                {/* Transparent Fare Breakdown Card */}
-                <div className="bg-[#fbfcf8] border border-[#dce5dc] rounded-3xl p-5 sm:p-6 shadow-sm">
-                  <div className="flex items-center justify-between pb-3 border-b border-[#e5ece3]">
-                    <div className="flex items-center gap-2">
-                      <ShieldCheck size={18} className="text-[#557b72]" />
-                      <h3 className="font-bold text-sm text-[#234b4c]">Fare Breakdown</h3>
-                    </div>
-                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md ${
-                      hasRoute && fareParts.isZeroEligible
-                        ? "bg-[#fee2e2] text-[#991b1b]"
-                        : hasRoute && !fareParts.isViable
-                        ? "bg-[#fee2e2] text-[#991b1b]"
-                        : "bg-[#edf5ee] text-[#557b72]"
-                    }`}>
-                      {hasRoute && fareParts.isZeroEligible
-                        ? "No Category"
-                        : hasRoute && !fareParts.isViable
-                        ? "Route Limit Exceeded"
-                        : "Official Rate"}
-                    </span>
-                  </div>
-
-                  <div className="mt-3.5 space-y-2.5 text-xs">
-                    <div className="flex items-center justify-between">
-                      <span className="text-[#78908a]">Vehicle Category</span>
-                      <span className="font-bold text-[#345657]">
-                        {fareParts.isZeroEligible ? "None Authorized" : chosenVehicle.label}
-                      </span>
-                    </div>
-
-                    <div className="flex items-center justify-between">
-                      <span className="text-[#78908a]">Rate Basis</span>
-                      <span className={`font-bold text-right max-w-[220px] truncate ${
-                        !fareParts.isViable ? "text-[#b91c1c]" : "text-[#345657]"
-                      }`}>
-                        {fareParts.formulaDesc}
-                      </span>
-                    </div>
-
-                    <div className="flex items-center justify-between">
-                      <span className="text-[#78908a]">Total Road Distance</span>
-                      <span className="font-bold text-[#345657]">{distance ? `${distance} KM` : "—"}</span>
-                    </div>
-
-                    <div className="pt-3 border-t border-[#e2eae0] flex items-center justify-between text-sm">
-                      <span className="font-extrabold text-[#234b4c]">Total Payable Fare</span>
-                      <span className={`font-extrabold text-base ${
-                        fareParts.isViable && displayFare > 0 ? "text-[#d36b3d]" : "text-[#b91c1c]"
-                      }`}>
-                        {hasRoute && fareParts.isViable && displayFare > 0
-                          ? `₹${displayFare.toLocaleString("en-IN")}`
-                          : hasRoute && !fareParts.isViable
-                          ? "No Fare Available"
-                          : "₹ —"}
-                      </span>
-                    </div>
-                  </div>
-
-                  {hasRoute && fareParts.isZeroEligible ? (
-                    <div className="mt-3 p-3.5 rounded-xl bg-[#fff2f2] border border-[#fca5a5] text-[11px] text-[#991b1b]">
-                      <p className="font-bold flex items-center gap-1.5 text-[12px]">
-                        <ShieldAlert size={15} className="text-[#dc2626]" />
-                        <span>No registered vehicle category operates this route.</span>
-                      </p>
-                      <p className="mt-1 text-[#7f1d1d] leading-relaxed">
-                        Under official J&K Transport Department licensing, no registered public or commercial transit vehicle category is authorized to service this route corridor profile.
-                      </p>
-                    </div>
-                  ) : hasRoute && !fareParts.isViable ? (
-                    <div className="mt-3 p-3 rounded-xl bg-[#fff2f2] border border-[#fca5a5] text-[11px] text-[#991b1b]">
-                      <p className="font-bold flex items-center gap-1.5">
-                        <ShieldAlert size={14} className="text-[#dc2626]" />
-                        <span>Vehicle Operational Limit Exceeded</span>
-                      </p>
-                      <p className="mt-1 text-[#7f1d1d] leading-relaxed">
-                        {chosenVehicle.label} does not operate on this {distance} km corridor. Commuters take <strong>{fareParts.viability.alternativeName}</strong>.
-                      </p>
-                      <button
-                        onClick={() => {
-                          setVehicle(fareParts.viability.alternativeKey);
-                          showToast(`Switched to ${fareParts.viability.alternativeName}`);
-                        }}
-                        className="mt-2 inline-flex items-center gap-1 text-[11px] font-bold text-[#b91c1c] underline hover:text-[#991b1b]"
-                      >
-                        Switch to {fareParts.viability.alternativeName} ➔
-                      </button>
-                    </div>
-                  ) : (
-                    <div className="mt-3 p-2.5 rounded-xl bg-[#edf5ee] border border-[#d2e4d4] flex items-center gap-2 text-[11px] text-[#345657]">
-                      <CheckCircle2 size={14} className="text-[#557b72] shrink-0" />
-                      <span><strong>All-Inclusive:</strong> This is the complete official fare. No extra boarding fee or hidden charges.</span>
-                    </div>
-                  )}
-                </div>
-
-                {/* Corridor Context Card */}
-                <div className="bg-[#fbfcf8] border border-[#dce5dc] rounded-3xl p-5 shadow-sm">
-                  <div className="flex items-center justify-between pb-3 border-b border-[#e5ece3]">
-                    <h3 className="font-bold text-sm text-[#234b4c]">Route Details</h3>
-                    <span className="text-xs font-bold text-[#d36b3d]">{currentRouteMeta.duration}</span>
-                  </div>
-
-                  <div className="mt-3 space-y-2 text-xs">
-                    <div className="flex items-center justify-between">
-                      <span className="text-[#78908a]">Highway / Corridor:</span>
-                      <span className="font-semibold text-[#345657]">{currentRouteMeta.highway}</span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-[#78908a]">Terrain:</span>
-                      <span className="px-2 py-0.5 rounded-md bg-[#eef4ed] font-semibold text-[#426a54] text-[11px]">
-                        {currentRouteMeta.terrain} ({terrainRegion.replace("-", " ")})
-                      </span>
-                    </div>
-                    {currentRouteMeta.stops && currentRouteMeta.stops.length > 0 && (
-                      <div className="pt-2">
-                        <span className="text-[11px] text-[#78908a] block mb-1">Key En-Route Stops:</span>
-                        <div className="flex flex-wrap gap-1.5">
-                          {currentRouteMeta.stops.map((stop) => (
-                            <span
-                              key={stop}
-                              className="px-2 py-0.5 rounded-lg bg-[#f0f4ee] border border-[#dce5dc] text-[10px] font-semibold text-[#345657]"
-                            >
-                              📍 {stop}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
+          )
         )}
 
         {activeNav === "Recent estimates" && (
