@@ -16,7 +16,6 @@ const PRECACHE_ASSETS = [
   './js/evidence-locker.js',
   './js/help-assistant.js?v=1.1.0',
   './js/main.js?v=1.1.0',
-  './js/driver-mode.js?v=1.1.0',
   './js/qrcode.js',
   './js/vehicle-illustrations.js?v=1.1.0',
   './js/corridors-data.js?v=1.1.0',
