@@ -199,7 +199,36 @@ const SafarVoiceEngine = (() => {
   }
 
   /**
-   * Start listening turn
+   * Explicitly request and verify microphone hardware permission
+   */
+  async function requestMicrophonePermission() {
+    if (typeof navigator === 'undefined' || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      // Check if SpeechRecognition is at least present
+      if (!getSpeechRecClass()) {
+        return { granted: false, reason: 'BROWSER_UNSUPPORTED' };
+      }
+      return { granted: true }; // Fallback to SpeechRec browser prompt
+    }
+
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      // Immediately stop all tracks to release hardware light/indicator
+      stream.getTracks().forEach(track => track.stop());
+      return { granted: true };
+    } catch (err) {
+      console.warn('[Microphone Permission Error]', err);
+      if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+        return { granted: false, reason: 'MIC_PERMISSION_DENIED' };
+      }
+      if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
+        return { granted: false, reason: 'MIC_NOT_FOUND' };
+      }
+      return { granted: false, reason: 'MIC_ERROR', message: err.message };
+    }
+  }
+
+  /**
+   * Start single-turn listening session with endpointing
    */
   function startListening({
     lang = 'en-IN',
@@ -216,14 +245,15 @@ const SafarVoiceEngine = (() => {
 
     const SpeechRec = getSpeechRecClass();
     if (!SpeechRec) {
-      setState(VoiceState.ERROR, { reason: 'not_supported' });
-      if (onError) onError({ error: 'not-supported' });
+      setState(VoiceState.ERROR, { reason: 'BROWSER_UNSUPPORTED' });
+      if (onError) onError({ code: 'BROWSER_UNSUPPORTED', error: 'not-supported' });
       return false;
     }
 
     try {
       const recognition = new SpeechRec();
-      recognition.continuous = true;
+      // Single-turn mode gives clean, predictable endpointing & natural turn transitions
+      recognition.continuous = false;
       recognition.interimResults = true;
       recognition.lang = lang;
       recognition.maxAlternatives = 2;
@@ -280,15 +310,27 @@ const SafarVoiceEngine = (() => {
         clearTimeout(silenceTimer);
         clearTimeout(maxSpeechTimeout);
 
-        if (evt.error === 'no-speech') {
+        let code = 'RECOGNITION_ERROR';
+        if (evt.error === 'not-allowed') {
+          code = 'MIC_PERMISSION_DENIED';
+          setState(VoiceState.ERROR, { reason: 'MIC_PERMISSION_DENIED' });
+        } else if (evt.error === 'audio-capture') {
+          code = 'MIC_NOT_FOUND';
+          setState(VoiceState.ERROR, { reason: 'MIC_NOT_FOUND' });
+        } else if (evt.error === 'network') {
+          code = 'NETWORK_ERROR';
+          setState(VoiceState.ERROR, { reason: 'NETWORK_ERROR' });
+        } else if (evt.error === 'no-speech') {
+          code = 'NO_SPEECH';
           setState(VoiceState.IDLE);
-        } else if (evt.error === 'not-allowed') {
-          setState(VoiceState.ERROR, { reason: 'permission_denied' });
+        } else if (evt.error === 'language-not-supported') {
+          code = 'LANGUAGE_UNAVAILABLE';
+          setState(VoiceState.ERROR, { reason: 'LANGUAGE_UNAVAILABLE' });
         } else {
           setState(VoiceState.ERROR, { reason: evt.error });
         }
 
-        if (onError) onError(evt);
+        if (onError) onError({ code, rawError: evt.error });
       };
 
       recognition.onend = () => {
@@ -312,7 +354,7 @@ const SafarVoiceEngine = (() => {
     } catch (err) {
       console.warn('[STT Exception]', err);
       setState(VoiceState.ERROR, { reason: err.message });
-      if (onError) onError(err);
+      if (onError) onError({ code: 'RECOGNITION_ERROR', error: err.message });
       return false;
     }
   }
@@ -340,6 +382,7 @@ const SafarVoiceEngine = (() => {
     onStateChange,
     voiceOutput,
     isSupported,
+    requestMicrophonePermission,
     startListening,
     stopListening,
     speak: (text, lang, onStart, onEnd) => voiceOutput.speak(text, lang, onStart, onEnd),

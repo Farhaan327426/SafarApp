@@ -469,8 +469,8 @@ Logged via Safar J&K Transit Portal.`;
             <div class="voice-title-wrap">
               <span class="voice-icon" id="voiceHeaderIcon">🤖</span>
               <div>
-                <h3>What is the problem?</h3>
-                <p class="subtitle">Tap mic or type: e.g. <em>"Driver charged ₹300 from Baramulla to Srinagar instead of ₹150"</em></p>
+                <h3>🎙️ What happened?</h3>
+                <p class="subtitle">Tap the mic and tell Safar what happened in English, हिन्दी, or اردو, or type below</p>
               </div>
             </div>
             
@@ -680,41 +680,97 @@ Logged via Safar J&K Transit Portal.`;
     }
   }
 
-  function startVoiceListening() {
+  async function startVoiceListening() {
     if (!Voice()) return;
 
     const sheet = document.getElementById('voiceProblemModal');
-    if (sheet) sheet.classList.remove('hidden');
+
+    // 1. Explicitly check hardware / browser microphone permission first
+    updateVoiceStatus("🎙️ Requesting microphone access...", "info", true);
+    const perm = await Voice().requestMicrophonePermission();
+
+    if (!perm.granted) {
+      setMicBtnState(false);
+      if (sheet) sheet.classList.remove('hidden');
+
+      if (perm.reason === 'MIC_PERMISSION_DENIED') {
+        updateVoiceStatus(
+          "🔒 Microphone access is blocked. Tap the 🔒 or mic icon next to your browser's address bar ➔ Set Microphone to 'Allow' ➔ Tap mic again.",
+          "error",
+          false
+        );
+      } else if (perm.reason === 'MIC_NOT_FOUND') {
+        updateVoiceStatus(
+          "🎙️ No microphone detected on this device. Please connect a headset or microphone, or type your problem below.",
+          "warning",
+          false
+        );
+      } else if (perm.reason === 'BROWSER_UNSUPPORTED') {
+        updateVoiceStatus(
+          "🎙️ Voice input isn't supported in this browser. You can type your problem below, or choose from common issues.",
+          "error",
+          false
+        );
+      } else {
+        updateVoiceStatus(
+          "🎙️ Could not access microphone. Please check your browser audio settings and try again.",
+          "error",
+          false
+        );
+      }
+      return;
+    }
 
     const sttLang = getSttLang();
     setMicBtnState(true);
-    updateVoiceStatus(`🎙️ Listening (${sttLang})... Tell me your problem:`, 'listening', true);
+    if (sheet) sheet.classList.remove('hidden');
+    updateVoiceStatus("🔴 I'm listening... Speak naturally. You can speak in English, हिन्दी, or اردو.", "listening", true);
 
     const started = Voice().startListening({
       lang: sttLang,
       onInterim: (text) => {
         const input = document.getElementById('help-custom-input');
         if (input) input.value = text;
-        updateVoiceStatus(`🎙️ Hearing: "${text}"`, 'listening', true);
+        updateVoiceStatus(`🎙️ Hearing: "${escapeHtml(text)}"`, "listening", true);
       },
       onFinal: (text) => {
         setMicBtnState(false);
         if (sheet) sheet.classList.add('hidden');
         if (text && text.trim()) {
-          updateVoiceStatus(`✅ Analyzing: "${text}"...`, 'success', false);
+          updateVoiceStatus(`✓ I heard you: "${escapeHtml(text)}" — Safar is thinking...`, "success", false);
           handleUserTurn(text, 'speech');
         }
       },
       onError: (err) => {
         setMicBtnState(false);
         if (sheet) sheet.classList.remove('hidden');
-        updateVoiceStatus('🎙️ Tap an issue below or type what happened:', 'info', false);
+
+        if (err.code === 'MIC_PERMISSION_DENIED') {
+          updateVoiceStatus("🔒 Microphone access was blocked. Tap the 🔒 icon in your address bar and allow microphone access.", "error", false);
+        } else if (err.code === 'MIC_NOT_FOUND') {
+          updateVoiceStatus("🎙️ No microphone found. Connect a microphone or type your problem below.", "warning", false);
+        } else if (err.code === 'BROWSER_UNSUPPORTED') {
+          updateVoiceStatus("🎙️ Voice input isn't supported in this browser. You can type your problem below or choose from common issues.", "error", false);
+        } else if (err.code === 'NETWORK_ERROR') {
+          updateVoiceStatus("🌐 Network error during voice recognition. Tap the mic to retry, or type your problem below.", "warning", false);
+        } else if (err.code === 'NO_SPEECH') {
+          updateVoiceStatus("🎙️ I didn't hear anything. Tap the mic and speak clearly, or choose your problem below.", "info", false);
+        } else if (err.code === 'LANGUAGE_UNAVAILABLE') {
+          updateVoiceStatus("🎙️ Voice recognition for this language is unavailable in this browser. Please try in English or Hindi.", "info", false);
+        } else {
+          updateVoiceStatus("🎙️ Voice recognition stopped. Tap mic to retry or type your problem below.", "info", false);
+        }
       }
     });
 
     if (!started) {
       setMicBtnState(false);
-      updateVoiceStatus('🎙️ Microphone unavailable. Choose your problem below:', 'info', false);
+      const isUnsupp = !Voice().isSupported();
+      if (isUnsupp) {
+        updateVoiceStatus("🎙️ Voice recognition isn't supported in this browser. You can type your problem below or choose an issue.", "error", false);
+      } else {
+        updateVoiceStatus("🎙️ I couldn't start the microphone. Please check microphone permission and try again.", "error", false);
+      }
     }
   }
 
@@ -729,11 +785,12 @@ Logged via Safar J&K Transit Portal.`;
 
     const input = document.getElementById('help-custom-input');
     if (triggerSubmit && input && input.value.trim()) {
+      updateVoiceStatus(`✦ Safar is thinking...`, "info", true);
       handleUserTurn(input.value.trim(), 'speech');
     }
   }
 
-  function toggleVoiceRecording() {
+  async function toggleVoiceRecording() {
     if (Voice() && Voice().getState() === Voice().VoiceState.LISTENING) {
       stopVoiceRecording(true);
       return;
@@ -748,11 +805,12 @@ Logged via Safar J&K Transit Portal.`;
     const existingVal = input ? input.value.trim() : '';
 
     if (existingVal) {
+      updateVoiceStatus(`✦ Safar is thinking...`, "info", true);
       handleUserTurn(existingVal, 'text');
       return;
     }
 
-    startVoiceListening();
+    await startVoiceListening();
   }
 
   function stopAiSpeech() {

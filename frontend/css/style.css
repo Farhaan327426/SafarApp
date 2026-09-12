@@ -4435,6 +4435,18 @@ body.driver-low-power * {
   color: #93c5fd;
 }
 
+.voice-status-banner.status-error {
+  background: rgba(239, 68, 68, 0.12);
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  color: #b91c1c;
+}
+
+[data-theme="dark"] .voice-status-banner.status-error {
+  background: rgba(239, 68, 68, 0.2);
+  border-color: rgba(239, 68, 68, 0.45);
+  color: #f87171;
+}
+
 /* Quick scenario chips */
 .voice-quick-chips {
   margin-top: 10px;
