@@ -116,9 +116,26 @@ const SafarVoiceEngine = (() => {
         return;
       }
 
+      // Format text for natural fluid speech (strip markdown headers, bolding, table pipes)
+      const spokenText = text
+        .replace(/<[^>]+>/g, '')
+        .replace(/###?\s*/g, '')
+        .replace(/[*_~`]/g, '')
+        .replace(/\|.*\|/g, '')
+        .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+        .replace(/[-*•]\s+/g, '')
+        .replace(/[^\w\s.,?!₹:–-]/gi, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+
+      if (!spokenText) {
+        if (onEnd) onEnd();
+        return;
+      }
+
       try {
-        const utter = new SpeechSynthesisUtterance(text);
-        utter.rate = 0.96;
+        const utter = new SpeechSynthesisUtterance(spokenText);
+        utter.rate = 0.98;
         utter.pitch = 1.0;
         utter.lang = lang;
 
