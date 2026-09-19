@@ -150,6 +150,127 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   /**
+   * Builds a structured Complaint Card element matching Stage 5 specs
+   */
+  function createComplaintCard(complaint) {
+    const card = document.createElement('div');
+    card.className = 'complaint-card';
+
+    const titleEl = document.createElement('div');
+    titleEl.className = 'complaint-card-title';
+    titleEl.textContent = 'COMPLAINT DRAFT';
+    card.appendChild(titleEl);
+
+    const issueEl = document.createElement('div');
+    issueEl.className = 'complaint-card-issue';
+    issueEl.textContent = complaint.fields?.issueLabel || complaint.issueLabel || complaint.issue || 'Transport Issue';
+    card.appendChild(issueEl);
+
+    const grid = document.createElement('div');
+    grid.className = 'complaint-card-grid';
+    grid.innerHTML = `
+      <div class="complaint-card-item">
+        <span class="complaint-card-label">Route</span>
+        <span class="complaint-card-value">${complaint.fields?.route || 'Not specified'}</span>
+      </div>
+      <div class="complaint-card-item">
+        <span class="complaint-card-label">Vehicle</span>
+        <span class="complaint-card-value">${complaint.fields?.vehicleType || 'Not specified'}</span>
+      </div>
+      <div class="complaint-card-item">
+        <span class="complaint-card-label">Amount Charged</span>
+        <span class="complaint-card-value">${complaint.fields?.amountCharged || 'Not specified'}</span>
+      </div>
+      <div class="complaint-card-item">
+        <span class="complaint-card-label">Expected Amount</span>
+        <span class="complaint-card-value">${complaint.fields?.expectedFare || 'Not specified'}</span>
+      </div>
+    `;
+    card.appendChild(grid);
+
+    if (complaint.fields?.description && complaint.fields.description !== 'Not specified') {
+      const descEl = document.createElement('div');
+      descEl.className = 'complaint-card-desc';
+      descEl.textContent = complaint.fields.description;
+      card.appendChild(descEl);
+    }
+
+    const badge = document.createElement('div');
+    badge.className = 'complaint-card-status-badge';
+    badge.textContent = 'DRAFT — NOT SUBMITTED';
+    card.appendChild(badge);
+
+    const notice = document.createElement('div');
+    notice.className = 'complaint-card-notice';
+    notice.textContent = complaint.disclaimer || 'This is a draft complaint summary. It has not been automatically filed with any authority.';
+    card.appendChild(notice);
+
+    // Actions: Copy, Download, Share
+    const actions = document.createElement('div');
+    actions.className = 'complaint-card-actions';
+
+    // Copy button
+    const copyBtn = document.createElement('button');
+    copyBtn.className = 'complaint-btn copy';
+    copyBtn.innerHTML = '📋 Copy Complaint';
+    copyBtn.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(complaint.complaintText);
+        copyBtn.innerHTML = '✓ Copied';
+        copyBtn.classList.add('copied');
+        setTimeout(() => {
+          copyBtn.innerHTML = '📋 Copy Complaint';
+          copyBtn.classList.remove('copied');
+        }, 2000);
+      } catch (e) {
+        alert('Complaint copied.');
+      }
+    });
+    actions.appendChild(copyBtn);
+
+    // Download button
+    const downloadBtn = document.createElement('button');
+    downloadBtn.className = 'complaint-btn download';
+    downloadBtn.innerHTML = '💾 Download .txt';
+    downloadBtn.addEventListener('click', () => {
+      const blob = new Blob([complaint.complaintText], { type: 'text/plain;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'safar-complaint-draft.txt';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    });
+    actions.appendChild(downloadBtn);
+
+    // Share button
+    const shareBtn = document.createElement('button');
+    shareBtn.className = 'complaint-btn share';
+    shareBtn.innerHTML = '🔗 Share';
+    shareBtn.addEventListener('click', async () => {
+      if (navigator.share) {
+        try {
+          await navigator.share({
+            title: 'Transport Service Complaint Draft',
+            text: complaint.complaintText
+          });
+        } catch (err) {
+          // User dismissed or aborted share
+        }
+      } else {
+        alert('Sharing is not supported on this device. You can copy or download the complaint instead.');
+      }
+    });
+    actions.appendChild(shareBtn);
+
+    card.appendChild(actions);
+
+    return card;
+  }
+
+  /**
    * Appends a message bubble to the chat window
    */
   function appendMessage(text, sender = 'assistant', meta = null, cardData = null) {
@@ -163,6 +284,9 @@ document.addEventListener('DOMContentLoaded', () => {
         bubble.appendChild(card);
       } else if (cardData.type === 'SCHEDULE') {
         const card = createScheduleCard(cardData);
+        bubble.appendChild(card);
+      } else if (cardData.type === 'COMPLAINT_DRAFT' || cardData.type === 'COMPLAINT') {
+        const card = createComplaintCard(cardData);
         bubble.appendChild(card);
       } else {
         const card = createFareCard(cardData);
@@ -207,7 +331,9 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       const data = await response.json();
-      if (data.scheduleData) {
+      if (data.complaintData) {
+        appendMessage('', 'assistant', 'DRAFT — NOT SUBMITTED', data.complaintData);
+      } else if (data.scheduleData) {
         appendMessage('', 'assistant', 'DEMO / ESTIMATE', data.scheduleData);
       } else if (data.routeData) {
         appendMessage('', 'assistant', 'DEMO / ESTIMATE', data.routeData);

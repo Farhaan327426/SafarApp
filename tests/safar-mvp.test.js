@@ -13,6 +13,7 @@ import { getSession } from '../backend/ai/conversationService.js';
 import { calculateFare } from '../backend/fare/fareService.js';
 import { getRoute } from '../backend/routes/routeService.js';
 import { getSchedule } from '../backend/schedule/scheduleService.js';
+import { draftComplaint, classifyComplaintIssue } from '../backend/complaints/complaintService.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -806,6 +807,226 @@ describe('Safar AI MVP: Stage 4 Schedule System Tests', () => {
     assert.equal(res.status, 200);
     const data = await res.json();
     assert.equal(data.reply, 'Live tracking is not available in the current version.');
+  });
+});
+
+describe('Safar AI MVP: Stage 5 Complaint Assistant Tests', () => {
+  let server;
+  const TEST_PORT = 3195;
+  const BASE_URL = `http://localhost:${TEST_PORT}`;
+
+  before(async () => {
+    server = createServer();
+    await new Promise((resolve) => server.listen(TEST_PORT, resolve));
+  });
+
+  after(async () => {
+    if (server) {
+      await new Promise((resolve) => server.close(resolve));
+    }
+  });
+
+  test('1. Basic complaint draft via POST /api/complaint: full parameters', async () => {
+    const res = await fetch(`${BASE_URL}/api/complaint`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        date: '2025-01-15',
+        location: 'Lal Chowk',
+        route: 'Baramulla → Srinagar',
+        vehicleType: 'Minibus',
+        issue: 'OVERCHARGE',
+        amountCharged: 50,
+        expectedFare: 30,
+        description: 'Driver charged me more than expected.'
+      })
+    });
+
+    assert.equal(res.status, 200);
+    const data = await res.json();
+    assert.equal(data.success, true);
+    assert.equal(data.type, 'COMPLAINT_DRAFT');
+    assert.equal(data.issue, 'OVERCHARGE');
+    assert.equal(data.fields.route, 'Baramulla → Srinagar');
+    assert.equal(data.fields.amountCharged, '₹50');
+    assert.equal(data.fields.expectedFare, '₹30');
+    assert.equal(data.status, 'DRAFT — NOT SUBMITTED');
+  });
+
+  test('2. Overcharge classification: normalizes variations to OVERCHARGE', () => {
+    assert.equal(classifyComplaintIssue('The driver overcharged me.'), 'OVERCHARGE');
+    assert.equal(classifyComplaintIssue('Driver ne zyada paisay liye.'), 'OVERCHARGE');
+    assert.equal(classifyComplaintIssue('ڈرائیور نے زیادہ پیسے لیے۔'), 'OVERCHARGE');
+    assert.equal(classifyComplaintIssue('ज्यादा किराया लिया'), 'OVERCHARGE');
+  });
+
+  test('3. Refused service classification: normalizes refusal to REFUSED_SERVICE', () => {
+    assert.equal(classifyComplaintIssue('The driver refused to take me.'), 'REFUSED_SERVICE');
+    assert.equal(classifyComplaintIssue('driver refused me'), 'REFUSED_SERVICE');
+    assert.equal(classifyComplaintIssue('nahi bithaya'), 'REFUSED_SERVICE');
+  });
+
+  test('4. Overloading classification: normalizes overcrowding to OVERLOADING', () => {
+    assert.equal(classifyComplaintIssue('The bus was overcrowded.'), 'OVERLOADING');
+    assert.equal(classifyComplaintIssue('bus bohat crowded thi'), 'OVERLOADING');
+    assert.equal(classifyComplaintIssue('overloading vehicle'), 'OVERLOADING');
+  });
+
+  test('5. Rude behavior classification: normalizes misbehavior to RUDE_BEHAVIOR', () => {
+    assert.equal(classifyComplaintIssue('The driver behaved badly.'), 'RUDE_BEHAVIOR');
+    assert.equal(classifyComplaintIssue('driver abused me'), 'RUDE_BEHAVIOR');
+    assert.equal(classifyComplaintIssue('badtamiz conductor'), 'RUDE_BEHAVIOR');
+  });
+
+  test('6. Dangerous driving classification: normalizes reckless driving to DANGEROUS_DRIVING', () => {
+    assert.equal(classifyComplaintIssue('The driver was driving dangerously.'), 'DANGEROUS_DRIVING');
+    assert.equal(classifyComplaintIssue('rash driving on highway'), 'DANGEROUS_DRIVING');
+    assert.equal(classifyComplaintIssue('khatarnak driving'), 'DANGEROUS_DRIVING');
+  });
+
+  test('7. OTHER classification: handles uncertain or general issues as OTHER', () => {
+    assert.equal(classifyComplaintIssue('AC was not working properly'), 'OTHER');
+    assert.equal(classifyComplaintIssue('Seat was torn'), 'OTHER');
+  });
+
+  test('8. Partial complaint: handles missing fields without errors', async () => {
+    const res = await fetch(`${BASE_URL}/api/complaint`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        issue: 'OVERLOADING'
+      })
+    });
+
+    assert.equal(res.status, 200);
+    const data = await res.json();
+    assert.equal(data.success, true);
+    assert.equal(data.issue, 'OVERLOADING');
+    assert.equal(data.status, 'DRAFT — NOT SUBMITTED');
+  });
+
+  test('9. Missing fields marked as "Not specified"', async () => {
+    const res = await fetch(`${BASE_URL}/api/complaint`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        issue: 'REFUSED_SERVICE'
+      })
+    });
+
+    const data = await res.json();
+    assert.equal(data.fields.route, 'Not specified');
+    assert.equal(data.fields.location, 'Not specified');
+    assert.equal(data.fields.vehicleType, 'Not specified');
+    assert.equal(data.fields.amountCharged, 'Not specified');
+    assert.equal(data.fields.expectedFare, 'Not specified');
+    assert.equal(data.fields.description, 'Not specified');
+  });
+
+  test('10. Draft disclaimer: exact mandatory static draft disclaimer present', async () => {
+    const res = await fetch(`${BASE_URL}/api/complaint`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        issue: 'OVERCHARGE'
+      })
+    });
+
+    const data = await res.json();
+    assert.equal(
+      data.disclaimer,
+      'This is a draft complaint summary. It has not been automatically filed with any authority.'
+    );
+    assert.ok(
+      data.complaintText.includes('This is a draft complaint summary. It has not been automatically filed with any authority.')
+    );
+  });
+
+  test('11. Data Safety: Never generates tracking numbers or case IDs', async () => {
+    const res = await fetch(`${BASE_URL}/api/complaint`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        issue: 'OVERCHARGE',
+        amountCharged: 50
+      })
+    });
+
+    const data = await res.json();
+    assert.equal(data.trackingId, undefined);
+    assert.equal(data.complaintId, undefined);
+    assert.equal(data.registrationNumber, undefined);
+    assert.equal(data.caseNumber, undefined);
+    assert.ok(!data.complaintText.includes('Tracking ID'));
+    assert.ok(!data.complaintText.includes('Registration ID'));
+  });
+
+  test('12. Chat complaint query: "The driver overcharged me." generates draft card', async () => {
+    const res = await fetch(`${BASE_URL}/api/chat`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        message: 'The driver overcharged me.'
+      })
+    });
+
+    assert.equal(res.status, 200);
+    const data = await res.json();
+    assert.equal(data.type, 'COMPLAINT');
+    assert.ok(data.complaintData);
+    assert.equal(data.complaintData.issue, 'OVERCHARGE');
+    assert.equal(data.complaintData.status, 'DRAFT — NOT SUBMITTED');
+  });
+
+  test('13. Complaint text integrity: ready-to-copy plain text format', () => {
+    const draft = draftComplaint({
+      route: 'Srinagar → Baramulla',
+      vehicleType: 'Minibus',
+      issue: 'OVERCHARGE',
+      amountCharged: 60,
+      expectedFare: 40,
+      description: 'Conductor took 60 rs instead of 40 rs'
+    });
+
+    assert.ok(draft.complaintText.includes('Subject: Transport Service Complaint'));
+    assert.ok(draft.complaintText.includes('Route: Srinagar → Baramulla'));
+    assert.ok(draft.complaintText.includes('Vehicle Type: Minibus'));
+    assert.ok(draft.complaintText.includes('Amount Charged: ₹60'));
+    assert.ok(draft.complaintText.includes('Expected Fare: ₹40'));
+    assert.ok(draft.complaintText.includes('Conductor took 60 rs instead of 40 rs'));
+    assert.ok(draft.complaintText.includes(draft.disclaimer));
+  });
+
+  test('14. Follow-up using existing route context: reuses session route memory', async () => {
+    const sessionId = `session-complaint-test-${Date.now()}`;
+
+    // Step 1: User asks for fare on a route
+    const res1 = await fetch(`${BASE_URL}/api/chat`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        message: 'Fare from Baramulla to Srinagar',
+        sessionId
+      })
+    });
+    assert.equal(res1.status, 200);
+
+    // Step 2: User complains without repeating the route
+    const res2 = await fetch(`${BASE_URL}/api/chat`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        message: 'The driver charged me too much.',
+        sessionId
+      })
+    });
+
+    assert.equal(res2.status, 200);
+    const data2 = await res2.json();
+    assert.equal(data2.type, 'COMPLAINT');
+    assert.ok(data2.complaintData);
+    assert.equal(data2.complaintData.fields.route, 'Baramulla → Srinagar');
+    assert.equal(data2.complaintData.issue, 'OVERCHARGE');
   });
 });
 

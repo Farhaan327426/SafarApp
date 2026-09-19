@@ -11,7 +11,8 @@ import { getSession } from './ai/conversationService.js';
 import { calculateFare } from './fare/fareService.js';
 import { getRoute } from './routes/routeService.js';
 import { getSchedule } from './schedule/scheduleService.js';
-import { detectFareIntent, detectRouteIntent, detectScheduleIntent, isLiveTrackingQuery } from './ai/intentService.js';
+import { draftComplaint } from './complaints/complaintService.js';
+import { detectFareIntent, detectRouteIntent, detectScheduleIntent, detectComplaintIntent, isLiveTrackingQuery } from './ai/intentService.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -131,8 +132,8 @@ export function createServer() {
         res.writeHead(200);
         return res.end(JSON.stringify({
           status: 'ok',
-          stage: 4,
-          message: 'Safar AI MVP Stage 4 Active (Schedule System)',
+          stage: 5,
+          message: 'Safar AI MVP Stage 5 Active (Complaint Assistant)',
           dataSafety: {
             mode: 'DEMO',
             notice: 'All transport values are illustrative demo estimates.'
@@ -202,6 +203,24 @@ export function createServer() {
         return res.end(JSON.stringify(result));
       }
 
+      // POST /api/complaint (Stage 5)
+      if (pathname === '/api/complaint' && req.method === 'POST') {
+        const payload = await parseRequestBody(req);
+        const result = draftComplaint({
+          date: payload.date,
+          location: payload.location,
+          route: payload.route,
+          vehicleType: payload.vehicleType,
+          issue: payload.issue,
+          amountCharged: payload.amountCharged,
+          expectedFare: payload.expectedFare,
+          description: payload.description
+        });
+
+        res.writeHead(200);
+        return res.end(JSON.stringify(result));
+      }
+
       // POST /api/chat
       if (pathname === '/api/chat' && req.method === 'POST') {
         const payload = await parseRequestBody(req);
@@ -216,7 +235,48 @@ export function createServer() {
             reply: 'Live tracking is not available in the current version.',
             source_type: 'DEMO',
             disclaimer: 'This is the listed schedule, not live vehicle information.',
-            stage: 4,
+            stage: 5,
+            context: session.getContext()
+          }));
+        }
+
+        // Stage 5: Detect COMPLAINT intent
+        const complaintDetection = detectComplaintIntent(userMessage, session);
+
+        if (complaintDetection && complaintDetection.intent === 'COMPLAINT') {
+          if (complaintDetection.route) {
+            const parts = complaintDetection.route.split('→').map(s => s.trim());
+            if (parts.length === 2) {
+              session.updateContext({
+                origin: parts[0],
+                destination: parts[1],
+                transportMode: complaintDetection.vehicleType,
+                intent: 'COMPLAINT'
+              });
+            }
+          } else {
+            session.updateContext({
+              intent: 'COMPLAINT'
+            });
+          }
+
+          const complaintResult = draftComplaint({
+            route: complaintDetection.route,
+            location: complaintDetection.location,
+            vehicleType: complaintDetection.vehicleType,
+            issue: complaintDetection.issue,
+            amountCharged: complaintDetection.amountCharged,
+            expectedFare: complaintDetection.expectedFare,
+            description: userMessage
+          });
+
+          res.writeHead(200);
+          return res.end(JSON.stringify({
+            reply: 'I have prepared a draft complaint summary for you. This has not been filed with any authority.',
+            complaintData: complaintResult,
+            source_type: 'DEMO',
+            disclaimer: complaintResult.disclaimer,
+            type: 'COMPLAINT',
             context: session.getContext()
           }));
         }

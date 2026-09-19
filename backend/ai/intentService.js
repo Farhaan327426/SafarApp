@@ -7,6 +7,7 @@
  */
 
 import { getLocations, normalizeVehicleType } from '../fare/fareService.js';
+import { classifyComplaintIssue } from '../complaints/complaintService.js';
 
 export const INTENTS = {
   FARE: 'FARE',
@@ -43,6 +44,38 @@ const LIVE_TRACKING_KEYWORDS = [
   'live tracking', 'live bus', 'current location', 'gps', 'real time',
   'real-time', 'live location'
 ];
+
+const COMPLAINT_KEYWORDS = [
+  'complain', 'complaint', 'report', 'overcharge', 'overcharged', 'charged too much',
+  'refused to take', 'refused me', 'refuse', 'overcrowded', 'overcrowding', 'overloading',
+  'overloaded', 'behaved badly', 'bad behavior', 'rude', 'abused', 'abusive', 'misbehaved',
+  'dangerous driving', 'rash driving', 'reckless', 'speeding', 'overspeeding',
+  'more than the listed fare', 'more than expected', 'extra fare', 'extra money',
+  'zyada paisay', 'zyada paise', 'zyada kiraya', 'mana kiya', 'nahi bithaya',
+  'badtamiz', 'badtameez', 'bheed', 'rush', 'khatarnak driving', 'crowded',
+  'شکایت', 'زیادہ پیسے', 'زیادہ کرایہ', 'انکار', 'بدتمیزی', 'بھیڑ', 'خطرناک ڈرائیونگ',
+  'शिकायत', 'ज्यादा किराया', 'ज्यादा पैसे', 'मना कर दिया', 'नहीं बैठाया', 'बदतमीजी', 'भीड़', 'खतरनाक ड्राइविंग'
+];
+
+/**
+ * Checks if query is requesting a transport complaint / report
+ */
+export function isComplaintQuery(text) {
+  if (!text) return false;
+  const clean = String(text).toLowerCase().trim();
+
+  if (
+    /(?:overcharg|charged?\s+(?:me\s+|us\s+)?(?:too\s+much|more|extra)|refus|overcrowd|crowded|overload|rude|abus|misbehav|danger|rash|reckless|badtamiz|badtameez|bheed|khatarnak|zyada\s+(?:paisa|paise|paisay|kiraya)|shikayat|شکایت|शिकायत)/i.test(clean)
+  ) {
+    return true;
+  }
+
+  return COMPLAINT_KEYWORDS.some(kw => clean.includes(kw)) ||
+    clean.startsWith('i want to report') ||
+    clean.startsWith('how can i complain') ||
+    clean.includes('transport problem') ||
+    clean.includes('driver ne');
+}
 
 /**
  * Checks if query is requesting live tracking
@@ -163,6 +196,10 @@ export function detectFareIntent(query, session = null) {
   if (!query) return null;
   const clean = String(query).trim().toLowerCase();
 
+  if (isComplaintQuery(clean) || isLiveTrackingQuery(clean) || hasScheduleKeyword(clean)) {
+    return null;
+  }
+
   const matchedLocations = extractLocationsFromText(query);
   const detectedVehicle = normalizeVehicleType(query);
   const hasFareKeyword = FARE_KEYWORDS.some(kw => clean.includes(kw));
@@ -214,7 +251,7 @@ export function detectRouteIntent(query, session = null) {
   if (!query) return null;
   const clean = String(query).trim().toLowerCase();
 
-  if (hasScheduleKeyword(clean) || isLiveTrackingQuery(clean)) {
+  if (hasScheduleKeyword(clean) || isLiveTrackingQuery(clean) || isComplaintQuery(clean)) {
     return null;
   }
 
@@ -281,6 +318,10 @@ export function detectScheduleIntent(query, session = null) {
   if (!query) return null;
   const clean = String(query).trim().toLowerCase();
 
+  if (isComplaintQuery(clean) || isLiveTrackingQuery(clean)) {
+    return null;
+  }
+
   const isScheduleMatch = hasScheduleKeyword(clean);
   const matchedLocations = extractLocationsFromText(query);
   const detectedVehicle = normalizeVehicleType(query);
@@ -331,6 +372,84 @@ export function detectScheduleIntent(query, session = null) {
 }
 
 /**
+ * Helper to extract amounts from complaint query (e.g. charged 50 but expected 30)
+ */
+function extractComplaintAmounts(clean) {
+  let amountCharged = null;
+  let expectedFare = null;
+
+  const chargedMatch = clean.match(/charged\s+(?:me\s+)?(?:₹|rs\.?\s*)?(\d+)/i);
+  if (chargedMatch) {
+    amountCharged = Number(chargedMatch[1]);
+  }
+
+  const expectedMatch = clean.match(/expected\s+(?:to pay\s+)?(?:fare\s+)?(?:₹|rs\.?\s*)?(\d+)/i);
+  if (expectedMatch) {
+    expectedFare = Number(expectedMatch[1]);
+  }
+
+  if (!amountCharged) {
+    const insteadMatch = clean.match(/(?:took|paid|charged)\s+(?:₹|rs\.?\s*)?(\d+)\s+instead\s+of\s+(?:₹|rs\.?\s*)?(\d+)/i);
+    if (insteadMatch) {
+      amountCharged = Number(insteadMatch[1]);
+      expectedFare = Number(insteadMatch[2]);
+    }
+  }
+
+  return { amountCharged, expectedFare };
+}
+
+/**
+ * Detects if a query is a COMPLAINT query and extracts entities (Stage 5)
+ */
+export function detectComplaintIntent(query, session = null) {
+  if (!query) return null;
+  const clean = String(query).trim().toLowerCase();
+
+  if (isLiveTrackingQuery(clean)) return null;
+
+  if (!isComplaintQuery(clean)) return null;
+
+  const issue = classifyComplaintIssue(clean);
+  const matchedLocations = extractLocationsFromText(query);
+  const detectedVehicle = normalizeVehicleType(query);
+  const { amountCharged, expectedFare } = extractComplaintAmounts(clean);
+
+  let route = null;
+  let location = null;
+
+  if (matchedLocations.length >= 2) {
+    route = `${matchedLocations[0].location.name} → ${matchedLocations[1].location.name}`;
+  } else if (matchedLocations.length === 1) {
+    location = matchedLocations[0].location.name;
+    if (session && (session.lastOrigin || session.lastDestination)) {
+      const other = session.lastOrigin || session.lastDestination;
+      if (other && other !== location) {
+        route = `${other} → ${location}`;
+      }
+    }
+  } else if (session && session.lastOrigin && session.lastDestination) {
+    route = `${session.lastOrigin} → ${session.lastDestination}`;
+  }
+
+  const vehicleType = detectedVehicle 
+    ? detectedVehicle.displayName 
+    : (session && session.lastTransportMode ? session.lastTransportMode : null);
+
+  return {
+    intent: INTENTS.COMPLAINT,
+    issue,
+    route,
+    location,
+    vehicleType,
+    amountCharged,
+    expectedFare,
+    description: query.trim(),
+    confidence: 0.95
+  };
+}
+
+/**
  * General intent detector
  */
 export function detectIntent(query, session = null) {
@@ -340,6 +459,11 @@ export function detectIntent(query, session = null) {
       isLiveTracking: true,
       confidence: 1.0
     };
+  }
+
+  const complaintResult = detectComplaintIntent(query, session);
+  if (complaintResult) {
+    return complaintResult;
   }
 
   const scheduleResult = detectScheduleIntent(query, session);
