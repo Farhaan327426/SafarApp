@@ -1,0 +1,79 @@
+[
+  {
+    "routeId": "budgam_lal_chowk",
+    "origin": "Budgam",
+    "destination": "Lal Chowk",
+    "majorTransitPoint": "Batamaloo / Jahangir Chowk",
+    "intermediates": ["Chadoora Cross", "Hyderpora Bypass", "Batamaloo", "Jahangir Chowk"],
+    "summaryPath": "Budgam → Srinagar (Batamaloo) → Lal Chowk",
+    "source": "Demo Transport Baseline (Illustrative)",
+    "source_type": "DEMO",
+    "last_verified": "2025-01-15"
+  },
+  {
+    "routeId": "srinagar_baramulla",
+    "origin": "Srinagar",
+    "destination": "Baramulla",
+    "majorTransitPoint": "Parimpora Bus Stand",
+    "intermediates": ["Parimpora", "Shalteng", "Pattan", "Sangrama", "Kanispora"],
+    "summaryPath": "Srinagar (Parimpora) → Pattan → Sangrama → Baramulla",
+    "source": "Demo Transport Baseline (Illustrative)",
+    "source_type": "DEMO",
+    "last_verified": "2025-01-15"
+  },
+  {
+    "routeId": "baramulla_srinagar",
+    "origin": "Baramulla",
+    "destination": "Srinagar",
+    "majorTransitPoint": "General Bus Stand Baramulla",
+    "intermediates": ["Kanispora", "Sangrama", "Pattan", "Shalteng", "Parimpora"],
+    "summaryPath": "Baramulla → Sangrama → Pattan → Srinagar (Parimpora / Batamaloo)",
+    "source": "Demo Transport Baseline (Illustrative)",
+    "source_type": "DEMO",
+    "last_verified": "2025-01-15"
+  },
+  {
+    "routeId": "sopore_lal_chowk",
+    "origin": "Sopore",
+    "destination": "Lal Chowk",
+    "majorTransitPoint": "Sangrama Chowk",
+    "intermediates": ["Sangrama", "Pattan", "Parimpora", "Batamaloo"],
+    "summaryPath": "Sopore → Sangrama → Srinagar (Parimpora) → Lal Chowk",
+    "source": "Demo Transport Baseline (Illustrative)",
+    "source_type": "DEMO",
+    "last_verified": "2025-01-15"
+  },
+  {
+    "routeId": "srinagar_gulmarg",
+    "origin": "Srinagar",
+    "destination": "Gulmarg",
+    "majorTransitPoint": "Tangmarg Bus Stand",
+    "intermediates": ["Parimpora", "Magam", "Kunzer", "Tangmarg"],
+    "summaryPath": "Srinagar → Magam → Tangmarg → Gulmarg",
+    "source": "Demo Transport Baseline (Illustrative)",
+    "source_type": "DEMO",
+    "last_verified": "2025-01-15"
+  },
+  {
+    "routeId": "srinagar_pahalgam",
+    "origin": "Srinagar",
+    "destination": "Pahalgam",
+    "majorTransitPoint": "Khanabal / Anantnag",
+    "intermediates": ["Pantha Chowk", "Pampore", "Awantipora", "Khanabal", "Mattan"],
+    "summaryPath": "Srinagar → Awantipora → Khanabal (Anantnag) → Mattan → Pahalgam",
+    "source": "Demo Transport Baseline (Illustrative)",
+    "source_type": "DEMO",
+    "last_verified": "2025-01-15"
+  },
+  {
+    "routeId": "jammu_katra",
+    "origin": "Jammu",
+    "destination": "Katra",
+    "majorTransitPoint": "Nagrota Bypass",
+    "intermediates": ["Nagrota", "Jhajjar Kotli", "Domel"],
+    "summaryPath": "Jammu (General Bus Stand / Tawi) → Nagrota → Jhajjar Kotli → Domel → Katra",
+    "source": "Demo Transport Baseline (Illustrative)",
+    "source_type": "DEMO",
+    "last_verified": "2025-01-15"
+  }
+]

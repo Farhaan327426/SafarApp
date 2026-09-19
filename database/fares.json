@@ -1,0 +1,137 @@
+[
+  {
+    "routeId": "srinagar_baramulla",
+    "originId": "srinagar",
+    "destinationId": "baramulla",
+    "distanceKm": 54,
+    "modes": {
+      "minibus": { "estimatedMin": 50, "estimatedMax": 60, "note": "Approximate stage carriage fare" },
+      "shared_taxi": { "estimatedMin": 90, "estimatedMax": 110, "note": "Shared Sumo/cab per-seat estimate" },
+      "bus": { "estimatedMin": 40, "estimatedMax": 50, "note": "Standard stage bus estimate" }
+    },
+    "source": "Demo Transport Baseline (Illustrative)",
+    "source_type": "DEMO",
+    "last_verified": "2025-01-15"
+  },
+  {
+    "routeId": "baramulla_srinagar",
+    "originId": "baramulla",
+    "destinationId": "srinagar",
+    "distanceKm": 54,
+    "modes": {
+      "minibus": { "estimatedMin": 50, "estimatedMax": 60, "note": "Approximate stage carriage fare" },
+      "shared_taxi": { "estimatedMin": 90, "estimatedMax": 110, "note": "Shared Sumo/cab per-seat estimate" },
+      "bus": { "estimatedMin": 40, "estimatedMax": 50, "note": "Standard stage bus estimate" }
+    },
+    "source": "Demo Transport Baseline (Illustrative)",
+    "source_type": "DEMO",
+    "last_verified": "2025-01-15"
+  },
+  {
+    "routeId": "budgam_lal_chowk",
+    "originId": "budgam",
+    "destinationId": "lal_chowk",
+    "distanceKm": 14,
+    "modes": {
+      "minibus": { "estimatedMin": 25, "estimatedMax": 30, "note": "Matador/Minibus per-seat estimate" },
+      "shared_taxi": { "estimatedMin": 40, "estimatedMax": 50, "note": "Shared cab hop estimate" },
+      "auto_rickshaw": { "estimatedMin": 180, "estimatedMax": 220, "note": "Point-to-point meter/private estimate" }
+    },
+    "source": "Demo Transport Baseline (Illustrative)",
+    "source_type": "DEMO",
+    "last_verified": "2025-01-15"
+  },
+  {
+    "routeId": "lal_chowk_budgam",
+    "originId": "lal_chowk",
+    "destinationId": "budgam",
+    "distanceKm": 14,
+    "modes": {
+      "minibus": { "estimatedMin": 25, "estimatedMax": 30, "note": "Matador/Minibus per-seat estimate" },
+      "shared_taxi": { "estimatedMin": 40, "estimatedMax": 50, "note": "Shared cab hop estimate" },
+      "auto_rickshaw": { "estimatedMin": 180, "estimatedMax": 220, "note": "Point-to-point meter/private estimate" }
+    },
+    "source": "Demo Transport Baseline (Illustrative)",
+    "source_type": "DEMO",
+    "last_verified": "2025-01-15"
+  },
+  {
+    "routeId": "srinagar_gulmarg",
+    "originId": "srinagar",
+    "destinationId": "gulmarg",
+    "distanceKm": 51,
+    "modes": {
+      "shared_taxi": { "estimatedMin": 140, "estimatedMax": 170, "note": "Shared taxi (via Tangmarg) estimate" },
+      "bus": { "estimatedMin": 70, "estimatedMax": 90, "note": "Direct tourist bus estimate" }
+    },
+    "source": "Demo Transport Baseline (Illustrative)",
+    "source_type": "DEMO",
+    "last_verified": "2025-01-15"
+  },
+  {
+    "routeId": "srinagar_pahalgam",
+    "originId": "srinagar",
+    "destinationId": "pahalgam",
+    "distanceKm": 92,
+    "modes": {
+      "shared_taxi": { "estimatedMin": 190, "estimatedMax": 220, "note": "Shared taxi (via Anantnag) estimate" },
+      "bus": { "estimatedMin": 110, "estimatedMax": 130, "note": "Direct bus service estimate" }
+    },
+    "source": "Demo Transport Baseline (Illustrative)",
+    "source_type": "DEMO",
+    "last_verified": "2025-01-15"
+  },
+  {
+    "routeId": "jammu_katra",
+    "originId": "jammu",
+    "destinationId": "katra",
+    "distanceKm": 48,
+    "modes": {
+      "minibus": { "estimatedMin": 55, "estimatedMax": 65, "note": "Direct minibus service estimate" },
+      "bus": { "estimatedMin": 45, "estimatedMax": 55, "note": "Standard stage bus estimate" },
+      "shared_taxi": { "estimatedMin": 110, "estimatedMax": 140, "note": "Shared cab per-seat estimate" }
+    },
+    "source": "Demo Transport Baseline (Illustrative)",
+    "source_type": "DEMO",
+    "last_verified": "2025-01-15"
+  },
+  {
+    "routeId": "sopore_lal_chowk",
+    "originId": "sopore",
+    "destinationId": "lal_chowk",
+    "distanceKm": 48,
+    "modes": {
+      "minibus": { "estimatedMin": 45, "estimatedMax": 55, "note": "Minibus via Sangrama/Parimpora" },
+      "shared_taxi": { "estimatedMin": 80, "estimatedMax": 100, "note": "Shared cab per-seat estimate" }
+    },
+    "source": "Demo Transport Baseline (Illustrative)",
+    "source_type": "DEMO",
+    "last_verified": "2025-01-15"
+  },
+  {
+    "routeId": "srinagar_anantnag",
+    "originId": "srinagar",
+    "destinationId": "anantnag",
+    "distanceKm": 52,
+    "modes": {
+      "minibus": { "estimatedMin": 50, "estimatedMax": 60, "note": "Stage carriage via NH-44" },
+      "shared_taxi": { "estimatedMin": 90, "estimatedMax": 110, "note": "Shared Sumo per-seat estimate" }
+    },
+    "source": "Demo Transport Baseline (Illustrative)",
+    "source_type": "DEMO",
+    "last_verified": "2025-01-15"
+  },
+  {
+    "routeId": "srinagar_sonamarg",
+    "originId": "srinagar",
+    "destinationId": "sonamarg",
+    "distanceKm": 80,
+    "modes": {
+      "shared_taxi": { "estimatedMin": 200, "estimatedMax": 240, "note": "Shared cab per-seat estimate" },
+      "bus": { "estimatedMin": 120, "estimatedMax": 150, "note": "Seasonal bus estimate" }
+    },
+    "source": "Demo Transport Baseline (Illustrative)",
+    "source_type": "DEMO",
+    "last_verified": "2025-01-15"
+  }
+]
