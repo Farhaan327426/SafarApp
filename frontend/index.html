@@ -123,12 +123,7 @@
             </svg>
             <span>Driver Mode</span>
           </button>
-          <a href="transit-defense.html" class="nav-tab nav-link" style="text-decoration:none;display:inline-flex;align-items:center;gap:6px;" title="Statutory Transit Defense & Dispute Engine">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
-            </svg>
-            <span>Transit Defense</span>
-          </a>
+
         </nav>
 
         <!-- Right Tools -->
@@ -180,12 +175,9 @@
             <strong>Driver Mode</strong>
             <span>Trip management, ledger &amp; QR fare slip</span>
           </button>
-          <a href="transit-defense.html" class="drawer-link" style="text-decoration:none;">
-            <strong>Transit Defense</strong>
-            <span>Legal dispute verification &amp; evidence locker</span>
-          </a>
+
           <button class="drawer-link" id="drawer-help-btn" style="border-top:1px solid rgba(255,255,255,0.1);margin-top:8px;">
-            <strong>💬 ? Help &amp; Safar AI</strong>
+            <strong>💬 ? Help &amp; Defense Hub</strong>
             <span>Chat with intelligent transport assistant</span>
           </button>
         </div>
@@ -603,18 +595,18 @@
       </div>
     </footer>
 
-    <!-- Commuter Help, Safar AI Assistant & Official Authority Directory Modal -->
+    <!-- Commuter Help, Safar AI Assistant & Transit Defense Hub Modal -->
     <div id="help-modal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="help-modal-heading" hidden>
-      <div class="modal-dialog help-hub-dialog safar-ai-dialog" style="max-width: 680px; width: 95%; max-height: 90vh; display: flex; flex-direction: column; overflow: hidden; background: #0f172a; border: 1px solid #334155; border-radius: 16px; padding: 0;">
+      <div class="modal-dialog help-hub-dialog safar-ai-dialog" style="max-width: 720px; width: 95%; max-height: 92vh; display: flex; flex-direction: column; overflow: hidden; background: #0f172a; border: 1px solid #334155; border-radius: 16px; padding: 0;">
         <!-- Modal Header -->
         <div class="modal-header help-hub-header" style="display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; background: #1e293b; border-bottom: 1px solid #334155;">
           <div class="modal-title" style="display: flex; align-items: center; gap: 10px;">
             <div class="brand-icon-sm" style="width: 32px; height: 32px; border-radius: 8px; background: #0f172a; border: 1px solid #38bdf8; display: flex; align-items: center; justify-content: center; color: #38bdf8; font-size: 16px;">
-              🤖
+              🛡️
             </div>
             <div>
               <h3 id="help-modal-heading" style="font-size: 1.1rem; font-weight: 800; color: #f8fafc; margin: 0; display: flex; align-items: center; gap: 8px;">
-                <span>SAFAR AI ASSISTANT</span>
+                <span>SAFAR AI &amp; TRANSIT DEFENSE</span>
                 <span style="font-size: 0.65rem; background: #0284c7; color: #fff; padding: 2px 6px; border-radius: 4px; font-weight: 700; letter-spacing: 0.05em;">STAGE 7 MVP</span>
               </h3>
               <p class="modal-subtitle" style="font-size: 0.75rem; color: #94a3b8; margin: 2px 0 0 0;">Your J&K Transport Assistant · Fares, Routes, Schedules &amp; Complaints</p>
@@ -635,76 +627,343 @@
           </div>
         </div>
 
-        <!-- Modal Body: Safar AI MVP Interface -->
+        <!-- Help Hub Navigation Tabs (AI Assistant + All Transit Defense Options) -->
+        <div class="help-sub-nav" role="tablist" aria-label="Help &amp; Defense Tabs">
+          <button class="help-sub-tab active" data-help-tab="ai" role="tab" id="help-tab-ai" aria-selected="true">
+            <span>🤖 Safar AI</span>
+          </button>
+          <button class="help-sub-tab" data-help-tab="dispute" role="tab" id="help-tab-dispute" aria-selected="false">
+            <span>⚖️ Fare Dispute</span>
+          </button>
+          <button class="help-sub-tab" data-help-tab="crowd" role="tab" id="help-tab-crowd" aria-selected="false">
+            <span>👥 Crowd &amp; Radar</span>
+          </button>
+          <button class="help-sub-tab" data-help-tab="evidence" role="tab" id="help-tab-evidence" aria-selected="false">
+            <span>📋 Evidence Locker</span>
+          </button>
+          <button class="help-sub-tab" data-help-tab="directory" role="tab" id="help-tab-directory" aria-selected="false">
+            <span>🚨 Helplines</span>
+          </button>
+        </div>
+
+        <!-- Modal Body -->
         <div class="modal-body help-hub-body" style="padding: 14px 16px; overflow-y: auto; flex: 1; background: #0f172a;">
-          <div class="safar-ai-container">
-            <!-- Demo Banner -->
-            <div class="demo-banner">
-              <span class="demo-badge badge">DEMO DATA</span>
-              <span>Sample data only — fares, routes, and schedules are estimates. Not live tracking.</span>
-            </div>
-
-            <!-- Quick Actions Section -->
-            <div class="quick-actions" style="margin-bottom: 12px;">
-              <div class="section-title section-label">Quick Actions</div>
-              <div class="quick-actions-bar actions-row">
-                <button class="action-btn" data-action="fare">💰 Fare</button>
-                <button class="action-btn" data-action="route">🗺️ Route</button>
-                <button class="action-btn" data-action="schedule">⏰ Schedule</button>
-                <button class="action-btn" data-action="complaint">⚠️ Complaint</button>
+          
+          <!-- ======================================================== -->
+          <!-- PANEL 1: SAFAR AI ASSISTANT (PRESERVED & UNTOUCHED)       -->
+          <!-- ======================================================== -->
+          <div id="help-panel-ai" class="help-panel-content active">
+            <div class="safar-ai-container">
+              <!-- Demo Banner -->
+              <div class="demo-banner">
+                <span class="demo-badge badge">DEMO DATA</span>
+                <span>Sample data only — fares, routes, and schedules are estimates. Not live tracking.</span>
               </div>
-            </div>
 
-            <!-- Popular Routes Chips -->
-            <div class="popular-routes" style="margin-bottom: 12px;">
-              <div class="section-title section-label">Popular Routes</div>
-              <div class="routes-scroll" style="display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px;">
-                <button class="route-chip" data-query="Fare from Srinagar to Baramulla">Srinagar → Baramulla</button>
-                <button class="route-chip" data-query="How do I get from Budgam to Lal Chowk?">Budgam → Lal Chowk</button>
-                <button class="route-chip" data-query="Route from Srinagar to Anantnag">Srinagar → Anantnag</button>
-                <button class="route-chip" data-query="Fare from Jammu to Katra">Jammu → Katra</button>
+              <!-- Quick Actions Section -->
+              <div class="quick-actions" style="margin-bottom: 12px;">
+                <div class="section-title section-label">Quick Actions</div>
+                <div class="quick-actions-bar actions-row">
+                  <button class="action-btn" data-action="fare">💰 Fare</button>
+                  <button class="action-btn" data-action="route">🗺️ Route</button>
+                  <button class="action-btn" data-action="schedule">⏰ Schedule</button>
+                  <button class="action-btn" data-action="complaint">⚠️ Complaint</button>
+                </div>
               </div>
-            </div>
 
-            <!-- Chat Messages Container -->
-            <div id="chat-messages" class="chat-messages chat-window" style="min-height: 260px; max-height: 380px; overflow-y: auto; background: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 12px; margin-bottom: 12px; display: flex; flex-direction: column; gap: 10px;">
-              <div class="message assistant-message">
-                <div class="message-content">
-                  <div class="welcome-header" style="font-weight: 700; color: #38bdf8; margin-bottom: 4px;">
-                    Hello! I'm Safar AI.
-                  </div>
-                  <p style="margin: 0 0 6px 0; font-size: 0.9rem; line-height: 1.4;">I can help with fares, routes, listed schedules, and transport complaint drafts across Jammu &amp; Kashmir.</p>
-                  <div class="disclaimer-note" style="font-size: 0.72rem; color: #94a3b8; border-top: 1px dashed #334155; padding-top: 4px;">
-                    ⚠️ DEMO ESTIMATE: Live tracking is not available in the current version.
+              <!-- Popular Routes Chips -->
+              <div class="popular-routes" style="margin-bottom: 12px;">
+                <div class="section-title section-label">Popular Routes</div>
+                <div class="routes-scroll" style="display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px;">
+                  <button class="route-chip" data-query="Fare from Srinagar to Baramulla">Srinagar → Baramulla</button>
+                  <button class="route-chip" data-query="How do I get from Budgam to Lal Chowk?">Budgam → Lal Chowk</button>
+                  <button class="route-chip" data-query="Route from Srinagar to Anantnag">Srinagar → Anantnag</button>
+                  <button class="route-chip" data-query="Fare from Jammu to Katra">Jammu → Katra</button>
+                </div>
+              </div>
+
+              <!-- Chat Messages Container -->
+              <div id="chat-messages" class="chat-messages chat-window" style="min-height: 260px; max-height: 380px; overflow-y: auto; background: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 12px; margin-bottom: 12px; display: flex; flex-direction: column; gap: 10px;">
+                <div class="message assistant-message">
+                  <div class="message-content">
+                    <div class="welcome-header" style="font-weight: 700; color: #38bdf8; margin-bottom: 4px;">
+                      Hello! I'm Safar AI.
+                    </div>
+                    <p style="margin: 0 0 6px 0; font-size: 0.9rem; line-height: 1.4;">I can help with fares, routes, listed schedules, and transport complaint drafts across Jammu &amp; Kashmir.</p>
+                    <div class="disclaimer-note" style="font-size: 0.72rem; color: #94a3b8; border-top: 1px dashed #334155; padding-top: 4px;">
+                      ⚠️ DEMO ESTIMATE: Live tracking is not available in the current version.
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
 
-            <!-- Chat Input Form -->
-            <form id="chat-form" class="chat-form chat-input-area" style="display: flex; gap: 8px; margin-bottom: 8px;">
-              <input
-                type="text"
-                id="chat-input"
-                class="chat-input"
-                placeholder="Ask Safar AI... (e.g. Fare from Baramulla to Srinagar)"
-                autocomplete="off"
-                aria-label="Ask Safar AI message input"
-              />
-              <button type="submit" id="send-btn" class="send-btn" aria-label="Send query">
-                Send
-              </button>
-            </form>
+              <!-- Chat Input Form -->
+              <form id="chat-form" class="chat-form chat-input-area" style="display: flex; gap: 8px; margin-bottom: 8px;">
+                <input
+                  type="text"
+                  id="chat-input"
+                  class="chat-input"
+                  placeholder="Ask Safar AI... (e.g. Fare from Baramulla to Srinagar)"
+                  autocomplete="off"
+                  aria-label="Ask Safar AI message input"
+                />
+                <button type="submit" id="send-btn" class="send-btn" aria-label="Send query">
+                  Send
+                </button>
+              </form>
 
-            <!-- Session Status Bar -->
-            <div class="chat-status-bar" style="display: flex; align-items: center; justify-content: space-between; font-size: 0.72rem; color: #94a3b8;">
-              <span style="display: flex; align-items: center; gap: 6px;">
-                <span class="status-indicator active" style="display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #34d399;"></span>
-                <span>Unified AI Chat Ready · POST /api/chat</span>
-              </span>
-              <button id="clear-session-btn" class="clear-session-btn" type="button" title="Reset Session Context" style="background: none; border: none; color: #64748b; text-decoration: underline; cursor: pointer; font-size: 0.72rem;">Clear Context</button>
+              <!-- Session Status Bar -->
+              <div class="chat-status-bar" style="display: flex; align-items: center; justify-content: space-between; font-size: 0.72rem; color: #94a3b8;">
+                <span style="display: flex; align-items: center; gap: 6px;">
+                  <span class="status-indicator active" style="display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #34d399;"></span>
+                  <span>Unified AI Chat Ready · POST /api/chat</span>
+                </span>
+                <button id="clear-session-btn" class="clear-session-btn" type="button" title="Reset Session Context" style="background: none; border: none; color: #64748b; text-decoration: underline; cursor: pointer; font-size: 0.72rem;">Clear Context</button>
+              </div>
             </div>
           </div>
+
+          <!-- ======================================================== -->
+          <!-- PANEL 2: FARE DISPUTE CHECKER                            -->
+          <!-- ======================================================== -->
+          <div id="help-panel-dispute" class="help-panel-content">
+            <div class="defense-card-section">
+              <div class="defense-card-title">⚖️ Fare Dispute Checker</div>
+              <p class="defense-card-sub">Instant legal evaluation against J&amp;K SRO-97 gazetted statutory tariff ceilings.</p>
+              
+              <div class="defense-form-grid">
+                <div>
+                  <label style="font-size:0.75rem;color:#94a3b8;display:block;margin-bottom:4px;">From Stop</label>
+                  <input type="text" id="h-dispute-from" class="defense-input" placeholder="e.g. Lal Chowk" list="stops-list-help" />
+                </div>
+                <div>
+                  <label style="font-size:0.75rem;color:#94a3b8;display:block;margin-bottom:4px;">To Stop</label>
+                  <input type="text" id="h-dispute-to" class="defense-input" placeholder="e.g. Batamaloo" list="stops-list-help" />
+                </div>
+              </div>
+
+              <div style="margin-bottom: 12px;">
+                <label style="font-size:0.75rem;color:#94a3b8;display:block;margin-bottom:4px;">Demanded Amount (₹)</label>
+                <input type="number" id="h-dispute-charged" class="defense-input" placeholder="e.g. 30" min="1" />
+              </div>
+
+              <datalist id="stops-list-help">
+                <option value="Lal Chowk"></option>
+                <option value="Batamaloo"></option>
+                <option value="Dalgate"></option>
+                <option value="Hazratbal"></option>
+                <option value="Hyderpora"></option>
+                <option value="Pantha Chowk"></option>
+                <option value="Budgam"></option>
+                <option value="Baramulla"></option>
+                <option value="Sopore"></option>
+                <option value="Anantnag"></option>
+                <option value="Bijbehara"></option>
+                <option value="Pahalgam"></option>
+                <option value="Shopian"></option>
+                <option value="Kupwara"></option>
+                <option value="Pulwama"></option>
+                <option value="Jammu"></option>
+                <option value="RS Pura"></option>
+                <option value="Akhnoor"></option>
+                <option value="Katra"></option>
+                <option value="Udhampur"></option>
+                <option value="Banihal"></option>
+              </datalist>
+
+              <button type="button" id="h-btn-check-dispute" class="defense-btn-primary" style="width:100%;">
+                Check Official Benchmark Fare
+              </button>
+
+              <div id="h-dispute-output" style="margin-top:12px;"></div>
+            </div>
+          </div>
+
+          <!-- ======================================================== -->
+          <!-- PANEL 3: CROWD TELEMETRY & RADAR                         -->
+          <!-- ======================================================== -->
+          <div id="help-panel-crowd" class="help-panel-content">
+            <!-- 1-Tap Telemetry -->
+            <div class="defense-card-section">
+              <div class="defense-card-title">👥 Report Vehicle Occupancy</div>
+              <p class="defense-card-sub">One tap informs waiting commuters on the corridor. Reports expire after 10 mins.</p>
+              
+              <div class="defense-form-grid" style="margin-bottom:8px;">
+                <input type="text" id="h-occ-plate" class="defense-input" placeholder="Vehicle Plate (Optional e.g. JK01 AB 1234)" />
+                <input type="text" id="h-occ-route" class="defense-input" placeholder="Route (Optional e.g. Lal Chowk - Batamaloo)" />
+              </div>
+
+              <div class="telemetry-pill-group">
+                <button type="button" class="telemetry-btn h-occ-btn" data-level="SEATS_AVAILABLE">
+                  <span style="font-size:1.1rem;">🟢</span>
+                  <span>Seats Free</span>
+                </button>
+                <button type="button" class="telemetry-btn h-occ-btn" data-level="STANDING_ONLY">
+                  <span style="font-size:1.1rem;">🟡</span>
+                  <span>Standing Room</span>
+                </button>
+                <button type="button" class="telemetry-btn h-occ-btn" data-level="SEVERE_OVERLOAD">
+                  <span style="font-size:1.1rem;">🔴</span>
+                  <span>Overloaded</span>
+                </button>
+              </div>
+              <div id="h-occ-status" style="font-size:0.78rem;color:#86efac;margin-top:6px;min-height:16px;"></div>
+            </div>
+
+            <!-- Vehicle Flagging -->
+            <div class="defense-card-section">
+              <div class="defense-card-title">🚩 Flag Violation — MVA §194A</div>
+              <p class="defense-card-sub">Record hazardous vehicle overloading or transit misconduct.</p>
+              
+              <div class="defense-form-grid">
+                <input type="text" id="h-flag-plate" class="defense-input" placeholder="Plate Number (e.g. JK01 AB 1234)" />
+                <select id="h-flag-violation" class="defense-select">
+                  <option value="OVERLOAD">Overloading (120%+)</option>
+                  <option value="FARE_GOUGE">Fare Gouging (Sec 192A)</option>
+                  <option value="ROUTE_ABANDON">Route Abandonment (Sec 179)</option>
+                  <option value="RASH_DRIVING">Rash Driving (Sec 183)</option>
+                </select>
+              </div>
+              <button type="button" id="h-btn-flag-vehicle" class="defense-btn-primary" style="margin-top:6px;">
+                Flag Vehicle &amp; Log Record
+              </button>
+              <div id="h-flag-status" style="font-size:0.78rem;margin-top:8px;"></div>
+            </div>
+
+            <!-- Hub Pool Matching -->
+            <div class="defense-card-section">
+              <div class="defense-card-title">🛰️ Evening Radar &amp; Pool Matching</div>
+              <p class="defense-card-sub">Find fellow commuters heading your way from major transit hubs.</p>
+              
+              <div class="defense-form-grid">
+                <select id="h-pool-hub" class="defense-select">
+                  <option value="">Select your transit hub...</option>
+                  <option value="jahangir-chowk">Jahangir Chowk, Srinagar</option>
+                  <option value="trc">TRC Srinagar</option>
+                  <option value="batamaloo">Batamaloo Stand</option>
+                  <option value="lal-chowk">Lal Chowk</option>
+                  <option value="jewel-chowk">Jewel Chowk, Jammu</option>
+                  <option value="general-bus-stand">General Bus Stand, Jammu</option>
+                </select>
+                <input type="text" id="h-pool-dest" class="defense-input" placeholder="Going to (e.g. Budgam, RS Pura)" />
+              </div>
+              <div style="display:flex;gap:8px;align-items:center;">
+                <input type="number" id="h-pool-seats" class="defense-input" placeholder="Seats (1-7)" min="1" max="7" value="1" style="max-width:120px;" />
+                <button type="button" id="h-btn-find-pool" class="defense-btn-primary" style="flex:1;">
+                  Find Pool Match
+                </button>
+              </div>
+              <div id="h-pool-status" style="font-size:0.8rem;margin-top:8px;"></div>
+            </div>
+          </div>
+
+          <!-- ======================================================== -->
+          <!-- PANEL 4: EVIDENCE LOCKER                                 -->
+          <!-- ======================================================== -->
+          <div id="help-panel-evidence" class="help-panel-content">
+            <div class="defense-card-section">
+              <div class="defense-card-title">📋 Official RTO &amp; Police Grievance Dossier</div>
+              <p class="defense-card-sub">Formatted grievance documentation under Motor Vehicles Act 1988 guidelines.</p>
+
+              <div class="defense-form-grid">
+                <div>
+                  <label style="font-size:0.75rem;color:#94a3b8;display:block;margin-bottom:4px;">Vehicle Plate Number</label>
+                  <input type="text" id="h-dossier-plate" class="defense-input" placeholder="JK01 AB 1234" maxlength="15" />
+                </div>
+                <div>
+                  <label style="font-size:0.75rem;color:#94a3b8;display:block;margin-bottom:4px;">Violation Category</label>
+                  <select id="h-dossier-violation" class="defense-select">
+                    <option value="OVERCHARGING">Overcharging (Sec 192A / SRO-97)</option>
+                    <option value="OVERCROWDING">Severe Overcrowding (Sec 194A)</option>
+                    <option value="REFUSAL_TO_PLY">Route Refusal (Sec 179)</option>
+                  </select>
+                </div>
+              </div>
+
+              <div style="margin-bottom:10px;">
+                <label style="font-size:0.75rem;color:#94a3b8;display:block;margin-bottom:4px;">Boarding Stand / Location</label>
+                <input type="text" id="h-dossier-location" class="defense-input" value="Lal Chowk / Jahangir Chowk" />
+              </div>
+
+              <div class="defense-form-grid" style="margin-bottom:12px;">
+                <div>
+                  <label style="font-size:0.75rem;color:#94a3b8;display:block;margin-bottom:4px;">Demanded Amount (₹)</label>
+                  <input type="number" id="h-dossier-demanded" class="defense-input" placeholder="30" />
+                </div>
+                <div>
+                  <label style="font-size:0.75rem;color:#94a3b8;display:block;margin-bottom:4px;">Statutory Legal Fare (₹)</label>
+                  <input type="number" id="h-dossier-legal" class="defense-input" placeholder="10" />
+                </div>
+              </div>
+
+              <div class="defense-btn-group">
+                <button type="button" id="h-btn-dispatch-whatsapp" class="defense-btn-primary" style="background:#25d366;color:#04131f;">
+                  📲 Dispatch WhatsApp (9419035000)
+                </button>
+                <button type="button" id="h-btn-dispatch-email" class="defense-btn-secondary">
+                  ✉️ Email to RTO
+                </button>
+                <button type="button" id="h-btn-copy-dossier" class="defense-btn-secondary">
+                  📋 Copy Text
+                </button>
+              </div>
+              <div id="h-evidence-status" style="font-size:0.78rem;color:#86efac;margin-top:8px;"></div>
+            </div>
+          </div>
+
+          <!-- ======================================================== -->
+          <!-- PANEL 5: OFFICIAL HELPLINES DIRECTORY                    -->
+          <!-- ======================================================== -->
+          <div id="help-panel-directory" class="help-panel-content">
+            <div class="defense-card-section">
+              <div class="defense-card-title">🚨 Official Emergency &amp; Transport Directory</div>
+              <p class="defense-card-sub">Gazetted emergency response and regional transport control rooms across J&amp;K.</p>
+
+              <div class="directory-grid">
+                <div class="directory-card">
+                  <strong>Police Emergency</strong>
+                  <span>112</span>
+                  <small>Toll-free 24x7</small>
+                </div>
+                <div class="directory-card">
+                  <strong>NH-44 Highway Helpline</strong>
+                  <span>1033</span>
+                  <small>National Highways Authority</small>
+                </div>
+                <div class="directory-card">
+                  <strong>Medical Emergency</strong>
+                  <span>108</span>
+                  <small>Ambulance Service</small>
+                </div>
+                <div class="directory-card">
+                  <strong>Women Commuter Helpline</strong>
+                  <span>181</span>
+                  <small>Toll-free Safety Support</small>
+                </div>
+                <div class="directory-card">
+                  <strong>Traffic Police WhatsApp</strong>
+                  <span>9419035000</span>
+                  <small>Grievance &amp; Complaint Cell</small>
+                </div>
+                <div class="directory-card">
+                  <strong>Traffic Control (Kashmir)</strong>
+                  <span>0194-2450022</span>
+                  <small>Srinagar Headquarters</small>
+                </div>
+                <div class="directory-card">
+                  <strong>Traffic Control (Jammu)</strong>
+                  <span>0191-2544263</span>
+                  <small>Jammu Headquarters</small>
+                </div>
+                <div class="directory-card">
+                  <strong>RTO Kashmir Office</strong>
+                  <span>0194-2452288</span>
+                  <small>Transport Department</small>
+                </div>
+              </div>
+            </div>
+          </div>
+
         </div>
 
         <!-- Modal Footer -->
@@ -1157,6 +1416,236 @@
         });
       });
     }
+
+    // Transit Defense Options in ? Help Hub
+    document.addEventListener('DOMContentLoaded', () => {
+      // 1. Sub-tab switcher
+      document.querySelectorAll('.help-sub-tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+          const target = tab.getAttribute('data-help-tab');
+          document.querySelectorAll('.help-sub-tab').forEach(t => {
+            const isTarget = t === tab;
+            t.classList.toggle('active', isTarget);
+            t.setAttribute('aria-selected', isTarget ? 'true' : 'false');
+          });
+          document.querySelectorAll('.help-panel-content').forEach(p => {
+            const isTarget = p.id === 'help-panel-' + target;
+            p.classList.toggle('active', isTarget);
+            p.hidden = !isTarget;
+          });
+        });
+      });
+
+      // 2. Fare Dispute Checker
+      const checkBtn = document.getElementById('h-btn-check-dispute');
+      if (checkBtn) {
+        checkBtn.addEventListener('click', () => {
+          const from = document.getElementById('h-dispute-from')?.value?.trim() || 'Lal Chowk';
+          const to = document.getElementById('h-dispute-to')?.value?.trim() || 'Batamaloo';
+          const chargedRaw = document.getElementById('h-dispute-charged')?.value?.trim();
+          const charged = parseInt(chargedRaw, 10) || 30;
+          const output = document.getElementById('h-dispute-output');
+          if (!output) return;
+
+          let legalFare = 10;
+          let breakdown = 'Minibus Stage Tariff: Base ₹10 for first 3 km under SRO-97.';
+          let isViolation = true;
+          let overcharge = Math.max(0, charged - legalFare);
+
+          if (window.SafarDisputeEngine && typeof window.SafarDisputeEngine.verifyFare === 'function') {
+            const res = window.SafarDisputeEngine.verifyFare(from, to, charged);
+            if (res) {
+              legalFare = res.legalFare;
+              breakdown = res.breakdown || breakdown;
+              isViolation = res.isViolation;
+              overcharge = res.overcharge;
+            }
+          }
+
+          const alertClass = isViolation ? 'alert' : 'safe';
+          const bannerMsg = isViolation
+            ? '⚠️ Overcharging by ₹' + overcharge + ' — In violation of Section 192A MVA'
+            : '✅ Fare is compliant with SRO-97 statutory benchmark ceiling.';
+
+          output.innerHTML = `
+            <div class="defense-discrepancy-box ${alertClass}">
+              <strong>${bannerMsg}</strong>
+              <div style="margin:6px 0;font-size:0.8rem;color:#e2e8f0;">
+                <div>Route: <strong>${from} ⇄ ${to}</strong></div>
+                <div>Statutory Benchmark: <strong>₹${legalFare}</strong> vs Demanded: <strong>₹${charged}</strong></div>
+                <div style="font-size:0.75rem;margin-top:4px;color:#94a3b8;">${breakdown}</div>
+              </div>
+              <div class="defense-btn-group" style="margin-top:8px;">
+                <button type="button" id="h-btn-speak-urdu" class="defense-btn-primary" style="font-size:0.75rem;padding:6px 12px;">
+                  🔊 Play Fare Explanation (Urdu)
+                </button>
+                <button type="button" id="h-btn-escalate-dossier" class="defense-btn-secondary" style="font-size:0.75rem;padding:6px 12px;">
+                  Transfer to Evidence Locker
+                </button>
+              </div>
+            </div>
+          `;
+
+          const speakBtn = document.getElementById('h-btn-speak-urdu');
+          if (speakBtn && window.SafarDisputeEngine && typeof window.SafarDisputeEngine.verbalNegotiationTTS === 'function') {
+            speakBtn.addEventListener('click', () => {
+              window.SafarDisputeEngine.verbalNegotiationTTS(legalFare, from, to, charged);
+            });
+          }
+
+          const escalateBtn = document.getElementById('h-btn-escalate-dossier');
+          if (escalateBtn) {
+            escalateBtn.addEventListener('click', () => {
+              const tabEvidence = document.getElementById('help-tab-evidence');
+              if (tabEvidence) tabEvidence.click();
+              const locInput = document.getElementById('h-dossier-location');
+              if (locInput) locInput.value = from + ' to ' + to;
+              const demInput = document.getElementById('h-dossier-demanded');
+              if (demInput) demInput.value = charged;
+              const legInput = document.getElementById('h-dossier-legal');
+              if (legInput) legInput.value = legalFare;
+            });
+          }
+        });
+      }
+
+      // 3. Crowd Occupancy Telemetry
+      document.querySelectorAll('.h-occ-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const level = btn.getAttribute('data-level');
+          const plate = document.getElementById('h-occ-plate')?.value?.trim() || 'COMMUTER-REPORT';
+          const route = document.getElementById('h-occ-route')?.value?.trim() || 'Active Transit Corridor';
+          if (window.SafarCrowdRadar && typeof window.SafarCrowdRadar.recordOccupancy === 'function') {
+            window.SafarCrowdRadar.recordOccupancy(plate, route, level);
+          }
+          const status = document.getElementById('h-occ-status');
+          if (status) {
+            status.textContent = 'Recorded: ' + btn.textContent.trim() + ' for ' + route + '. Valid for 10 min.';
+            setTimeout(() => { if (status) status.textContent = ''; }, 4000);
+          }
+        });
+      });
+
+      // 4. Vehicle Flagging
+      const flagBtn = document.getElementById('h-btn-flag-vehicle');
+      if (flagBtn) {
+        flagBtn.addEventListener('click', () => {
+          const plate = document.getElementById('h-flag-plate')?.value?.trim() || 'JK01 UNKNOWN';
+          const violation = document.getElementById('h-flag-violation')?.value || 'OVERLOAD';
+          const status = document.getElementById('h-flag-status');
+          if (window.SafarCrowdRadar && typeof window.SafarCrowdRadar.flagVehicle === 'function') {
+            const res = window.SafarCrowdRadar.flagVehicle({ regNo: plate, violation });
+            if (status) {
+              status.style.color = '#86efac';
+              status.textContent = 'Flagged ' + plate + ' — MVA §' + (res.mvaSec || '194A') + ' — ' + (res.penalty || 'Recorded');
+            }
+          } else if (status) {
+            status.style.color = '#86efac';
+            status.textContent = 'Flagged ' + plate + ' under Motor Vehicles Act.';
+          }
+        });
+      }
+
+      // 5. Hub Pool Matching
+      const poolBtn = document.getElementById('h-btn-find-pool');
+      if (poolBtn) {
+        poolBtn.addEventListener('click', () => {
+          const hub = document.getElementById('h-pool-hub')?.value;
+          const dest = document.getElementById('h-pool-dest')?.value?.trim();
+          const seats = parseInt(document.getElementById('h-pool-seats')?.value, 10) || 1;
+          const status = document.getElementById('h-pool-status');
+          if (!status) return;
+
+          if (!hub || !dest) {
+            status.style.color = '#fca5a5';
+            status.textContent = 'Please select a hub and destination.';
+            return;
+          }
+
+          if (window.SafarCrowdRadar && typeof window.SafarCrowdRadar.registerPoolRequest === 'function') {
+            const match = window.SafarCrowdRadar.registerPoolRequest({ hubKey: hub, destination: dest, seats });
+            status.style.color = '#86efac';
+            status.textContent = 'Pool registered at ' + hub + ' for ' + dest + ' (' + seats + ' seats). Checking departures...';
+          } else {
+            status.style.color = '#86efac';
+            status.textContent = 'Pool registered for ' + dest + ' (' + seats + ' seat). Commuters notified.';
+          }
+        });
+      }
+
+      // 6. Evidence Locker Dispatch
+      const waBtn = document.getElementById('h-btn-dispatch-whatsapp');
+      if (waBtn) {
+        waBtn.addEventListener('click', () => {
+          const plate = document.getElementById('h-dossier-plate')?.value?.trim() || 'UNREGISTERED';
+          const violation = document.getElementById('h-dossier-violation')?.value || 'OVERCHARGING';
+          const loc = document.getElementById('h-dossier-location')?.value?.trim() || 'J&K Transit Stand';
+          const dem = parseInt(document.getElementById('h-dossier-demanded')?.value, 10) || 30;
+          const leg = parseInt(document.getElementById('h-dossier-legal')?.value, 10) || 10;
+          const status = document.getElementById('h-evidence-status');
+
+          if (window.SafarEvidenceLocker && typeof window.SafarEvidenceLocker.buildGrievanceDossier === 'function') {
+            const dossier = window.SafarEvidenceLocker.buildGrievanceDossier({
+              vehiclePlate: plate,
+              violationType: violation,
+              location: loc,
+              demandedAmount: dem,
+              legalAmount: leg
+            });
+            window.SafarEvidenceLocker.dispatchWhatsApp(dossier);
+            if (status) status.textContent = 'Grievance dossier prepared and sent to WhatsApp.';
+          } else {
+            window.open('https://api.whatsapp.com/send?phone=919419035000&text=' + encodeURIComponent('Transit Grievance: ' + plate + ' ' + violation + ' at ' + loc), '_blank');
+          }
+        });
+      }
+
+      const emailBtn = document.getElementById('h-btn-dispatch-email');
+      if (emailBtn) {
+        emailBtn.addEventListener('click', () => {
+          const plate = document.getElementById('h-dossier-plate')?.value?.trim() || 'UNREGISTERED';
+          const violation = document.getElementById('h-dossier-violation')?.value || 'OVERCHARGING';
+          const loc = document.getElementById('h-dossier-location')?.value?.trim() || 'J&K Transit Stand';
+          const dem = parseInt(document.getElementById('h-dossier-demanded')?.value, 10) || 30;
+          const leg = parseInt(document.getElementById('h-dossier-legal')?.value, 10) || 10;
+          const status = document.getElementById('h-evidence-status');
+
+          if (window.SafarEvidenceLocker && typeof window.SafarEvidenceLocker.dispatchEmail === 'function') {
+            const dossier = window.SafarEvidenceLocker.buildGrievanceDossier({
+              vehiclePlate: plate,
+              violationType: violation,
+              location: loc,
+              demandedAmount: dem,
+              legalAmount: leg
+            });
+            window.SafarEvidenceLocker.dispatchEmail(dossier, 'kashmir');
+            if (status) status.textContent = 'Opening email client to dispatch to RTO.';
+          } else {
+            window.location.href = 'mailto:rto-kashmir@jk.gov.in?subject=' + encodeURIComponent('Transit Grievance - ' + plate) + '&body=' + encodeURIComponent('Plate: ' + plate + '\nViolation: ' + violation + '\nLocation: ' + loc);
+          }
+        });
+      }
+
+      const copyBtn = document.getElementById('h-btn-copy-dossier');
+      if (copyBtn) {
+        copyBtn.addEventListener('click', () => {
+          const plate = document.getElementById('h-dossier-plate')?.value?.trim() || 'UNREGISTERED';
+          const violation = document.getElementById('h-dossier-violation')?.value || 'OVERCHARGING';
+          const loc = document.getElementById('h-dossier-location')?.value?.trim() || 'J&K Transit Stand';
+          const dem = parseInt(document.getElementById('h-dossier-demanded')?.value, 10) || 30;
+          const leg = parseInt(document.getElementById('h-dossier-legal')?.value, 10) || 10;
+          const text = 'FORMAL TRANSIT GRIEVANCE\nVehicle: ' + plate + '\nViolation: ' + violation + '\nLocation: ' + loc + '\nDemanded: ₹' + dem + ' | Statutory Legal: ₹' + leg + '\nRef: J&K SRO-97 / Motor Vehicles Act 1988';
+          if (navigator.clipboard) {
+            navigator.clipboard.writeText(text);
+          }
+          const status = document.getElementById('h-evidence-status');
+          if (status) {
+            status.textContent = 'Grievance text copied to clipboard!';
+            setTimeout(() => { if (status) status.textContent = ''; }, 3000);
+          }
+        });
+      }
+    });
   </script>
 </body>
 
