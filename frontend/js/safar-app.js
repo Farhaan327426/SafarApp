@@ -21,6 +21,27 @@ document.addEventListener('DOMContentLoaded', () => {
     routeEl.innerHTML = `<span>${fare.origin}</span> <span style="color:#38bdf8">→</span> <span>${fare.destination}</span>`;
     card.appendChild(routeEl);
 
+    // Vehicle photo/illustration
+    const vehicleKeyMap = {
+      'Minibus': 'mini-bus',
+      'Shared Taxi': 'shared-cab',
+      'Shared Taxi / Cab': 'shared-cab',
+      'Bus': 'private-bus',
+      'Auto Rickshaw': 'auto',
+      'E-Rickshaw': 'e-rickshaw',
+      'E-Auto': 'e-auto',
+      'Force Traveler': 'force-traveler',
+      'Tata Magic': 'tata-magic',
+      'Vikram Tempo': 'vikram-tempo',
+      'Taxi': 'taxi',
+      'SUV Taxi': 'suv-taxi'
+    };
+    const vKey = vehicleKeyMap[fare.vehicleType] || 'mini-bus';
+    const imgWrap = document.createElement('div');
+    imgWrap.className = 'fare-card-img-wrap';
+    imgWrap.innerHTML = `<img src="images/vehicles/${vKey}.jpg" alt="${fare.vehicleType}" class="fare-card-img" onerror="this.src='images/vehicles/${vKey}.svg'" />`;
+    card.appendChild(imgWrap);
+
     const priceRow = document.createElement('div');
     priceRow.className = 'fare-card-row';
     priceRow.innerHTML = `
