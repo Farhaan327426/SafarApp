@@ -147,7 +147,7 @@ export default function DesktopView({
           <div>
             <div className="flex items-center gap-2 mb-2">
               <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-[#f2bd70]/20 text-[#f2bd70] border border-[#f2bd70]/30">
-                🖥️ Desktop Command Center
+                Desktop Command Center
               </span>
               <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-white/15 text-[#e5f0ea]">
                 SRO-97 Statutory Shield
@@ -199,7 +199,7 @@ export default function DesktopView({
                   : "bg-[#f4f7f2] text-[#345657] border-[#dce5dc] hover:border-[#74a181] hover:bg-[#edf5ee]"
               }`}
             >
-              {preset.from} ➔ {preset.to} ({preset.distance} km)
+              {preset.from} → {preset.to} ({preset.distance} km)
             </button>
           ))}
         </div>
@@ -457,7 +457,7 @@ export default function DesktopView({
 
             {!contextAlerts.isWinterClosure && !contextAlerts.isBatamalooNorthRedirect && !contextAlerts.isFrontier && (
               <div className="p-3 rounded-xl bg-[#edf5ee] border border-[#d2e4d4] text-[11px] text-[#345657]">
-                <p className="font-semibold">🛣️ Arterial Highways Clear</p>
+                <p className="font-semibold">Arterial Highways Clear</p>
                 <p className="text-[10.5px] text-[#557b72] mt-0.5">
                   NH-44 Expressway, Chenani-Nashri Tunnel, and Navyug Tunnel operational.
                 </p>
@@ -600,7 +600,7 @@ export default function DesktopView({
                       </div>
 
                       <div className="mt-2 pt-1.5 border-t border-[#e2eae0] flex items-center justify-between text-[10px]">
-                        <span className="text-[#78908a]">👥 {v.capacity}</span>
+                        <span className="text-[#78908a]">{v.capacity}</span>
                         <span className="font-bold text-[#234b4c]">
                           {v.isPerSeat ? "Per Seat" : "Full Cab"}
                         </span>
@@ -818,7 +818,7 @@ export default function DesktopView({
                   {overchargeDiff > 0 ? (
                     <div>
                       <p className="font-extrabold text-[12px] flex items-center gap-1">
-                        <span>⚠️ Overcharged by ₹{overchargeDiff}!</span>
+                        <span>Overcharged by ₹{overchargeDiff}!</span>
                       </p>
                       <p className="text-[10.5px] mt-0.5 leading-snug">
                         Violation under Section 192A Motor Vehicles Act. You can dispute this charge or generate a formal grievance notice.
@@ -827,7 +827,7 @@ export default function DesktopView({
                         href="transit-defense.html"
                         className="mt-1.5 inline-block text-[10.5px] font-bold text-[#dc2626] underline"
                       >
-                        Open Transit Defense Locker ➔
+                        Open Transit Defense Locker →
                       </a>
                     </div>
                   ) : (

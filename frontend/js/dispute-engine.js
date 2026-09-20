@@ -198,7 +198,7 @@ function generateDisputeCard(dispute) {
       <span class="dispute-card__label">
         ${isOvercharge ? 'OVERCHARGE DETECTED' : 'FARE VERIFIED'}
       </span>
-      <button class="dispute-card__close" aria-label="Close" onclick="this.closest('.dispute-card').remove()">✕</button>
+      <button class="dispute-card__close" aria-label="Close" onclick="this.closest('.dispute-card').remove()">${typeof SafarIcons !== 'undefined' ? SafarIcons.get('x', { size: 14 }) : '&times;'}</button>
     </div>
 
     <div class="dispute-card__fares">

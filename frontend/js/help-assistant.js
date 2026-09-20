@@ -19,6 +19,17 @@
 const SafarHelpAssistant = (() => {
   'use strict';
 
+  function getIcon(name, opts) {
+    if (typeof SafarIcons !== 'undefined' && SafarIcons.get) {
+      return SafarIcons.get(name, opts);
+    }
+    if (typeof window !== 'undefined' && window.SafarIcons && window.SafarIcons.get) {
+      return window.SafarIcons.get(name, opts);
+    }
+    return '';
+  }
+
+
   // Fallback references
   const Data = () => window.SafarData || { DIRECTORY: [], PROBLEMS: [], LEGAL_RECORDS: {} };
   const Tools = () => window.SafarTools || null;
@@ -36,14 +47,14 @@ const SafarHelpAssistant = (() => {
         id: 'msg_welcome',
         role: 'assistant',
         text: 'Hello! I am your Safar AI Voice & Transit Assistant. You can ask me any question: route fares, Matador & Sumo charges under SRO-97, auto meter rules, highway status, or report an overcharging issue. How can I help your journey today?',
-        displayText: `### 👋 Welcome to Safar Transit Omni-Assistant 2.0
+        displayText: `### Welcome to Safar Transit Omni-Assistant 2.0
 
 I am your official J&K transit intelligence assistant, equipped to answer **any commuter inquiry** with statutory accuracy.
 
-* 🚐 **Route & Fare Lookups:** Ask any route (e.g. *"What is the fare rate between Budgam to Lal Chowk via Matador?"*)
-* 🛺 **Auto Meter Mandate:** Approved day and night tariffs under SRO-97
-* ❄️ **Highway & Tunnel Status:** Real-time updates for NH-44, Navyug Tunnel & Mughal Road
-* ⚖️ **Commuter Defense:** Instant legal citations and scripts for overcharging or midway refusal`,
+* **Route & Fare Lookups:** Ask any route (e.g. *"What is the fare rate between Budgam to Lal Chowk via Matador?"*)
+* **Auto Meter Mandate:** Approved day and night tariffs under SRO-97
+* **Highway & Tunnel Status:** Real-time updates for NH-44, Navyug Tunnel & Mughal Road
+* **Commuter Defense:** Instant legal citations and scripts for overcharging or midway refusal`,
         timestamp: Date.now(),
         intent: 'general_question'
       }
@@ -131,7 +142,7 @@ I am your official J&K transit intelligence assistant, equipped to answer **any 
         if (Tools()) {
           await Tools().runTool(action.toolName, action.args, true);
         }
-        updateVoiceStatus(`✅ Executed ${action.toolName}.`, 'success', false);
+        updateVoiceStatus(`Executed ${action.toolName}.`, 'success', false);
         renderHelpModal();
         return;
       } else if (isNegative) {
@@ -148,7 +159,7 @@ I am your official J&K transit intelligence assistant, equipped to answer **any 
     conversation.lastIntent = conversation.currentIntent;
 
     // Show visual thinking indicator
-    updateVoiceStatus('✨ Safar AI is thinking...', 'info', true);
+    updateVoiceStatus('Safar AI is thinking...', 'info', true);
     if (Voice()) {
       Voice().setState(Voice().VoiceState.THINKING);
     }
@@ -173,7 +184,7 @@ I am your official J&K transit intelligence assistant, equipped to answer **any 
       aiResponse = {
         intent: understanding.intent,
         voiceText: verification.record.voiceSummary || 'Safar AI has retrieved verified statutory information for your journey.',
-        displayText: `### ⚖️ ${verification.record.title}\n\n${verification.record.scriptEnglish || ''}`,
+        displayText: `### ${verification.record.title}\n\n${verification.record.scriptEnglish || ''}`,
         entities: conversation.entities
       };
     }
@@ -202,17 +213,17 @@ I am your official J&K transit intelligence assistant, equipped to answer **any 
     // Speak natural concise voice verdict aloud
     if (Voice() && aiResponse.voiceText) {
       state.activeSpeakingMsgId = msgId;
-      updateVoiceStatus('🔊 Safar AI is speaking... (Tap mic or orb to interrupt)', 'listening', true);
+      updateVoiceStatus('Safar AI is speaking... (Tap mic or orb to interrupt)', 'listening', true);
       Voice().speak(aiResponse.voiceText, getTtsLang(understanding.language), () => {
         updateVoiceVisualizer(Voice().VoiceState.SPEAKING);
       }, () => {
         state.activeSpeakingMsgId = null;
-        updateVoiceStatus('🎙️ Tap mic or orb to ask another question...', 'info', false);
+        updateVoiceStatus('Tap mic or orb to ask another question...', 'info', false);
         updateVoiceVisualizer(Voice().VoiceState.IDLE);
         renderHelpModal();
       });
     } else {
-      updateVoiceStatus('🎙️ Tap mic to ask another question, or type below...', 'info', false);
+      updateVoiceStatus('Tap mic to ask another question, or type below...', 'info', false);
       if (Voice()) Voice().setState(Voice().VoiceState.IDLE);
     }
   }
@@ -343,7 +354,7 @@ I am your official J&K transit intelligence assistant, equipped to answer **any 
               </div>
               <div class="bubble-text">${escapeHtml(msg.text)}</div>
             </div>
-            <div class="chat-avatar user-avatar">👤</div>
+            <div class="chat-avatar user-avatar">${getIcon('users', { size: 14 })}</div>
           </div>
         `;
       }
@@ -355,7 +366,7 @@ I am your official J&K transit intelligence assistant, equipped to answer **any 
       return `
         <div class="chat-message-row assistant-row">
           <div class="chat-avatar assistant-avatar">
-            <span class="bot-icon">✨</span>
+            <span class="bot-icon">${getIcon('compass', { size: 14 })}</span>
           </div>
           <div class="chat-bubble assistant-bubble">
             <div class="bubble-header">
@@ -367,7 +378,7 @@ I am your official J&K transit intelligence assistant, equipped to answer **any 
                 <span class="bubble-time">${timeStr}</span>
                 <button type="button" class="btn-msg-audio" data-msg-id="${msg.id}" data-voice-text="${encodeURIComponent(msg.text)}"
                         title="${isThisSpeaking ? 'Stop voice' : 'Listen aloud'}" aria-label="Listen aloud">
-                  <span>${isThisSpeaking ? '⏹️' : '🔊'}</span>
+                  <span>${isThisSpeaking ? getIcon('x', { size: 14 }) : getIcon('speaker', { size: 14 })}</span>
                 </button>
               </div>
             </div>
@@ -390,9 +401,9 @@ I am your official J&K transit intelligence assistant, equipped to answer **any 
       <div class="interactive-fare-widget">
         <div class="fare-widget-header">
           <div class="fare-widget-route">
-            <span class="widget-pin">📍</span>
+            <span class="widget-pin">${getIcon('mapPin', { size: 14 })}</span>
             <strong>${escapeHtml(card.origin)}</strong>
-            <span class="route-arrow">➔</span>
+            <span class="route-arrow">→</span>
             <strong>${escapeHtml(card.destination)}</strong>
           </div>
           <span class="fare-dist-badge">${card.distanceKm} km</span>
@@ -400,7 +411,7 @@ I am your official J&K transit intelligence assistant, equipped to answer **any 
 
         <div class="fare-widget-body">
           <div class="fare-metric-primary">
-            <span class="metric-label">${card.icon || '🚐'} Approved Statutory Fare (${card.vehicleName || 'Matador'}):</span>
+            <span class="metric-label">${getIcon('bus', { size: 14 })} Approved Statutory Fare (${card.vehicleName || 'Matador'}):</span>
             <div class="metric-value-row">
               <span class="metric-value">${card.fareRangeText}</span>
               <span class="metric-tag">SRO-97 Statutory Cap</span>
@@ -413,7 +424,7 @@ I am your official J&K transit intelligence assistant, equipped to answer **any 
               <strong class="sub-val">₹${card.formulaExact}</strong>
             </div>
             <div class="sub-metric-item">
-              <span class="sub-label">🌙 Night Fare (Post 19:00):</span>
+              <span class="sub-label">${getIcon('moon', { size: 14 })} Night Fare (Post 19:00):</span>
               <strong class="sub-val night-val">₹${card.nightFare} (+20%)</strong>
             </div>
           </div>
@@ -421,13 +432,13 @@ I am your official J&K transit intelligence assistant, equipped to answer **any 
 
         <div class="fare-widget-actions">
           <button type="button" class="fare-act-btn btn-view-calc" data-origin="${escapeHtml(card.origin)}" data-dest="${escapeHtml(card.destination)}">
-            <span>🗺️ Check Route Map</span>
+            <span>Check Route Map</span>
           </button>
           <button type="button" class="fare-act-btn btn-report-hike" data-origin="${escapeHtml(card.origin)}" data-dest="${escapeHtml(card.destination)}" data-fare="${card.formulaExact}">
-            <span>⚖️ Report Overcharge</span>
+            <span>Report Overcharge</span>
           </button>
           <button type="button" class="fare-act-btn action-call-trigger" data-call-num="01942450022" data-call-name="Traffic Control Room Kashmir">
-            <span>📞 Traffic Helpline</span>
+            <span>Traffic Helpline</span>
           </button>
         </div>
       </div>
@@ -438,7 +449,7 @@ I am your official J&K transit intelligence assistant, equipped to answer **any 
     if (!contacts.length) {
       return `
         <div class="dir-empty-state">
-          <p>🔍 No officers or helplines match your search. Try searching for "Srinagar", "Baramulla", "Traffic", or "112".</p>
+          <p>No officers or helplines match your search. Try searching for "Srinagar", "Baramulla", "Traffic", or "112".</p>
         </div>
       `;
     }
@@ -452,23 +463,23 @@ I am your official J&K transit intelligence assistant, equipped to answer **any 
             <div class="dir-meta">
               <span class="dir-badge">${c.district}</span>
               <span class="dir-desig">${c.designation}</span>
-              ${c.verifiedAt ? `<span class="dir-verified">✓ Verified ${c.verifiedAt}</span>` : ''}
+              ${c.verifiedAt ? `<span class="dir-verified">Verified ${c.verifiedAt}</span>` : ''}
             </div>
           </div>
         </div>
         <div class="dir-card-actions">
           <button type="button" class="dir-call-btn action-call-trigger" 
                   data-call-num="${c.number}" data-call-name="${encodeURIComponent(c.name)}" title="Call directly">
-            <span>📞</span> <strong>${c.display}</strong>
+            <span>${getIcon('phone', { size: 14 })}</span> <strong>${c.display}</strong>
           </button>
           ${c.whatsapp ? `
             <button type="button" class="dir-wa-btn action-wa-trigger" 
                     data-wa-num="${c.whatsapp}" data-wa-name="${encodeURIComponent(c.name)}" title="Message on WhatsApp">
-              💬 WhatsApp
+              ${getIcon('phone', { size: 14 })} WhatsApp
             </button>
           ` : ''}
           <button type="button" class="dir-copy-btn" data-copy-num="${c.display}" title="Copy number">
-            📋
+            ${getIcon('copy', { size: 14 })}
           </button>
         </div>
       </div>
@@ -488,13 +499,13 @@ I am your official J&K transit intelligence assistant, equipped to answer **any 
         </div>
         <p class="legal-card-penalty"><strong>Statutory Penalty:</strong> ${p.penalty}</p>
         <div class="legal-card-script">
-          <label>🗣️ Official Spoken Script:</label>
+          <label>Official Spoken Script:</label>
           <p>"${p.scriptEnglish}"</p>
           ${p.scriptUrdu ? `<p class="urdu-script" dir="rtl">"${p.scriptUrdu}"</p>` : ''}
         </div>
         <div class="legal-card-footer">
-          <span class="legal-verified-tag">🛡️ Verified Source: ${p.source}</span>
-          <button type="button" class="copy-script-btn" data-copy-text="${encodeURIComponent(p.scriptEnglish)}">📋 Copy Script</button>
+          <span class="legal-verified-tag">Verified Source: ${p.source}</span>
+          <button type="button" class="copy-script-btn" data-copy-text="${encodeURIComponent(p.scriptEnglish)}">${getIcon('copy', { size: 14 })} Copy Script</button>
         </div>
       </div>
     `).join('');
@@ -537,19 +548,19 @@ I am your official J&K transit intelligence assistant, equipped to answer **any 
       <div class="help-tab-switcher" role="tablist">
         <button type="button" class="help-switcher-btn${state.activeTab === 'problem' ? ' active' : ''}"
                 data-tab="problem" role="tab" aria-selected="${state.activeTab === 'problem'}">
-          <span class="switcher-icon">✨</span>
+          <span class="switcher-icon">${getIcon('compass', { size: 14 })}</span>
           <strong>Conversational AI &amp; Voice</strong>
           <small>Gemini / DeepSeek Grade</small>
         </button>
         <button type="button" class="help-switcher-btn${state.activeTab === 'directory' ? ' active' : ''}"
                 data-tab="directory" role="tab" aria-selected="${state.activeTab === 'directory'}">
-          <span class="switcher-icon">📞</span>
+          <span class="switcher-icon">${getIcon('phone', { size: 14 })}</span>
           <strong>Official Directory</strong>
           <small>All 20 RTOs &amp; Traffic Police</small>
         </button>
         <button type="button" class="help-switcher-btn${state.activeTab === 'guide' ? ' active' : ''}"
                 data-tab="guide" role="tab" aria-selected="${state.activeTab === 'guide'}">
-          <span class="switcher-icon">⚖️</span>
+          <span class="switcher-icon">${getIcon('shield', { size: 14 })}</span>
           <strong>Commuter Rights &amp; Law</strong>
           <small>SRO-97 Statutory Records</small>
         </button>
@@ -565,7 +576,7 @@ I am your official J&K transit intelligence assistant, equipped to answer **any 
             <div class="voice-orb-glow"></div>
             <div class="voice-orb-inner">
               <div class="orb-core">
-                <span class="orb-icon">${isListening ? '🎙️' : isSpeaking ? '🔊' : '✨'}</span>
+                <span class="orb-icon">${isListening ? getIcon('mic', { size: 16 }) : isSpeaking ? getIcon('speaker', { size: 16 }) : getIcon('compass', { size: 16 })}</span>
               </div>
             </div>
             <!-- Dynamic Frequency Waveforms -->
@@ -583,13 +594,13 @@ I am your official J&K transit intelligence assistant, equipped to answer **any 
           <div class="voice-stage-info">
             <div class="stage-status-row">
               <span class="stage-state-pill ${isListening ? 'pill-listening' : isSpeaking ? 'pill-speaking' : 'pill-idle'}">
-                ${isListening ? '🔴 LISTENING' : isSpeaking ? '🔊 SPEAKING' : '🟢 READY'}
+                ${isListening ? 'LISTENING' : isSpeaking ? 'SPEAKING' : 'READY'}
               </span>
               <span class="stage-engine-name">
-                ${isExtConnected ? `✨ ${extProvider === 'gemini' ? 'Google Gemini 1.5' : 'DeepSeek-V3'} Connected` : '🛡️ Safar Omni-Intelligence (Offline Ready)'}
+                ${isExtConnected ? `${extProvider === 'gemini' ? 'Google Gemini 1.5' : 'DeepSeek-V3'} Connected` : 'Safar Omni-Intelligence (Offline Ready)'}
               </span>
               <button type="button" id="toggleModelSettingsBtn" class="btn-model-settings" title="Configure Gemini / DeepSeek API Key">
-                ⚙️ AI Model
+                Settings
               </button>
             </div>
             <p class="stage-sub-prompt" id="voiceStageStatusText">
@@ -610,8 +621,8 @@ I am your official J&K transit intelligence assistant, equipped to answer **any 
         ${state.showModelSettings ? `
           <div class="model-settings-drawer">
             <div class="drawer-header">
-              <strong>⚙️ AI Intelligence Provider Settings</strong>
-              <button type="button" id="closeModelSettingsBtn" class="drawer-close-btn">✕</button>
+              <strong>AI Intelligence Provider Settings</strong>
+              <button type="button" id="closeModelSettingsBtn" class="drawer-close-btn">${getIcon('x', { size: 14 })}</button>
             </div>
             <p class="drawer-desc">
               Safar comes with a built-in, zero-latency <strong>Omni-Transit Engine</strong> covering all 20 J&K districts offline.
@@ -638,22 +649,22 @@ I am your official J&K transit intelligence assistant, equipped to answer **any 
         <!-- Quick Prompt Chips (One-Tap Inquiries) -->
         <div class="quick-prompts-carousel">
           <button type="button" class="prompt-chip" data-prompt-text="What is the fare rate between Budgam to Lal Chowk via Matador?">
-            🚐 Budgam to Lal Chowk via Matador
+            Budgam to Lal Chowk via Matador
           </button>
           <button type="button" class="prompt-chip" data-prompt-text="What is the fare from Srinagar to Baramulla by Sumo?">
-            🚙 Srinagar to Baramulla (Sumo)
+            Srinagar to Baramulla (Sumo)
           </button>
           <button type="button" class="prompt-chip" data-prompt-text="What are the auto rickshaw meter rules and night charges in Srinagar?">
-            🛺 Auto Meter Rules &amp; Night Surcharge
+            Auto Meter Rules &amp; Night Surcharge
           </button>
           <button type="button" class="prompt-chip" data-prompt-text="What is the 24x7 helpline for NH-44 highway status and Navyug Tunnel?">
-            ❄️ NH-44 Highway &amp; Tunnel Status
+            NH-44 Highway &amp; Tunnel Status
           </button>
           <button type="button" class="prompt-chip" data-prompt-text="How much free luggage is allowed per commuter under SRO-97?">
-            🧳 Free Luggage Allowance (15 kg)
+            Free Luggage Allowance (15 kg)
           </button>
           <button type="button" class="prompt-chip" data-prompt-text="The driver is demanding extra fare above notified rate, how to report?">
-            ⚖️ Report Overcharge Grievance
+            Report Overcharge Grievance
           </button>
         </div>
 
@@ -672,12 +683,12 @@ I am your official J&K transit intelligence assistant, equipped to answer **any 
             <button id="micBtn" class="chat-mic-btn${isListening ? ' recording' : ''}" type="button"
                     aria-label="${isListening ? 'Stop voice listening' : 'Start speaking'}"
                     title="${isListening ? 'Listening... Tap to stop' : 'Tap to speak your question'}">
-              <span>${isListening ? '⏹️' : '🎙️'}</span>
+              <span>${isListening ? getIcon('x', { size: 16 }) : getIcon('mic', { size: 16 })}</span>
             </button>
           </div>
 
           <button type="button" id="help-ask-ai-btn" class="chat-send-btn" title="Send question">
-            <span>Ask AI ➔</span>
+            <span>Ask AI →</span>
           </button>
         </div>
 
@@ -687,7 +698,7 @@ I am your official J&K transit intelligence assistant, equipped to answer **any 
         <!-- Confirmation Dialog for Calls / WhatsApp -->
         ${state.confirmationPrompt ? `
           <div class="action-confirm-dialog">
-            <div class="confirm-icon">⚠️</div>
+            <div class="confirm-icon">${getIcon('alert', { size: 18 })}</div>
             <div class="confirm-content">
               <strong>Confirm Action:</strong>
               <p>${state.confirmationPrompt.prompt}</p>
@@ -705,11 +716,11 @@ I am your official J&K transit intelligence assistant, equipped to answer **any 
       <div class="help-pane-content${state.activeTab === 'directory' ? ' active' : ''}" id="help-pane-directory">
         <div class="dir-toolbar">
           <div class="dir-search-wrap">
-            <span class="search-glass">🔍</span>
+            <span class="search-glass">${getIcon('info', { size: 14 })}</span>
             <input type="text" id="dir-search-input" class="dir-search-input"
                    placeholder="Search officer, district (e.g. Baramulla, Srinagar, Ramban, NH-44)..."
                    value="${state.searchQuery}">
-            ${state.searchQuery ? `<button type="button" id="dir-clear-search" class="dir-clear-btn">✕</button>` : ''}
+            ${state.searchQuery ? `<button type="button" id="dir-clear-search" class="dir-clear-btn">${getIcon('x', { size: 14 })}</button>` : ''}
           </div>
 
           <div class="dir-cat-pills">
@@ -717,13 +728,13 @@ I am your official J&K transit intelligence assistant, equipped to answer **any 
               All Contacts (${dir.length})
             </button>
             <button type="button" class="dir-pill${state.directoryFilter === 'rto' ? ' active' : ''}" data-cat="rto">
-              🏛️ All 20 District RTOs
+              All 20 District RTOs
             </button>
             <button type="button" class="dir-pill${state.directoryFilter === 'traffic' ? ' active' : ''}" data-cat="traffic">
-              🚦 Traffic Police &amp; Highway
+              Traffic Police &amp; Highway
             </button>
             <button type="button" class="dir-pill${state.directoryFilter === 'emergency' ? ' active' : ''}" data-cat="emergency">
-              🚨 Emergency &amp; PCR (112)
+              Emergency &amp; PCR (112)
             </button>
           </div>
         </div>
@@ -736,7 +747,7 @@ I am your official J&K transit intelligence assistant, equipped to answer **any 
       <!-- ── TAB 3: STATUTORY RIGHTS & SRO-97 ── -->
       <div class="help-pane-content${state.activeTab === 'guide' ? ' active' : ''}" id="help-pane-guide">
         <div class="rights-guide-header">
-          <h3>⚖️ Official J&amp;K Commuter Rights &amp; SRO-97 Gazettes</h3>
+          <h3>Official J&amp;K Commuter Rights &amp; SRO-97 Gazettes</h3>
           <p>Verified legal citations under the Motor Vehicles Act 1988 and J&amp;K Transport Department Gazettes. Drivers cannot violate these statutory provisions.</p>
         </div>
         <div class="rights-cards-grid">
@@ -775,7 +786,7 @@ I am your official J&K transit intelligence assistant, equipped to answer **any 
     const stageText = document.getElementById('voiceStageStatusText');
 
     if (stageText && message) {
-      stageText.textContent = message.replace(/[🔴🔊✨🎙️✅]/g, '').trim();
+      stageText.textContent = message.trim();
     }
 
     if (!banner) return;
@@ -802,7 +813,7 @@ I am your official J&K transit intelligence assistant, equipped to answer **any 
       micBtn.setAttribute('title', 'Listening... Tap to stop & submit');
     } else {
       micBtn.classList.remove('recording');
-      micBtn.innerHTML = '<span>🎙️</span>';
+      micBtn.innerHTML = '<span>' + getIcon('mic', { size: 16 }) + '</span>';
       micBtn.setAttribute('title', 'Tap to speak your question');
     }
   }
@@ -816,32 +827,32 @@ I am your official J&K transit intelligence assistant, equipped to answer **any 
       state.activeSpeakingMsgId = null;
     }
 
-    updateVoiceStatus("🎙️ Requesting microphone access...", "info", true);
+    updateVoiceStatus("Requesting microphone access...", "info", true);
     const perm = await Voice().requestMicrophonePermission();
 
     if (!perm.granted) {
       setMicBtnState(false);
-      updateVoiceStatus("🔒 Microphone access is blocked. Allow mic in browser address bar or type below.", "error", false);
+      updateVoiceStatus("Microphone access is blocked. Allow mic in browser address bar or type below.", "error", false);
       return;
     }
 
     const sttLang = getSttLang();
     setMicBtnState(true);
     updateVoiceVisualizer(Voice().VoiceState.LISTENING);
-    updateVoiceStatus("🔴 I'm listening... Speak naturally in English, हिन्दी, or اردو.", "listening", true);
+    updateVoiceStatus("Listening... Speak naturally in English, हिन्दी, or اردو.", "listening", true);
 
     const started = Voice().startListening({
       lang: sttLang,
       onInterim: (text) => {
         const input = document.getElementById('help-custom-input');
         if (input) input.value = text;
-        updateVoiceStatus(`🎙️ Hearing: "${escapeHtml(text)}"`, "listening", true);
+        updateVoiceStatus(`Hearing: "${escapeHtml(text)}"`, "listening", true);
       },
       onFinal: (text) => {
         setMicBtnState(false);
         updateVoiceVisualizer(Voice().VoiceState.IDLE);
         if (text && text.trim()) {
-          updateVoiceStatus(`✓ "${escapeHtml(text)}" — Thinking...`, "info", true);
+          updateVoiceStatus(`"${escapeHtml(text)}" — Thinking...`, "info", true);
           handleUserTurn(text, 'speech');
         }
       },
@@ -849,11 +860,11 @@ I am your official J&K transit intelligence assistant, equipped to answer **any 
         setMicBtnState(false);
         updateVoiceVisualizer(Voice().VoiceState.IDLE);
         if (err.code === 'MIC_PERMISSION_DENIED') {
-          updateVoiceStatus("🔒 Microphone blocked. Please allow mic in browser settings.", "error", false);
+          updateVoiceStatus("Microphone blocked. Please allow mic in browser settings.", "error", false);
         } else if (err.code === 'NO_SPEECH') {
-          updateVoiceStatus("🎙️ Didn't hear anything. Tap mic to try again or type below.", "info", false);
+          updateVoiceStatus("Didn't hear anything. Tap mic to try again or type below.", "info", false);
         } else {
-          updateVoiceStatus("🎙️ Voice input stopped. Tap mic to try again.", "info", false);
+          updateVoiceStatus("Voice input stopped. Tap mic to try again.", "info", false);
         }
       }
     });
@@ -1025,7 +1036,7 @@ I am your official J&K transit intelligence assistant, equipped to answer **any 
       }
       state.showModelSettings = false;
       renderHelpModal();
-      updateVoiceStatus(`✅ Saved API Key for ${prov === 'gemini' ? 'Google Gemini' : 'DeepSeek'}!`, 'success', false);
+      updateVoiceStatus(`Saved API Key for ${prov === 'gemini' ? 'Google Gemini' : 'DeepSeek'}!`, 'success', false);
       return;
     }
     if (e.target.closest('#clearModelSettingsBtn')) {
@@ -1034,7 +1045,7 @@ I am your official J&K transit intelligence assistant, equipped to answer **any 
       }
       state.showModelSettings = false;
       renderHelpModal();
-      updateVoiceStatus('🛡️ Reverted to Safar Offline Omni-Intelligence Engine.', 'info', false);
+      updateVoiceStatus('Reverted to Safar Offline Omni-Intelligence Engine.', 'info', false);
       return;
     }
 
@@ -1132,7 +1143,7 @@ I am your official J&K transit intelligence assistant, equipped to answer **any 
     const copyScriptBtn = e.target.closest('.copy-script-btn');
     if (copyScriptBtn) {
       const text = decodeURIComponent(copyScriptBtn.dataset.copyText);
-      copyToClipboard(text, copyScriptBtn, '✓ Copied!', '📋 Copy Script');
+      copyToClipboard(text, copyScriptBtn, 'Copied!', 'Copy Script');
       return;
     }
 
@@ -1140,7 +1151,7 @@ I am your official J&K transit intelligence assistant, equipped to answer **any 
     const copyNumBtn = e.target.closest('.dir-copy-btn');
     if (copyNumBtn) {
       const num = copyNumBtn.dataset.copyNum;
-      copyToClipboard(num, copyNumBtn, '✓', '📋');
+      copyToClipboard(num, copyNumBtn, 'Copied', 'Copy');
       return;
     }
   }

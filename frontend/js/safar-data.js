@@ -12,6 +12,17 @@
 const SafarData = (() => {
   'use strict';
 
+  function getIcon(name) {
+    if (typeof SafarIcons !== 'undefined' && SafarIcons.get) {
+      return SafarIcons.get(name);
+    }
+    if (typeof window !== 'undefined' && window.SafarIcons && window.SafarIcons.get) {
+      return window.SafarIcons.get(name);
+    }
+    return '';
+  }
+
+
   /* ─────────────────────────────────────────────────────────────────
      OFFICIAL J&K TRANSPORT & POLICE DIRECTORY DATASET
   ───────────────────────────────────────────────────────────────── */
@@ -24,7 +35,7 @@ const SafarData = (() => {
       district: 'All J&K (24x7)',
       number: '112',
       display: '112',
-      icon: '🚨',
+      icon: getIcon('emergency'),
       priority: 1,
       verifiedAt: '2026-09-12'
     },
@@ -35,7 +46,7 @@ const SafarData = (() => {
       district: 'NH-44 Corridor (24x7)',
       number: '1033',
       display: '1033',
-      icon: '🛣️',
+      icon: getIcon('bus'),
       priority: 1,
       verifiedAt: '2026-09-12'
     },
@@ -46,7 +57,7 @@ const SafarData = (() => {
       district: 'All J&K (24x7)',
       number: '108',
       display: '108',
-      icon: '🚑',
+      icon: getIcon('ambulance'),
       priority: 2,
       verifiedAt: '2026-09-12'
     },
@@ -57,7 +68,7 @@ const SafarData = (() => {
       district: 'All J&K (24x7)',
       number: '181',
       display: '181',
-      icon: '🚺',
+      icon: getIcon('female'),
       priority: 3,
       verifiedAt: '2026-09-12'
     },
@@ -68,7 +79,7 @@ const SafarData = (() => {
       district: 'All J&K (24x7)',
       number: '1070',
       display: '1070',
-      icon: '⛰️',
+      icon: getIcon('mountain'),
       priority: 4,
       verifiedAt: '2026-09-12'
     },
@@ -79,7 +90,7 @@ const SafarData = (() => {
       district: 'Srinagar / Tourist Hubs',
       number: '01942477567',
       display: '0194-2477567',
-      icon: '🛡️',
+      icon: getIcon('shield'),
       priority: 5,
       verifiedAt: '2026-09-12'
     },
@@ -92,7 +103,7 @@ const SafarData = (() => {
       district: 'Kashmir Valley',
       number: '01942450022',
       display: '0194-2450022',
-      icon: '🚦',
+      icon: getIcon('trafficLight'),
       whatsapp: '9419035000',
       priority: 1,
       verifiedAt: '2026-09-12'
@@ -104,7 +115,7 @@ const SafarData = (() => {
       district: 'Jammu Division',
       number: '01912459048',
       display: '0191-2459048',
-      icon: '🚦',
+      icon: getIcon('trafficLight'),
       whatsapp: '9419147732',
       priority: 1,
       verifiedAt: '2026-09-12'
@@ -116,7 +127,7 @@ const SafarData = (() => {
       district: 'Srinagar',
       number: '01942455359',
       display: '0194-2455359',
-      icon: '👮',
+      icon: getIcon('police'),
       priority: 2,
       verifiedAt: '2026-09-12'
     },
@@ -127,7 +138,7 @@ const SafarData = (() => {
       district: 'Rural Kashmir',
       number: '01942452589',
       display: '0194-2452589',
-      icon: '👮',
+      icon: getIcon('police'),
       priority: 2,
       verifiedAt: '2026-09-12'
     },
@@ -138,7 +149,7 @@ const SafarData = (() => {
       district: 'Jammu',
       number: '01912470166',
       display: '0191-2470166',
-      icon: '👮',
+      icon: getIcon('police'),
       priority: 2,
       verifiedAt: '2026-09-12'
     },
@@ -149,7 +160,7 @@ const SafarData = (() => {
       district: 'Ramban / Banihal / NH-44',
       number: '01998266686',
       display: '01998-266686',
-      icon: '🛣️',
+      icon: getIcon('bus'),
       priority: 1,
       verifiedAt: '2026-09-12'
     },
@@ -162,7 +173,7 @@ const SafarData = (() => {
       district: 'All J&K (HQ Srinagar/Jammu)',
       number: '01942470163',
       display: '0194-2470163',
-      icon: '🏛️',
+      icon: getIcon('receipt'),
       priority: 1,
       verifiedAt: '2026-09-12'
     },
@@ -173,7 +184,7 @@ const SafarData = (() => {
       district: 'Srinagar',
       number: '01942452589',
       display: '0194-2452589',
-      icon: '🏛️',
+      icon: getIcon('receipt'),
       priority: 2,
       verifiedAt: '2026-09-12'
     },
@@ -184,7 +195,7 @@ const SafarData = (() => {
       district: 'Jammu',
       number: '01912470166',
       display: '0191-2470166',
-      icon: '🏛️',
+      icon: getIcon('receipt'),
       priority: 2,
       verifiedAt: '2026-09-12'
     },
@@ -195,7 +206,7 @@ const SafarData = (() => {
       district: 'Baramulla',
       number: '01954222238',
       display: '01954-222238',
-      icon: '🏢',
+      icon: getIcon('phone'),
       priority: 3,
       verifiedAt: '2026-09-12'
     },
@@ -206,7 +217,7 @@ const SafarData = (() => {
       district: 'Anantnag',
       number: '01932222337',
       display: '01932-222337',
-      icon: '🏢',
+      icon: getIcon('phone'),
       priority: 3,
       verifiedAt: '2026-09-12'
     },
@@ -217,7 +228,7 @@ const SafarData = (() => {
       district: 'Budgam',
       number: '01951255244',
       display: '01951-255244',
-      icon: '🏢',
+      icon: getIcon('phone'),
       priority: 3,
       verifiedAt: '2026-09-12'
     },
@@ -228,7 +239,7 @@ const SafarData = (() => {
       district: 'Pulwama',
       number: '01933241280',
       display: '01933-241280',
-      icon: '🏢',
+      icon: getIcon('phone'),
       priority: 3,
       verifiedAt: '2026-09-12'
     },
@@ -239,7 +250,7 @@ const SafarData = (() => {
       district: 'Kupwara',
       number: '01955252251',
       display: '01955-252251',
-      icon: '🏢',
+      icon: getIcon('phone'),
       priority: 3,
       verifiedAt: '2026-09-12'
     },
@@ -250,7 +261,7 @@ const SafarData = (() => {
       district: 'Ganderbal',
       number: '01942416142',
       display: '0194-2416142',
-      icon: '🏢',
+      icon: getIcon('phone'),
       priority: 3,
       verifiedAt: '2026-09-12'
     },
@@ -261,7 +272,7 @@ const SafarData = (() => {
       district: 'Bandipora',
       number: '01957225280',
       display: '01957-225280',
-      icon: '🏢',
+      icon: getIcon('phone'),
       priority: 3,
       verifiedAt: '2026-09-12'
     },
@@ -272,7 +283,7 @@ const SafarData = (() => {
       district: 'Kulgam',
       number: '01931260111',
       display: '01931-260111',
-      icon: '🏢',
+      icon: getIcon('phone'),
       priority: 3,
       verifiedAt: '2026-09-12'
     },
@@ -283,7 +294,7 @@ const SafarData = (() => {
       district: 'Shopian',
       number: '01933260900',
       display: '01933-260900',
-      icon: '🏢',
+      icon: getIcon('phone'),
       priority: 3,
       verifiedAt: '2026-09-12'
     },
@@ -294,7 +305,7 @@ const SafarData = (() => {
       district: 'Udhampur',
       number: '01992270220',
       display: '01992-270220',
-      icon: '🏢',
+      icon: getIcon('phone'),
       priority: 3,
       verifiedAt: '2026-09-12'
     },
@@ -305,7 +316,7 @@ const SafarData = (() => {
       district: 'Kathua',
       number: '01922234050',
       display: '01922-234050',
-      icon: '🏢',
+      icon: getIcon('phone'),
       priority: 3,
       verifiedAt: '2026-09-12'
     },
@@ -316,7 +327,7 @@ const SafarData = (() => {
       district: 'Rajouri',
       number: '01962262444',
       display: '01962-262444',
-      icon: '🏢',
+      icon: getIcon('phone'),
       priority: 3,
       verifiedAt: '2026-09-12'
     },
@@ -327,7 +338,7 @@ const SafarData = (() => {
       district: 'Poonch',
       number: '01965220150',
       display: '01965-220150',
-      icon: '🏢',
+      icon: getIcon('phone'),
       priority: 3,
       verifiedAt: '2026-09-12'
     },
@@ -338,7 +349,7 @@ const SafarData = (() => {
       district: 'Doda',
       number: '01996233215',
       display: '01996-233215',
-      icon: '🏢',
+      icon: getIcon('phone'),
       priority: 3,
       verifiedAt: '2026-09-12'
     },
@@ -349,7 +360,7 @@ const SafarData = (() => {
       district: 'Ramban',
       number: '01998266700',
       display: '01998-266700',
-      icon: '🏢',
+      icon: getIcon('phone'),
       priority: 3,
       verifiedAt: '2026-09-12'
     },
@@ -360,7 +371,7 @@ const SafarData = (() => {
       district: 'Kishtwar',
       number: '01995259200',
       display: '01995-259200',
-      icon: '🏢',
+      icon: getIcon('phone'),
       priority: 3,
       verifiedAt: '2026-09-12'
     },
@@ -371,7 +382,7 @@ const SafarData = (() => {
       district: 'Reasi',
       number: '01991244010',
       display: '01991-244010',
-      icon: '🏢',
+      icon: getIcon('phone'),
       priority: 3,
       verifiedAt: '2026-09-12'
     },
@@ -382,7 +393,7 @@ const SafarData = (() => {
       district: 'Samba',
       number: '01923241030',
       display: '01923-241030',
-      icon: '🏢',
+      icon: getIcon('phone'),
       priority: 3,
       verifiedAt: '2026-09-12'
     }
@@ -395,7 +406,7 @@ const SafarData = (() => {
     fare_overcharge: {
       id: 'overcharge',
       intent: 'fare_overcharge',
-      icon: '💸',
+      icon: getIcon('receipt'),
       title: 'Demanding Extra / Overcharging Fare',
       subtitle: 'Driver or conductor demanding more than notified tariff',
       law: 'Motor Vehicles Act Section 177 / 179 & SRO-97',
@@ -412,7 +423,7 @@ const SafarData = (() => {
     route_refusal: {
       id: 'midway_drop',
       intent: 'route_refusal',
-      icon: '🛑',
+      icon: getIcon('alert'),
       title: 'Dropped Midway / Refused Destination',
       subtitle: 'Driver forced passenger off before destination or refused permit route',
       law: 'MVA Section 178 & J&K Motor Vehicle Rules Rule 77',
@@ -429,7 +440,7 @@ const SafarData = (() => {
     vehicle_overloading: {
       id: 'overload',
       intent: 'vehicle_overloading',
-      icon: '⚠️',
+      icon: getIcon('alert'),
       title: 'Dangerous Overloading / Overcrowding',
       subtitle: 'Carrying passengers beyond registered seating capacity',
       law: 'MVA Section 194A (Amended)',
@@ -446,7 +457,7 @@ const SafarData = (() => {
     luggage_dispute: {
       id: 'luggage',
       intent: 'luggage_dispute',
-      icon: '🧳',
+      icon: getIcon('bus'),
       title: 'Excess Baggage / Roof Luggage Fee Dispute',
       subtitle: 'Demanding unauthorized fee for personal bags or roof rack',
       law: 'J&K Stage Carriage Tariff Guidelines SRO-97',
@@ -463,7 +474,7 @@ const SafarData = (() => {
     highway_emergency: {
       id: 'highway_block',
       intent: 'highway_emergency',
-      icon: '❄️',
+      icon: getIcon('snowflake'),
       title: 'Highway Block / Stranded on Route',
       subtitle: 'Landslide, snow block on NH-44, Navyug Tunnel, Mughal Rd',
       law: 'Disaster Management Act 2005 & Traffic Control Protocol',
@@ -480,7 +491,7 @@ const SafarData = (() => {
     meter_refusal: {
       id: 'meter_refusal',
       intent: 'meter_refusal',
-      icon: '🛺',
+      icon: getIcon('auto'),
       title: 'Auto Refusing Meter / Arbitrary Fare',
       subtitle: 'Auto-rickshaw refusing meter or demanding arbitrary lumpsum',
       law: 'MVA Section 177 & SRO-97 Metered Mandate',
@@ -497,7 +508,7 @@ const SafarData = (() => {
     fare_check: {
       id: 'fare_check',
       intent: 'fare_check',
-      icon: '📊',
+      icon: getIcon('receipt'),
       title: 'Official Fare Verification',
       subtitle: 'Checking statutory fare calculation for a specific J&K route',
       law: 'Transport Department SRO-97 Notified Corridor Fare Tariffs',
@@ -514,7 +525,7 @@ const SafarData = (() => {
     general_question: {
       id: 'general_grievance',
       intent: 'general_question',
-      icon: '⚖️',
+      icon: getIcon('shield'),
       title: 'General Transit Grievance & Passenger Rights',
       subtitle: 'Passenger rights under Motor Vehicles Act & J&K Rules',
       law: 'Motor Vehicles Act 1988 & J&K Motor Vehicles Rules',

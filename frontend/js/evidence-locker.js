@@ -372,7 +372,7 @@ function dispatchWhatsApp(target) {
     id = target;
     const complaint = formatComplaint(id);
     if (complaint) {
-      bodyText = `📋 FORMAL COMPLAINT — SafarApp\n\n${complaint.bodyUrdu}\n\n---\nFull complaint ID: ${id}`;
+      bodyText = `FORMAL COMPLAINT — SafarApp\n\n${complaint.bodyUrdu}\n\n---\nFull complaint ID: ${id}`;
     }
   }
 
@@ -505,8 +505,8 @@ function renderLockerForm(containerEl, { dispute = null, regNo = '', routeId = '
       </div>` : ''}
 
       <div class="form-row locker-evidence-actions">
-        <button class="btn btn--secondary" id="ev-btn-gps">📍 Capture GPS</button>
-        <button class="btn btn--secondary" id="ev-btn-photo">📷 Add Photo</button>
+        <button class="btn btn--secondary" id="ev-btn-gps">${typeof SafarIcons !== 'undefined' ? SafarIcons.get('mapPin', { size: 14 }) + ' ' : ''}Capture GPS</button>
+        <button class="btn btn--secondary" id="ev-btn-photo">${typeof SafarIcons !== 'undefined' ? SafarIcons.get('camera', { size: 14 }) + ' ' : ''}Add Photo</button>
         <div class="ev-status" id="ev-status"></div>
       </div>
 

@@ -88,7 +88,7 @@ export default function StageExplorer({ onUseRoute }) {
                     }}
                     className="px-3.5 py-2 rounded-xl bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900 text-xs font-semibold hover:opacity-90 transition-opacity flex items-center gap-1.5"
                   >
-                    <span>Calculate Fare on this Corridor</span> ➔
+                    <span>Calculate Fare on this Corridor</span> →
                   </button>
                 </div>
               )}

@@ -10,6 +10,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="stylesheet" href="css/defense.css">
+  <script src="js/icons.js"></script>
   <title>SafarApp — J&K Transit Defense</title>
 </head>
 <body>
@@ -36,7 +37,7 @@
       aria-label="Start voice input"
       aria-pressed="false"
     >
-      <span id="voice-btn-icon" aria-hidden="true">🎙</span>
+      <span id="voice-btn-icon" aria-hidden="true"><svg class="safar-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg></span>
       <span id="voice-btn-label">Speak</span>
     </button>
   </header>
@@ -204,7 +205,7 @@
 <!-- ── Evidence Locker Modal ──────────────────────────────────── -->
 <div class="modal-overlay hidden" id="locker-modal" role="dialog" aria-modal="true" aria-labelledby="locker-modal-title" aria-hidden="true">
   <div class="modal-sheet">
-    <button class="modal-sheet__close" onclick="EvidenceLocker.closeModal()" aria-label="Close evidence locker">✕</button>
+    <button class="modal-sheet__close" onclick="EvidenceLocker.closeModal()" aria-label="Close evidence locker"><svg class="safar-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
     <div id="locker-modal-body"></div>
   </div>
 </div>
@@ -249,7 +250,7 @@ if (voiceBtn) {
 
     voiceBtn.classList.add('listening');
     voiceBtn.setAttribute('aria-pressed', 'true');
-    voiceIcon.textContent = '⏹';
+    voiceIcon.innerHTML = (typeof SafarIcons !== 'undefined' ? SafarIcons.get('x', { size: 16 }) : '');
     voiceLabel.textContent = 'Stop';
     transcript.textContent = 'Listening…';
     transcript.classList.add('active');
@@ -283,7 +284,7 @@ if (voiceBtn) {
       onEnd() {
         voiceBtn.classList.remove('listening');
         voiceBtn.setAttribute('aria-pressed', 'false');
-        voiceIcon.textContent = '🎙';
+        voiceIcon.innerHTML = (typeof SafarIcons !== 'undefined' ? SafarIcons.get('mic', { size: 16 }) : '');
         voiceLabel.textContent = 'Speak';
       },
     });

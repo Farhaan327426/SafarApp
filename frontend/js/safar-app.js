@@ -240,14 +240,14 @@ document.addEventListener('DOMContentLoaded', () => {
     // Copy button
     const copyBtn = document.createElement('button');
     copyBtn.className = 'complaint-btn copy';
-    copyBtn.innerHTML = '📋 Copy Complaint';
+    copyBtn.innerHTML = (typeof SafarIcons !== 'undefined' ? SafarIcons.get('copy', { size: 14 }) + ' ' : '') + 'Copy Complaint';
     copyBtn.addEventListener('click', async () => {
       try {
         await navigator.clipboard.writeText(complaint.complaintText);
-        copyBtn.innerHTML = '✓ Copied';
+        copyBtn.innerHTML = (typeof SafarIcons !== 'undefined' ? SafarIcons.get('check', { size: 14 }) + ' ' : '') + 'Copied';
         copyBtn.classList.add('copied');
         setTimeout(() => {
-          copyBtn.innerHTML = '📋 Copy Complaint';
+          copyBtn.innerHTML = (typeof SafarIcons !== 'undefined' ? SafarIcons.get('copy', { size: 14 }) + ' ' : '') + 'Copy Complaint';
           copyBtn.classList.remove('copied');
         }, 2000);
       } catch (e) {
@@ -259,7 +259,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Download button
     const downloadBtn = document.createElement('button');
     downloadBtn.className = 'complaint-btn download';
-    downloadBtn.innerHTML = '💾 Download .txt';
+    downloadBtn.innerHTML = (typeof SafarIcons !== 'undefined' ? SafarIcons.get('download', { size: 14 }) + ' ' : '') + 'Download .txt';
     downloadBtn.addEventListener('click', () => {
       const blob = new Blob([complaint.complaintText], { type: 'text/plain;charset=utf-8' });
       const url = URL.createObjectURL(blob);
@@ -276,7 +276,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Share button
     const shareBtn = document.createElement('button');
     shareBtn.className = 'complaint-btn share';
-    shareBtn.innerHTML = '🔗 Share';
+    shareBtn.innerHTML = (typeof SafarIcons !== 'undefined' ? SafarIcons.get('share', { size: 14 }) + ' ' : '') + 'Share';
     shareBtn.addEventListener('click', async () => {
       if (navigator.share) {
         try {

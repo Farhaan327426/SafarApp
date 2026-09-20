@@ -14,16 +14,16 @@
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const OCCUPANCY = Object.freeze({
-  AVAILABLE: { code: 'AVAILABLE', label: 'Available Seating',  color: '#1A8C4E', indicator: '🟢', threshold: 0.70 },
-  STANDING:  { code: 'STANDING',  label: 'Standing Room Only', color: '#D48B20', indicator: '🟡', threshold: 0.95 },
-  OVERLOAD:  { code: 'OVERLOAD',  label: 'Severe Overload',    color: '#D42B2B', indicator: '🔴', threshold: Infinity },
+  AVAILABLE: { code: 'AVAILABLE', label: 'Available Seating',  color: '#1A8C4E', indicator: (typeof SafarIcons !== 'undefined' ? SafarIcons.statusPip('green') : 'Available'), threshold: 0.70 },
+  STANDING:  { code: 'STANDING',  label: 'Standing Room Only', color: '#D48B20', indicator: (typeof SafarIcons !== 'undefined' ? SafarIcons.statusPip('amber') : 'Standing'), threshold: 0.95 },
+  OVERLOAD:  { code: 'OVERLOAD',  label: 'Severe Overload',    color: '#D42B2B', indicator: (typeof SafarIcons !== 'undefined' ? SafarIcons.statusPip('rose') : 'Overload'), threshold: Infinity },
 });
 
 // Backward-compatibility levels
 const OCCUPANCY_LEVELS = Object.freeze({
-  SEATS_AVAILABLE: { id: "seats", label: "Available Seating", color: "#10b981", badge: "🟢 Low / Seated" },
-  STANDING_ONLY:   { id: "standing", label: "Standing Room Only", color: "#f59e0b", badge: "🟡 Standing Full" },
-  SEVERE_OVERLOAD: { id: "overload", label: "Severe Overload (120%+)", color: "#ef4444", badge: "🔴 Footboard Hazard" }
+  SEATS_AVAILABLE: { id: "seats", label: "Available Seating", color: "#10b981", badge: (typeof SafarIcons !== 'undefined' ? SafarIcons.statusPip('green') + ' ' : '') + "Low / Seated" },
+  STANDING_ONLY:   { id: "standing", label: "Standing Room Only", color: "#f59e0b", badge: (typeof SafarIcons !== 'undefined' ? SafarIcons.statusPip('amber') + ' ' : '') + "Standing Full" },
+  SEVERE_OVERLOAD: { id: "overload", label: "Severe Overload (120%+)", color: "#ef4444", badge: (typeof SafarIcons !== 'undefined' ? SafarIcons.statusPip('rose') + ' ' : '') + "Footboard Hazard" }
 });
 
 // Evening radar active window: 19:00 – 23:59

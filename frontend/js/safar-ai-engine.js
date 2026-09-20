@@ -19,6 +19,17 @@
 const SafarAIEngine = (() => {
   'use strict';
 
+  function getIcon(name, opts) {
+    if (typeof SafarIcons !== 'undefined' && SafarIcons.get) {
+      return SafarIcons.get(name, opts);
+    }
+    if (typeof window !== 'undefined' && window.SafarIcons && window.SafarIcons.get) {
+      return window.SafarIcons.get(name, opts);
+    }
+    return '';
+  }
+
+
   /* ─────────────────────────────────────────────────────────────────
      1. EXTENSIVE J&K TRANSIT NODES & CORRIDOR DISTANCE GRAPH
   ───────────────────────────────────────────────────────────────── */
@@ -170,7 +181,7 @@ const SafarAIEngine = (() => {
       ratePerKmAfter: 2.20,
       typicalStageRound: 5,
       nightHike: 0.20,
-      icon: '🚐'
+      icon: getIcon('minibus')
     },
     'shared-cab': {
       name: 'Shared Cab / Sumo / Tavera / Bolero',
@@ -179,7 +190,7 @@ const SafarAIEngine = (() => {
       ratePerKmAfter: 3.50,
       typicalStageRound: 5,
       nightHike: 0.20,
-      icon: '🚙'
+      icon: getIcon('car')
     },
     'auto': {
       name: 'Metered Auto-Rickshaw',
@@ -187,7 +198,7 @@ const SafarAIEngine = (() => {
       baseFare: 45,
       ratePerKmAfter: 7.40,
       nightHike: 0.20,
-      icon: '🛺'
+      icon: getIcon('auto')
     },
     'e-rickshaw': {
       name: 'E-Rickshaw (Short-Hop)',
@@ -195,7 +206,7 @@ const SafarAIEngine = (() => {
       baseFare: 10,
       ratePerKmAfter: 5.00,
       nightHike: 0.20,
-      icon: '⚡'
+      icon: getIcon('zap')
     },
     'tata-magic': {
       name: 'Tata Magic (Feeder Service)',
@@ -203,7 +214,7 @@ const SafarAIEngine = (() => {
       baseFare: 10,
       ratePerKmAfter: 2.50,
       nightHike: 0.20,
-      icon: '🚐'
+      icon: getIcon('minibus')
     },
     'bus': {
       name: 'Big Bus / JKSRTC Stage Bus',
@@ -211,7 +222,7 @@ const SafarAIEngine = (() => {
       baseFare: 10,
       ratePerKmAfter: 1.40,
       nightHike: 0.15,
-      icon: '🚌'
+      icon: getIcon('bus')
     }
   };
 
@@ -511,26 +522,26 @@ const SafarAIEngine = (() => {
         voiceSummary += ` For a shared Sumo, it is ${sumoCalc.fareRangeText}, and for a metered auto, the base fare is ₹45 with ₹7.40 per kilometer thereafter.`;
       }
 
-      const formattedMarkdown = `### 📊 Official Statutory Fare Breakdown: ${originName} ⇄ ${destName}
+      const formattedMarkdown = `### Official Statutory Fare Breakdown: ${originName} ⇄ ${destName}
 
 **Statutory Authority:** Government of J&K Transport Department Notification **SRO-97** & Motor Vehicles Act.
 
 * **Corridor Distance:** ~${dist} km
-* **Selected Mode:** **${calc.icon} ${calc.vehicleName}**
+* **Selected Mode:** **${calc.vehicleName}**
 * **Approved Statutory Fare:** <span class="fare-highlight">${calc.fareRangeText}</span> *(Calculated: ₹${calc.formulaExact} per SRO-97 stage formula)*
-${isNight ? `* 🌙 **Night Surcharge Active (Post 19:00 hrs):** **₹${calc.nightFare}** *(Statutory +20% hike)*` : `* 🌙 **Night Surcharge (After 7:00 PM):** ₹${calc.nightFare} *(Statutory +20%)*`}
+${isNight ? `* **Night Surcharge Active (Post 19:00 hrs):** **₹${calc.nightFare}** *(Statutory +20% hike)*` : `* **Night Surcharge (After 7:00 PM):** ₹${calc.nightFare} *(Statutory +20%)*`}
 
 ---
 
-#### 🔄 Multi-Vehicle Comparison on this Corridor:
+#### Multi-Vehicle Comparison on this Corridor:
 | Vehicle Category | Approved Rate / Formula | Statutory Fare (${dist} km) | Boarding Stand |
 | :--- | :--- | :--- | :--- |
-| **🚐 Matador / Minibus** | ₹10 base (first 3 km) + ₹2.20/km | **${matadorCalc.fareRangeText}** | Old Bus Stand / Jahangir Chowk |
-| **🚙 Shared Cab / Sumo** | ₹15 base (first 4 km) + ₹3.50/km | **${sumoCalc.fareRangeText}** | Exhibition Ground / Main Stand |
-| **🛺 Metered Auto** | ₹45 base (first 2 km) + ₹7.40/km | **₹${autoCalc.formulaExact}** *(Digital Meter)* | Point-to-Point / Auto Stand |
-| **🚌 Big Bus / SRTC** | ₹10 base + ₹1.40/km | **${busCalc.fareRangeText}** | General Bus Stand Batamaloo |
+| **Matador / Minibus** | ₹10 base (first 3 km) + ₹2.20/km | **${matadorCalc.fareRangeText}** | Old Bus Stand / Jahangir Chowk |
+| **Shared Cab / Sumo** | ₹15 base (first 4 km) + ₹3.50/km | **${sumoCalc.fareRangeText}** | Exhibition Ground / Main Stand |
+| **Metered Auto** | ₹45 base (first 2 km) + ₹7.40/km | **₹${autoCalc.formulaExact}** *(Digital Meter)* | Point-to-Point / Auto Stand |
+| **Big Bus / SRTC** | ₹10 base + ₹1.40/km | **${busCalc.fareRangeText}** | General Bus Stand Batamaloo |
 
-> ℹ️ **Commuter Rights Notice:** Commercial passenger drivers cannot charge above notified rates. Overcharging attracts a fine of **₹2,000 to ₹5,000** under MVA Section 177 & 179. Always ask for a digital ticket or record vehicle registration.`;
+> **Commuter Rights Notice:** Commercial passenger drivers cannot charge above notified rates. Overcharging attracts a fine of **₹2,000 to ₹5,000** under MVA Section 177 & 179. Always ask for a digital ticket or record vehicle registration.`;
 
       return {
         intent: 'fare_check',
@@ -560,15 +571,15 @@ ${isNight ? `* 🌙 **Night Surcharge Active (Post 19:00 hrs):** **₹${calc.nig
 
       const voiceSummary = `Demanding ${demanded} ${routeStr} violates SRO-97 and Motor Vehicles Act Section 177. Commercial drivers face a penalty of up to ₹5,000 and permit suspension. You only need to pay the approved statutory rate. Would you like me to dial the Regional Transport Officer or prepare a dispute report?`;
 
-      const displayText = `### ⚖️ Unlawful Fare Overcharging Reported (${demanded})
+      const displayText = `### Unlawful Fare Overcharging Reported (${demanded})
 
 **Statutory Violation:** Motor Vehicles Act Section 177 / 179 & J&K SRO-97.
 **Legal Penalty:** **₹2,000 to ₹5,000 fine** + Route Permit suspension under MVA Section 86.
 
-#### 🗣️ Exactly what to say to the Driver / Conductor:
+#### Exactly what to say to the Driver / Conductor:
 > *"The notified fare under J&K Transport Department SRO-97 is statutory and binding. Demanding ${demanded} is an offense under MVA Section 177. I am recording this transaction and reporting it to the Regional Transport Officer."*
 
-#### 🚨 Immediate Redressal Steps:
+#### Immediate Redressal Steps:
 1. **Refuse Arbitrary Hikes:** Inform the crew that you are verifying the route on the Safar Government portal.
 2. **Note Vehicle Registration:** Keep the 4-digit number plate (e.g. JK-01-XXXX).
 3. **Escalate to RTO Flying Squad:** Call **0194-2450022** (Traffic Police Control Room) or **0194-2452589** (RTO Kashmir).`;
@@ -585,12 +596,12 @@ ${isNight ? `* 🌙 **Night Surcharge Active (Post 19:00 hrs):** **₹${calc.nig
     if (intent === 'route_refusal') {
       const voiceSummary = `Under J&K Stage Carriage rules and MVA Section 178, commercial passenger drivers cannot refuse routes or drop commuters midway before the authorized terminus. The driver faces a fine of up to ₹3,000 and license suspension.`;
 
-      const displayText = `### 🛑 Midway Drop & Route Refusal Violation
+      const displayText = `### Midway Drop & Route Refusal Violation
 
 **Statutory Authority:** Motor Vehicles Act Section 178 & J&K Motor Vehicle Rules (Rule 77).
 **Statutory Penalty:** **₹1,000 to ₹3,000 fine** + 1-month driving license cancellation.
 
-#### 🗣️ Script to Confront Driver:
+#### Script to Confront Driver:
 > *"Under J&K Stage Carriage Permit conditions, you are legally bound to complete the registered trip to the designated bus stand. Abandoning passengers midway violates permit Rule 77. I am notifying Traffic Police Control immediately."*`;
 
       return {
@@ -605,13 +616,13 @@ ${isNight ? `* 🌙 **Night Surcharge Active (Post 19:00 hrs):** **₹${calc.nig
     if (intent === 'meter_refusal') {
       const voiceSummary = `Under J&K SRO-97, all commercial auto-rickshaws must operate strictly by digital meter: ₹45 for the first two kilometers and ₹7.40 per kilometer thereafter. Refusing the meter attracts a ₹1,000 challan and RC suspension.`;
 
-      const displayText = `### 🛺 Auto-Rickshaw Refusing Meter
+      const displayText = `### Auto-Rickshaw Refusing Meter
 
 **Statutory Mandate:** J&K Transport Department SRO-97 Metered Mandate & MVA Section 177.
 **Statutory Rates:** Base fare **₹45 for the first 2.0 km**, then **₹7.40/km**. Night rate (+20%) applies only from 19:00 to 06:00.
 **Penalty:** **₹1,000 fine** + Registration Certificate suspension upon repeated refusal.
 
-#### 🗣️ Script:
+#### Script:
 > *"SRO-97 mandates all commercial auto-rickshaws in J&K to run on digital meters. Charging arbitrary lumpsum without meter is illegal. Turn on the meter or I will lodge a complaint with City Traffic Police."*`;
 
       return {
@@ -626,7 +637,7 @@ ${isNight ? `* 🌙 **Night Surcharge Active (Post 19:00 hrs):** **₹${calc.nig
     if (intent === 'luggage_dispute') {
       const voiceSummary = `Under official J&K Transport Department guidelines, every passenger is entitled to 15 kilograms of free personal baggage. Demanding an extra surcharge for standard travel bags or roof rack carriage is strictly unauthorized.`;
 
-      const displayText = `### 🧳 Luggage Surcharge Dispute
+      const displayText = `### Luggage Surcharge Dispute
 
 **Statutory Allowance:** **15 kg free personal baggage** per ticket-holding passenger.
 **Regulation:** J&K Stage Carriage Tariff Guidelines SRO-97.
@@ -644,15 +655,15 @@ ${isNight ? `* 🌙 **Night Surcharge Active (Post 19:00 hrs):** **₹${calc.nig
     if (intent === 'highway_emergency') {
       const voiceSummary = `For live highway corridor clearance on NH-44, Navyug Tunnel, or Mughal Road, call the 24x7 Traffic Control Room at 0194-2450022 or the National Highway Authority helpline at 1033.`;
 
-      const displayText = `### ❄️ Highway Corridor Status & Assistance (NH-44 / Navyug Tunnel)
+      const displayText = `### Highway Corridor Status & Assistance (NH-44 / Navyug Tunnel)
 
 **Corridor Hotlines (24x7 Active):**
-* 🛣️ **National Highway Breakdown & Rescue:** **1033** (NHAI)
-* 🚦 **Traffic Police Control Room Kashmir:** **0194-2450022** / WhatsApp: **9419035000**
-* 🚦 **Traffic Police Control Room Jammu:** **0191-2459048**
-* 🚨 **Central Police & Disaster ERSS:** **112**
+* **National Highway Breakdown & Rescue:** **1033** (NHAI)
+* **Traffic Police Control Room Kashmir:** **0194-2450022** / WhatsApp: **9419035000**
+* **Traffic Police Control Room Jammu:** **0191-2459048**
+* **Central Police & Disaster ERSS:** **112**
 
-> ⚠️ **Winter Advisory:** Ensure anti-skid snow chains on mountain routes (Sinthan Top, Mughal Road, Jawahar Tunnel). Always check daily convoy direction before crossing Banihal.`;
+> **Winter Advisory:** Ensure anti-skid snow chains on mountain routes (Sinthan Top, Mughal Road, Jawahar Tunnel). Always check daily convoy direction before crossing Banihal.`;
 
       return {
         intent: 'highway_emergency',
@@ -671,7 +682,7 @@ ${isNight ? `* 🌙 **Night Surcharge Active (Post 19:00 hrs):** **₹${calc.nig
 
       const voiceSummary = `To travel between ${originName} and ${destName}, the distance is approximately ${dist} kilometers. High-frequency Matadors and shared cabs operate between Jahangir Chowk and Budgam Stand from 6:00 AM to 8:30 PM with fares starting at ${matadorCalc.fareRangeText}.`;
 
-      const displayText = `### 🗺️ Route Guide: ${originName} ⇄ ${destName}
+      const displayText = `### Route Guide: ${originName} ⇄ ${destName}
 
 * **Distance:** ~${dist} km
 * **Primary Modes:** Matador (Minibus), Shared Sumo, Tata Magic, Metered Auto
@@ -692,17 +703,17 @@ ${isNight ? `* 🌙 **Night Surcharge Active (Post 19:00 hrs):** **₹${calc.nig
     // ── H. GENERAL CONVERSATIONAL / TRANSIT ASSISTANCE ──
     const voiceSummary = `Hello! I am your Safar AI Voice & Transit Assistant. You can ask me any question about bus fares, Matador routes, auto meter rules, SRO-97 statutory tariffs, highway status, or report an overcharging dispute across all twenty J&K districts. How can I help your journey today?`;
 
-    const displayText = `### 🤖 Safar Transit Omni-Intelligence 2.0
+    const displayText = `### Safar Transit Omni-Intelligence 2.0
 
 I am your official J&K transit assistant, powered by the **SRO-97 Statutory Tariff Dataset** and real-time corridor intelligence.
 
-#### 💡 Questions you can ask me right now:
-* 💰 *"What is the fare rate between Budgam to Lal Chowk via Matador?"*
-* 🛺 *"What are the meter rules and night charges for auto rickshaws in Srinagar?"*
-* 🧳 *"How much free luggage is allowed per commuter under SRO-97?"*
-* 🏔️ *"What is the helpline for NH-44 highway status and Navyug Tunnel?"*
-* ⚖️ *"The driver is charging ₹150 instead of ₹80 for Baramulla, what should I do?"*
-* ✈️ *"How to travel from Lal Chowk to Srinagar Airport and what is the fare?"*`;
+#### Questions you can ask me right now:
+* *"What is the fare rate between Budgam to Lal Chowk via Matador?"*
+* *"What are the meter rules and night charges for auto rickshaws in Srinagar?"*
+* *"How much free luggage is allowed per commuter under SRO-97?"*
+* *"What is the helpline for NH-44 highway status and Navyug Tunnel?"*
+* *"The driver is charging ₹150 instead of ₹80 for Baramulla, what should I do?"*
+* *"How to travel from Lal Chowk to Srinagar Airport and what is the fare?"*`;
 
     return {
       intent: 'general_question',

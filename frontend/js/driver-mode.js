@@ -10,6 +10,17 @@
 const SafarDriverMode = (() => {
   'use strict';
 
+  function getIcon(name, opts) {
+    if (typeof SafarIcons !== 'undefined' && SafarIcons.get) {
+      return SafarIcons.get(name, opts);
+    }
+    if (typeof window !== 'undefined' && window.SafarIcons && window.SafarIcons.get) {
+      return window.SafarIcons.get(name, opts);
+    }
+    return '';
+  }
+
+
   /* ─────────────────────────────────────────────────────────────────
      STATIC DATA & CONFIGURATION
   ───────────────────────────────────────────────────────────────── */
@@ -136,19 +147,19 @@ const SafarDriverMode = (() => {
   };
 
   const EMERGENCY_CONTACTS = [
-    { name: 'National Highway Helpline', number: '1033', badge: 'NHAI / NH-44', icon: '🚨' },
-    { name: 'Ambulance (J&K EMS)', number: '108', badge: 'Medical Emergency', icon: '🚑' },
-    { name: 'Police / PCR Response', number: '112', badge: 'Emergency Command', icon: '🚓' },
-    { name: 'Traffic Police Srinagar (Kashmir)', number: '01942450022', display: '0194-2450022', badge: 'Kashmir Valley', icon: '📞' },
-    { name: 'Traffic Police Jammu', number: '01912459048', display: '0191-2459048', badge: 'Jammu Highway', icon: '📞' },
-    { name: 'Disaster Management Helpline', number: '1070', badge: 'Avalanche & Snow', icon: '⛰️' },
-    { name: 'Tourist Police Srinagar', number: '01942477567', display: '0194-2477567', badge: 'Tourism Assist', icon: '🛡️' },
-    { name: 'Women Helpline J&K', number: '181', badge: 'Safety & Protection', icon: '🚺' },
+    { name: 'National Highway Helpline', number: '1033', badge: 'NHAI / NH-44', icon: getIcon('emergency') },
+    { name: 'Ambulance (J&K EMS)', number: '108', badge: 'Medical Emergency', icon: getIcon('ambulance') },
+    { name: 'Police / PCR Response', number: '112', badge: 'Emergency Command', icon: getIcon('police') },
+    { name: 'Traffic Police Srinagar (Kashmir)', number: '01942450022', display: '0194-2450022', badge: 'Kashmir Valley', icon: getIcon('phone') },
+    { name: 'Traffic Police Jammu', number: '01912459048', display: '0191-2459048', badge: 'Jammu Highway', icon: getIcon('phone') },
+    { name: 'Disaster Management Helpline', number: '1070', badge: 'Avalanche & Snow', icon: getIcon('mountain') },
+    { name: 'Tourist Police Srinagar', number: '01942477567', display: '0194-2477567', badge: 'Tourism Assist', icon: getIcon('shield') },
+    { name: 'Women Helpline J&K', number: '181', badge: 'Safety & Protection', icon: getIcon('female') },
   ];
 
   const S = { VACANT: 0, UNPAID: 1, PAID: 2 };
   const SEAT_CLASSES = ['vacant', 'unpaid', 'paid'];
-  const SEAT_ICONS   = ['○',      '₹',      '✓'  ];
+  const SEAT_ICONS   = ['○',      '₹',      'P'  ];
 
   const STORAGE_KEY_ACTIVE = 'safar_driver_active_trip';
   const STORAGE_KEY_TRIPS  = 'safar_driver_trips';
@@ -773,7 +784,7 @@ const SafarDriverMode = (() => {
           <div class="emergency-badge">${c.badge}</div>
         </div>
         <a href="tel:${c.number}" class="emergency-dial-btn" aria-label="Call ${c.name}">
-          📞 ${c.display || c.number}
+          ${getIcon('phone', { size: 14 })} ${c.display || c.number}
         </a>
       </div>
     `).join('');
@@ -794,7 +805,7 @@ const SafarDriverMode = (() => {
     return `
 <!-- ── Fullscreen "Show Passenger" Overlay with Offline QR ─────── -->
 <div id="driver-tariff-overlay" role="dialog" aria-modal="true" aria-label="Official Statutory Tariff">
-  <button class="driver-overlay-close" id="driver-overlay-close-btn" type="button" aria-label="Close">✕</button>
+  <button class="driver-overlay-close" id="driver-overlay-close-btn" type="button" aria-label="Close">${getIcon('x', { size: 14 })}</button>
   
   <div class="driver-overlay-header">
     <div class="driver-overlay-govt">Government of Jammu &amp; Kashmir</div>
@@ -824,10 +835,10 @@ const SafarDriverMode = (() => {
   <div class="driver-modal-box">
     <div class="driver-modal-header">
       <div class="modal-title-box">
-        <span class="modal-icon">🚨</span>
+        <span class="modal-icon">${getIcon('emergency')}</span>
         <h3>J&amp;K Emergency &amp; Highway Contacts</h3>
       </div>
-      <button class="driver-modal-close" id="close-emergency-modal-btn" type="button">✕</button>
+      <button class="driver-modal-close" id="close-emergency-modal-btn" type="button">${getIcon('x', { size: 14 })}</button>
     </div>
     <div class="driver-modal-content">
       ${buildEmergencyList()}
@@ -840,10 +851,10 @@ const SafarDriverMode = (() => {
   <div class="driver-modal-box">
     <div class="driver-modal-header">
       <div class="modal-title-box">
-        <span class="modal-icon">⛽</span>
+        <span class="modal-icon">${getIcon('receipt')}</span>
         <h3>Operating Expenses &amp; Outgoings</h3>
       </div>
-      <button class="driver-modal-close" id="close-expense-modal-btn" type="button">✕</button>
+      <button class="driver-modal-close" id="close-expense-modal-btn" type="button">${getIcon('x', { size: 14 })}</button>
     </div>
     <div class="driver-modal-content">
       <div class="driver-field">
@@ -886,10 +897,10 @@ const SafarDriverMode = (() => {
   <div class="driver-modal-box large">
     <div class="driver-modal-header">
       <div class="modal-title-box">
-        <span class="modal-icon">📊</span>
+        <span class="modal-icon">${getIcon('receipt')}</span>
         <h3>Daily Shift Ledger &amp; Archives</h3>
       </div>
-      <button class="driver-modal-close" id="close-shift-modal-btn" type="button">✕</button>
+      <button class="driver-modal-close" id="close-shift-modal-btn" type="button">${getIcon('x', { size: 14 })}</button>
     </div>
     <div class="driver-modal-content" id="shift-modal-body"></div>
   </div>
@@ -900,10 +911,10 @@ const SafarDriverMode = (() => {
   <div class="driver-modal-box">
     <div class="driver-modal-header">
       <div class="modal-title-box">
-        <span class="modal-icon">📥</span>
+        <span class="modal-icon">${getIcon('download')}</span>
         <h3>Confirm Backup Import</h3>
       </div>
-      <button class="driver-modal-close" id="close-import-modal-btn" type="button">✕</button>
+      <button class="driver-modal-close" id="close-import-modal-btn" type="button">${getIcon('x', { size: 14 })}</button>
     </div>
     <div class="driver-modal-content" id="import-modal-body"></div>
   </div>
@@ -956,7 +967,7 @@ const SafarDriverMode = (() => {
 
       <!-- Overload Alert Banner (if capacity > standard) -->
       <div class="driver-overload-banner${isOverload ? ' visible' : ''}" id="driver-overload-banner" role="alert">
-        <span class="caution-icon">⚠️</span>
+        <span class="caution-icon">${getIcon('alert')}</span>
         <div class="overload-text">
           <strong>Permit Capacity Exceeded (+${overloadDiff} seats above RTO rating)</strong>
           <p>MVA Section 194A advisory: carriage of excess passengers risks ₹200/excess passenger challan.</p>
@@ -1011,21 +1022,21 @@ const SafarDriverMode = (() => {
           <p>Tap seats to cycle status: Empty → Due → Paid</p>
         </div>
         <button class="lock-toggle-pill${state.driveLock ? ' active' : ''}" id="driver-lock-toggle-btn" type="button">
-          ${state.driveLock ? '🔒 Drive Locked' : '🔓 Tap to Lock'}
+          ${state.driveLock ? 'Drive Locked' : 'Tap to Lock'}
         </button>
       </div>
 
       <!-- Drive Safe Lock Active Shield Banner -->
       <div class="driver-safety-banner${state.driveLock ? ' active' : ''}" id="driver-safety-banner">
         <div class="safety-banner-content">
-          <span class="shield-icon">🔒</span>
+          <span class="shield-icon">${getIcon('shield')}</span>
           <div>
             <strong>DRIVE SAFE LOCK ACTIVE</strong>
             <p>Seat taps disabled to avoid accidental touches on mountain road bumps.</p>
           </div>
         </div>
         <button class="driver-unlock-btn" id="driver-unlock-btn" type="button">
-          🔓 Tap to Unlock at Stand
+          Tap to Unlock at Stand
         </button>
       </div>
 
@@ -1063,7 +1074,7 @@ const SafarDriverMode = (() => {
       <!-- Cargo Addons & Mountain Surcharge Bar -->
       <div class="driver-cargo-bar" style="margin-top: 18px;">
         <div class="cargo-item">
-          <span class="cargo-label">🧳 Luggage (+₹15/bag)</span>
+          <span class="cargo-label">${getIcon('bus', { size: 14 })} Luggage (+₹15/bag)</span>
           <div class="cargo-stepper">
             <button type="button" class="stepper-btn" id="luggage-dec">−</button>
             <span class="stepper-val" id="luggage-val">${state.luggageCount}</span>
@@ -1071,7 +1082,7 @@ const SafarDriverMode = (() => {
           </div>
         </div>
         <div class="cargo-item">
-          <span class="cargo-label">📦 Parcels (+₹40/box)</span>
+          <span class="cargo-label">${getIcon('receipt', { size: 14 })} Parcels (+₹40/box)</span>
           <div class="cargo-stepper">
             <button type="button" class="stepper-btn" id="parcel-dec">−</button>
             <span class="stepper-val" id="parcel-val">${state.parcelCount}</span>
@@ -1248,7 +1259,7 @@ const SafarDriverMode = (() => {
     if (banner) banner.classList.toggle('active', state.driveLock);
     if (lockBtn) {
       lockBtn.classList.toggle('active', state.driveLock);
-      lockBtn.textContent = state.driveLock ? '🔒 Drive Locked' : '🔓 Tap to Lock';
+      lockBtn.textContent = state.driveLock ? 'Drive Locked' : 'Tap to Lock';
     }
     patchSeatGrid();
     persistActiveTrip();
@@ -1414,10 +1425,10 @@ const SafarDriverMode = (() => {
       </div>
 
       <div class="shift-actions-row">
-        <button class="primary-btn" id="export-shift-csv-btn" type="button">📥 Export Shift CSV</button>
-        <button class="outline-btn" id="export-backup-json-btn" type="button">💾 Export Backup JSON</button>
+        <button class="primary-btn" id="export-shift-csv-btn" type="button">${getIcon('download', { size: 14 })} Export Shift CSV</button>
+        <button class="outline-btn" id="export-backup-json-btn" type="button">${getIcon('copy', { size: 14 })} Export Backup JSON</button>
         <label class="outline-btn" style="cursor:pointer;display:inline-flex;align-items:center;margin:0;">
-          📁 Import Backup
+          ${getIcon('download', { size: 14 })} Import Backup
           <input type="file" id="import-backup-file-input" accept=".json" style="display:none;">
         </label>
       </div>
@@ -1552,7 +1563,7 @@ const SafarDriverMode = (() => {
     if (e.target.closest('#driver-privacy-toggle-btn')) {
       state.privacyMode = !state.privacyMode;
       const btn = document.getElementById('driver-privacy-toggle-btn');
-      if (btn) btn.textContent = state.privacyMode ? '👁️ Show' : '👁️ Mask';
+      if (btn) btn.textContent = state.privacyMode ? 'Show' : 'Mask';
       patchTotals();
       persistActiveTrip();
       return;

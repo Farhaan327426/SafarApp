@@ -27,6 +27,8 @@ import {
   AlertTriangle,
   Eye,
   SlidersHorizontal,
+  Users,
+  Mountain,
 } from "lucide-react";
 import VehicleIllustration, { VEHICLE_VISUAL_META } from "./VehicleIllustration.jsx";
 import { getVehicleRouteViability } from "../data/transitZones.js";
@@ -149,13 +151,13 @@ export default function MobileView({
             href="tel:112"
             className="px-2 py-0.5 rounded-full bg-[#fee2e2] text-[#991b1b] border border-[#fca5a5] flex items-center gap-1"
           >
-            🚨 112
+            112
           </a>
           <a
             href="tel:1033"
             className="px-2 py-0.5 rounded-full bg-[#edf5ee] text-[#234b4c] border border-[#c3d8c6] flex items-center gap-1"
           >
-            🛣️ 1033
+            1033
           </a>
         </div>
       </div>
@@ -292,11 +294,11 @@ export default function MobileView({
             {hasRoute && (
               <div className="pt-2 border-t border-[#edf3eb] flex items-center justify-between text-[11px] text-[#234b4c]">
                 <span className="font-extrabold bg-[#edf5ee] px-2 py-0.5 rounded-md">
-                  📏 {distance || 0} KM
+                  {distance || 0} KM
                 </span>
                 <span className="font-semibold text-[#557b72]">⏱️ {currentRouteMeta.duration}</span>
                 <span className="font-semibold text-[#3f6e5b] truncate max-w-[130px]" title={currentRouteMeta.terrain}>
-                  🏔️ {currentRouteMeta.terrain.split(" ")[0]}
+                  {currentRouteMeta.terrain.split(" ")[0]}
                 </span>
               </div>
             )}
@@ -314,7 +316,7 @@ export default function MobileView({
                     : "bg-[#fbfcf8] text-[#345657] border-[#dce5dc]"
                 }`}
               >
-                {preset.from} ➔ {preset.to}
+                {preset.from} → {preset.to}
               </button>
             ))}
           </div>
@@ -399,7 +401,7 @@ export default function MobileView({
                         <h4 className="font-bold text-[11px] text-[#234b4c] truncate">{v.label}</h4>
                         {isSelected && <CheckCircle2 size={11} className="text-[#234b4c]" />}
                       </div>
-                      <p className="text-[9px] text-[#78908a] truncate mt-0.5">👥 {v.capacity}</p>
+                      <p className="text-[9px] text-[#78908a] truncate mt-0.5">{v.capacity}</p>
                     </div>
 
                     <div className="mt-1.5 pt-1 border-t border-[#edf3eb] flex items-center justify-between text-[9px]">
@@ -459,7 +461,7 @@ export default function MobileView({
           <div className="bg-[#fbfcf8] border border-[#dce5dc] rounded-2xl p-4 shadow-sm">
             <h3 className="font-extrabold text-sm text-[#234b4c]">Compare All Vehicles for this Route</h3>
             <p className="text-[11px] text-[#78908a] mt-0.5">
-              {from || "Origin"} ➔ {to || "Destination"} ({distance || 0} KM)
+              {from || "Origin"} → {to || "Destination"} ({distance || 0} KM)
             </p>
           </div>
 
@@ -487,7 +489,7 @@ export default function MobileView({
                     </div>
                     <div>
                       <h4 className="font-bold text-xs text-[#234b4c]">{v.label}</h4>
-                      <p className="text-[10px] text-[#78908a]">👥 {v.capacity} • {v.badge}</p>
+                      <p className="text-[10px] text-[#78908a]">{v.capacity} • {v.badge}</p>
                     </div>
                   </div>
 
@@ -527,7 +529,7 @@ export default function MobileView({
             <div className="p-3 rounded-xl bg-[#edf5ee] border border-[#d2e4d4] text-xs">
               <div className="flex justify-between">
                 <span className="text-[#78908a]">Active Route:</span>
-                <span className="font-bold text-[#234b4c]">{from || "Lal Chowk"} ➔ {to || "Destination"}</span>
+                <span className="font-bold text-[#234b4c]">{from || "Lal Chowk"} → {to || "Destination"}</span>
               </div>
               <div className="flex justify-between mt-1">
                 <span className="text-[#78908a]">Official Legal Ceiling:</span>
@@ -558,7 +560,7 @@ export default function MobileView({
               >
                 {overchargeDiff > 0 ? (
                   <div className="space-y-1">
-                    <p className="font-black text-sm">⚠️ Extortion Alert: +₹{overchargeDiff} Overcharge!</p>
+                    <p className="font-black text-sm flex items-center gap-1.5 text-rose-600"><AlertTriangle className="w-4 h-4 text-rose-600" />Extortion Alert: +₹{overchargeDiff} Overcharge!</p>
                     <p className="text-[11px] leading-snug">
                       This demands exceeds the notified tariff under <strong>Section 192A MVA</strong>.
                     </p>
@@ -566,7 +568,7 @@ export default function MobileView({
                       href="transit-defense.html"
                       className="inline-block mt-2 px-3 py-1.5 rounded-lg bg-[#dc2626] text-white font-bold text-[10.5px]"
                     >
-                      File RTO Grievance ➔
+                      File RTO Grievance →
                     </a>
                   </div>
                 ) : (
@@ -613,16 +615,16 @@ export default function MobileView({
               <p className="text-[10.5px] font-bold text-[#78908a] uppercase mb-1.5">Emergency Helplines</p>
               <div className="grid grid-cols-2 gap-2 text-xs font-bold">
                 <a href="tel:112" className="p-2 rounded-xl bg-[#edf5ee] text-[#234b4c] text-center border border-[#d2e4d4]">
-                  🚨 Police: 112
+                  Police: 112
                 </a>
                 <a href="tel:1033" className="p-2 rounded-xl bg-[#edf5ee] text-[#234b4c] text-center border border-[#d2e4d4]">
-                  🛣️ NH-44: 1033
+                  NH-44: 1033
                 </a>
                 <a href="tel:108" className="p-2 rounded-xl bg-[#edf5ee] text-[#234b4c] text-center border border-[#d2e4d4]">
-                  🚑 Medical: 108
+                  Medical: 108
                 </a>
                 <a href="tel:181" className="p-2 rounded-xl bg-[#edf5ee] text-[#234b4c] text-center border border-[#d2e4d4]">
-                  🚺 Women: 181
+                  Women: 181
                 </a>
               </div>
             </div>

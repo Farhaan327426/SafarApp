@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import QRCode from 'qrcode';
+import { X } from 'lucide-react';
 
 export default function ConductorSlipModal({
   isOpen,
@@ -68,7 +69,7 @@ export default function ConductorSlipModal({
           width: size * dpr,
           margin: 1,
           errorCorrectionLevel: 'M',
-          color: { dark: '#0f172a', light: '#ffffff' }
+          color: { dark: '#234b4c', light: '#ffffff' }
         },
         (err) => {
           if (err) console.error('Conductor pass QR error:', err);
@@ -89,10 +90,10 @@ export default function ConductorSlipModal({
           </div>
           <button
             onClick={onClose}
-            className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-lg p-1"
+            className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1"
             aria-label="Close"
           >
-            ✕
+            <X size={18} />
           </button>
         </div>
 
@@ -110,7 +111,7 @@ export default function ConductorSlipModal({
         <div className="space-y-2.5 text-xs">
           <div className="flex justify-between">
             <span className="text-slate-500 dark:text-slate-400">Route:</span>
-            <span className="font-semibold text-slate-900 dark:text-white">{origin} ➔ {destination}</span>
+            <span className="font-semibold text-slate-900 dark:text-white">{origin} → {destination}</span>
           </div>
           <div className="flex justify-between">
             <span className="text-slate-500 dark:text-slate-400">Vehicle:</span>

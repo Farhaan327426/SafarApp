@@ -50,7 +50,7 @@ import { useFareCalculator } from "./hooks/useFareCalculator.js";
 
 const vehicleCategories = [
   { key: "all", label: "All Vehicles (11)" },
-  { key: "ev", label: "⚡ Autos & EVs" },
+  { key: "ev", label: "Autos & EVs" },
   { key: "shared", label: "Shared Cabs" },
   { key: "bus", label: "Buses & Matadors" },
   { key: "taxi", label: "Private Taxis" },
@@ -861,7 +861,7 @@ function resolveRouteInfo(loc1, loc2, userRegionOverride = null) {
       duration,
       terrain: isHilly ? "Mountain Highway Corridor" : "Plains Commercial Corridor",
       region,
-      highway: `${c1.highway || "NH-44"} ➔ ${c2.highway || "State Highway"}`,
+      highway: `${c1.highway || "NH-44"} → ${c2.highway || "State Highway"}`,
       isPreset: false,
       routeProfile: profile,
     };
@@ -887,7 +887,7 @@ function resolveRouteInfo(loc1, loc2, userRegionOverride = null) {
 
 const recentEstimatesList = [
   {
-    route: "Srinagar ➔ Gulmarg",
+    route: "Srinagar → Gulmarg",
     meta: "51 KM • Mountain Pass • 1h 35m",
     amount: "₹96 / seat",
     from: "Srinagar",
@@ -896,7 +896,7 @@ const recentEstimatesList = [
     vehicleKey: "mini-bus",
   },
   {
-    route: "Jammu ➔ Katra",
+    route: "Jammu → Katra",
     meta: "49 KM • Expressway Foothills • 1h 14m",
     amount: "₹180 / seat",
     from: "Jammu",
@@ -905,7 +905,7 @@ const recentEstimatesList = [
     vehicleKey: "shared-cab",
   },
   {
-    route: "Lal Chowk ➔ Dal Lake (Dalgate)",
+    route: "Lal Chowk → Dal Lake (Dalgate)",
     meta: "4 KM • City Lake Boulevard • 10m",
     amount: "₹60 flat",
     from: "Lal Chowk",
@@ -914,7 +914,7 @@ const recentEstimatesList = [
     vehicleKey: "e-rickshaw",
   },
   {
-    route: "Anantnag ➔ Srinagar",
+    route: "Anantnag → Srinagar",
     meta: "53 KM • NH-44 Valley Expressway • 1h 20m",
     amount: "₹87 / seat",
     from: "Anantnag",
@@ -1175,7 +1175,7 @@ export default function App() {
     setTo(preset.to);
     setDistance(String(preset.distance));
     if (preset.region) setTerrainRegion(preset.region);
-    showToast(`Loaded ${preset.from} ➔ ${preset.to} (${preset.distance} km)`);
+    showToast(`Loaded ${preset.from} → ${preset.to} (${preset.distance} km)`);
   };
 
   const handleFromChange = (val) => {
@@ -1204,9 +1204,9 @@ export default function App() {
   const handleShare = () => {
     let text = "";
     if (hasRoute && !fareParts.isViable) {
-      text = `🚗 Safar Advisory: ${chosenVehicle.label} does not service ${from} to ${to} (${distance} km). Recommended: ${fareParts.viability.alternativeName}. Check official J&K transit rates on Safar.`;
+      text = `Safar Advisory: ${chosenVehicle.label} does not service ${from} to ${to} (${distance} km). Recommended: ${fareParts.viability.alternativeName}. Check official J&K transit rates on Safar.`;
     } else {
-      text = `🚗 Safar Fare Estimate: ${from} to ${to} (${distance} km) via ${chosenVehicle.label} is ₹${displayFare}. Official J&K transit rates on Safar.`;
+      text = `Safar Fare Estimate: ${from} to ${to} (${distance} km) via ${chosenVehicle.label} is ₹${displayFare}. Official J&K transit rates on Safar.`;
     }
     if (navigator.clipboard) {
       navigator.clipboard.writeText(text);
@@ -1485,7 +1485,7 @@ export default function App() {
               {!isScreenMobile && (
                 <div className="mb-3 text-center">
                   <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-[#edf5ee] text-[#234b4c] border border-[#d2e4d4] shadow-xs">
-                    📱 Mobile View Mode Active (Use Top Switcher for PC View)
+                    Mobile View Mode Active (Use Top Switcher for PC View)
                   </span>
                 </div>
               )}
@@ -1591,55 +1591,55 @@ export default function App() {
                 </thead>
                 <tbody className="divide-y divide-[#eaf0e9] font-medium text-[#345657]">
                   <tr className="bg-[#edf5ee]/40">
-                    <td className="py-3.5 px-4 font-bold text-[#234b4c]">⚡ E-Rickshaw (Toto / Cart)</td>
+                    <td className="py-3.5 px-4 font-bold text-[#234b4c]">E-Rickshaw (Toto / Cart)</td>
                     <td className="py-3.5 px-4">Flat ₹15 per km</td>
                     <td className="py-3.5 px-4">Up to 4 passengers</td>
                     <td className="py-3.5 px-4">Local colony & market hubs</td>
                   </tr>
                   <tr className="bg-[#edf5ee]/40">
-                    <td className="py-3.5 px-4 font-bold text-[#234b4c]">⚡ E-Auto (Electric 3-Wheeler)</td>
+                    <td className="py-3.5 px-4 font-bold text-[#234b4c]">E-Auto (Electric 3-Wheeler)</td>
                     <td className="py-3.5 px-4">₹25 (1st km) + ₹20/km subsequent</td>
                     <td className="py-3.5 px-4">Up to 3 passengers</td>
                     <td className="py-3.5 px-4">Urban green commuting</td>
                   </tr>
                   <tr>
-                    <td className="py-3.5 px-4 font-bold text-[#234b4c]">🛺 Tata Magic / Local 4-Wheeler</td>
+                    <td className="py-3.5 px-4 font-bold text-[#234b4c]">Tata Magic / Local 4-Wheeler</td>
                     <td className="py-3.5 px-4">Stage slabs: ₹9 (3km), ₹14 (5km), ₹17 (10km), ₹20 (15km), ₹26 (20km)</td>
                     <td className="py-3.5 px-4">6 to 8 seats</td>
                     <td className="py-3.5 px-4">50% concession for distance &gt;20km</td>
                   </tr>
                   <tr>
-                    <td className="py-3.5 px-4 font-bold text-[#234b4c]">🚌 Mini Bus (Matador / 407)</td>
+                    <td className="py-3.5 px-4 font-bold text-[#234b4c]">Mini Bus (Matador / 407)</td>
                     <td className="py-3.5 px-4">₹1.64/km (Kashmir Plain) · ₹1.88/km (Hill)</td>
                     <td className="py-3.5 px-4">Per seat (18-24)</td>
                     <td className="py-3.5 px-4">Local high-frequency stage route</td>
                   </tr>
                   <tr>
-                    <td className="py-3.5 px-4 font-bold text-[#234b4c]">🚌 Private 2+2 Big Bus</td>
+                    <td className="py-3.5 px-4 font-bold text-[#234b4c]">Private 2+2 Big Bus</td>
                     <td className="py-3.5 px-4">₹1.12/km (Jammu Plain) · ₹1.40/km (Kashmir) · ₹1.59/km (Hill)</td>
                     <td className="py-3.5 px-4">Per seat (32+)</td>
                     <td className="py-3.5 px-4">Long distance stage carriage</td>
                   </tr>
                   <tr>
-                    <td className="py-3.5 px-4 font-bold text-[#234b4c]">🛺 Auto-Rickshaw (Petrol/CNG)</td>
+                    <td className="py-3.5 px-4 font-bold text-[#234b4c]">Auto-Rickshaw (Petrol/CNG)</td>
                     <td className="py-3.5 px-4">₹45 for first 2 km, then ₹7.40/km</td>
                     <td className="py-3.5 px-4">Up to 3 passengers</td>
                     <td className="py-3.5 px-4">City & town limits</td>
                   </tr>
                   <tr>
-                    <td className="py-3.5 px-4 font-bold text-[#234b4c]">🚕 Shared Maxi-Cab (Sumo/Bolero)</td>
+                    <td className="py-3.5 px-4 font-bold text-[#234b4c]">Shared Maxi-Cab (Sumo/Bolero)</td>
                     <td className="py-3.5 px-4">₹35 Base + ₹5.20 / passenger-km</td>
                     <td className="py-3.5 px-4">4+1 to 7+1</td>
                     <td className="py-3.5 px-4">Inter-district corridors</td>
                   </tr>
                   <tr>
-                    <td className="py-3.5 px-4 font-bold text-[#234b4c]">🚕 Standard Sedan Taxi (+18% Hiked)</td>
+                    <td className="py-3.5 px-4 font-bold text-[#234b4c]">Standard Sedan Taxi (+18% Hiked)</td>
                     <td className="py-3.5 px-4">₹140 Base + ₹14.50 / km</td>
                     <td className="py-3.5 px-4">Entire vehicle (4+1)</td>
                     <td className="py-3.5 px-4">Contract carriage (Dzire/Etios)</td>
                   </tr>
                   <tr>
-                    <td className="py-3.5 px-4 font-bold text-[#234b4c]">🚕 Premium Tourist SUV (+18% Hiked)</td>
+                    <td className="py-3.5 px-4 font-bold text-[#234b4c]">Premium Tourist SUV (+18% Hiked)</td>
                     <td className="py-3.5 px-4">₹220 Base + ₹21.00 / km</td>
                     <td className="py-3.5 px-4">Entire vehicle (6+1/7+1)</td>
                     <td className="py-3.5 px-4">Innova Crysta, Scorpio, Fortuner</td>
@@ -1734,7 +1734,7 @@ export default function App() {
                           <div className="flex items-center justify-between">
                             <h4 className="text-sm font-black text-[#234b4c]">{meta?.name || v.label}</h4>
                             <span className="text-[11px] font-bold text-[#345657] bg-[#edf3eb] px-2 py-0.5 rounded-md">
-                              👥 {v.capacity}
+                              {v.capacity}
                             </span>
                           </div>
                           <p className="text-xs font-semibold text-[#78908a] mt-0.5">{v.sublabel}</p>
@@ -1744,19 +1744,19 @@ export default function App() {
                         {/* Hallmarks & Recognition Features */}
                         <div className="mt-3 pt-3 border-t border-[#edf3eb] space-y-2 text-xs">
                           <div>
-                            <span className="font-bold text-[#234b4c] block text-[11px]">👀 How to Spot on Road:</span>
+                            <span className="font-bold text-[#234b4c] block text-[11px]">How to Spot on Road:</span>
                             <p className="text-[11px] text-[#557b72] leading-snug mt-0.5">{meta?.hallmark}</p>
                           </div>
                           <div>
-                            <span className="font-bold text-[#234b4c] block text-[11px]">📍 Designated Stands & Boarding:</span>
+                            <span className="font-bold text-[#234b4c] block text-[11px]">Designated Stands & Boarding:</span>
                             <p className="text-[11px] text-[#557b72] leading-snug mt-0.5">{meta?.howToSpot}</p>
                           </div>
                           <div>
-                            <span className="font-bold text-[#234b4c] block text-[11px]">🧳 Baggage Allowance:</span>
+                            <span className="font-bold text-[#234b4c] block text-[11px]">Baggage Allowance:</span>
                             <p className="text-[11px] text-[#557b72] leading-snug mt-0.5">{meta?.luggage}</p>
                           </div>
                           <div>
-                            <span className="font-bold text-[#234b4c] block text-[11px]">🏔️ Ideal Route Corridors:</span>
+                            <span className="font-bold text-[#234b4c] block text-[11px]">Ideal Route Corridors:</span>
                             <p className="text-[11px] text-[#557b72] leading-snug mt-0.5">{meta?.idealFor}</p>
                           </div>
                         </div>
@@ -1838,7 +1838,7 @@ export default function App() {
                 <div>
                   <h4 className="font-bold text-[#234b4c]">Pick Your Route &amp; Terrain</h4>
                   <p className="text-[#78908a] mt-0.5">
-                    Enter your start point and destination or click any quick corridor pill (like Srinagar ➔ Gulmarg).
+                    Enter your start point and destination or click any quick corridor pill (like Srinagar → Gulmarg).
                   </p>
                 </div>
               </div>
@@ -1879,10 +1879,10 @@ export default function App() {
                   <li>In case of overcharging or refusal, quote official SRO-97 tariff or generate an offline Fare Pass.</li>
                 </ul>
                 <div className="pt-2 border-t border-[#d2e4d4] flex flex-wrap gap-2 text-[10px] font-bold text-[#234b4c]">
-                  <span className="px-2 py-0.5 rounded-full bg-white border border-[#c3d8c6]">🚨 Police: 112</span>
-                  <span className="px-2 py-0.5 rounded-full bg-white border border-[#c3d8c6]">🛣️ NH-44: 1033</span>
-                  <span className="px-2 py-0.5 rounded-full bg-white border border-[#c3d8c6]">🚑 Medical: 108</span>
-                  <span className="px-2 py-0.5 rounded-full bg-white border border-[#c3d8c6]">🚺 Women: 181</span>
+                  <span className="px-2 py-0.5 rounded-full bg-white border border-[#c3d8c6]">Police: 112</span>
+                  <span className="px-2 py-0.5 rounded-full bg-white border border-[#c3d8c6]">NH-44: 1033</span>
+                  <span className="px-2 py-0.5 rounded-full bg-white border border-[#c3d8c6]">Medical: 108</span>
+                  <span className="px-2 py-0.5 rounded-full bg-white border border-[#c3d8c6]">Women: 181</span>
                 </div>
               </div>
             </div>

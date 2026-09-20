@@ -1,3 +1,13 @@
+function getSafarIcon(name, opts) {
+  if (typeof SafarIcons !== 'undefined' && SafarIcons.get) {
+    return SafarIcons.get(name, opts);
+  }
+  if (typeof window !== 'undefined' && window.SafarIcons && window.SafarIcons.get) {
+    return window.SafarIcons.get(name, opts);
+  }
+  return '';
+}
+
 /**
  * SAFAR — J&K Smart Transit & Legal Fare Guide
  * Interactive Engine & Official 2026 Revised Fare Gazette Calculations
@@ -495,7 +505,7 @@ const routePresets = [
 // 3. Recent Estimates List
 const recentEstimates = [
   {
-    route: "Srinagar ➔ Gulmarg",
+    route: "Srinagar → Gulmarg",
     from: "Srinagar",
     to: "Gulmarg",
     distance: 51,
@@ -505,7 +515,7 @@ const recentEstimates = [
     time: "Today, 10:40 AM"
   },
   {
-    route: "Jammu ➔ Katra",
+    route: "Jammu → Katra",
     from: "Jammu",
     to: "Katra",
     distance: 49,
@@ -515,7 +525,7 @@ const recentEstimates = [
     time: "Yesterday, 06:15 PM"
   },
   {
-    route: "Anantnag ➔ Srinagar",
+    route: "Anantnag → Srinagar",
     from: "Anantnag",
     to: "Srinagar",
     distance: 53,
@@ -820,7 +830,7 @@ function resolveRouteInfo(loc1, loc2) {
       duration,
       terrain: isHilly ? "Mountain Highway Corridor" : "Plains Commercial Corridor",
       region,
-      highway: `${c1.highway || "NH-44"} ➔ ${c2.highway || "State Highway"}`,
+      highway: `${c1.highway || "NH-44"} → ${c2.highway || "State Highway"}`,
       isPreset: false,
     };
   }
@@ -1147,7 +1157,7 @@ function renderQuickPresets() {
   presets.forEach((preset) => {
     const btn = document.createElement("button");
     btn.className = `corridor-pill ${preset.from === currentFrom && preset.to === currentTo ? "active" : ""}`;
-    btn.textContent = `${preset.from} ➔ ${preset.to} (${preset.distance} km)`;
+    btn.textContent = `${preset.from} → ${preset.to} (${preset.distance} km)`;
     btn.addEventListener("click", () => {
       currentFrom = preset.from;
       currentTo = preset.to;
@@ -1157,7 +1167,7 @@ function renderQuickPresets() {
       if (inputTo) inputTo.value = currentTo;
       if (inputDistance) inputDistance.value = currentDistance;
       calculateAndRender();
-      showToast(`Loaded ${preset.from} ➔ ${preset.to}`);
+      showToast(`Loaded ${preset.from} → ${preset.to}`);
     });
     quickPresetButtons.appendChild(btn);
   });
@@ -1183,12 +1193,12 @@ function renderContextAlerts() {
     html += `
       <div style="background: #fff2f2; border: 1px solid #fca5a5; color: #991b1b; padding: 12px 14px; border-radius: 14px; margin-bottom: 10px; font-size: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
         <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
-          <strong>⚠️ Route Not Serviced by ${chosenVeh.label}</strong>
+          <strong>${getSafarIcon("alert", { size: 14 })} Route Not Serviced by ${chosenVeh.label}</strong>
           <span style="font-size: 10px; font-weight: 800; background: #fee2e2; color: #b91c1c; padding: 2px 8px; border-radius: 9999px; border: 1px solid #f87171;">No Fare Available</span>
         </div>
-        <p style="margin: 4px 0 0; color: #7f1d1d; font-size: 11px; line-height: 1.4;">${viability.reason} For <strong>${currentFrom} ➔ ${currentTo}</strong> (${km} km), commuters use <strong>${viability.alternativeName}</strong>.</p>
+        <p style="margin: 4px 0 0; color: #7f1d1d; font-size: 11px; line-height: 1.4;">${viability.reason} For <strong>${currentFrom} → ${currentTo}</strong> (${km} km), commuters use <strong>${viability.alternativeName}</strong>.</p>
         <button id="switch-viable-vehicle-btn" style="margin-top: 8px; background: #dc2626; color: #ffffff; border: none; padding: 5px 10px; border-radius: 8px; font-size: 11px; font-weight: 700; cursor: pointer;">
-          Switch to ${viability.alternativeName} ➔
+          Switch to ${viability.alternativeName} →
         </button>
       </div>
     `;
@@ -1212,7 +1222,7 @@ function renderContextAlerts() {
   if (isMughal || isSinthan || isRazdan) {
     html += `
       <div style="background: #ebf3f7; border: 1px solid #a8c9db; color: #1f4860; padding: 10px 14px; border-radius: 12px; margin-bottom: 8px; font-size: 12px;">
-        <strong>❄️ Seasonal Mountain Pass Advisory:</strong>
+        <strong>${getSafarIcon("snowflake", { size: 14 })} Seasonal Mountain Pass Advisory:</strong>
         <p style="margin: 3px 0 0; color: #2c5282; font-size: 11px;">High-altitude corridors (Mughal Road / Sinthan Top / Razdan Pass) are closed in winter due to snow. Regular transit routes divert via NH-44 highway.</p>
       </div>
     `;
@@ -1221,7 +1231,7 @@ function renderContextAlerts() {
   if (f.includes("gurez") || t.includes("gurez") || f.includes("karnah") || t.includes("karnah") || f.includes("tangdhar") || t.includes("tangdhar") || f.includes("uri")) {
     html += `
       <div style="background: #f0f4ee; border: 1px solid #c3d8c6; color: #234b4c; padding: 10px 14px; border-radius: 12px; margin-bottom: 8px; font-size: 12px;">
-        <strong>🛡️ Frontier / Border Transit Zone:</strong>
+        <strong>${getSafarIcon("shield", { size: 14 })} Frontier / Border Transit Zone:</strong>
         <p style="margin: 3px 0 0; color: #345657; font-size: 11px;">Movement through border/pass areas (Gurez, Karnah, Uri border) is subject to civil/army convoy timings, identity verification, and weather clearance.</p>
       </div>
     `;
@@ -1230,7 +1240,7 @@ function renderContextAlerts() {
   if (f.includes("katra") || t.includes("katra") || f.includes("banganga") || t.includes("banganga") || f.includes("baltal") || t.includes("baltal") || f.includes("nunwan") || t.includes("nunwan")) {
     html += `
       <div style="background: #fbf5e6; border: 1px solid #f0d898; color: #6b4710; padding: 10px 14px; border-radius: 12px; margin-bottom: 8px; font-size: 12px;">
-        <strong>🕉️ Pilgrimage Corridor Statutory Tariffs:</strong>
+        <strong>${getSafarIcon("shield", { size: 14 })} Pilgrimage Corridor Statutory Tariffs:</strong>
         <p style="margin: 3px 0 0; color: #744210; font-size: 11px;">Official registered stand rates apply for Shri Mata Vaishno Devi (Katra) and Shri Amarnathji Yatra base camps (Baltal & Nunwan).</p>
       </div>
     `;
@@ -1239,7 +1249,7 @@ function renderContextAlerts() {
   if (viability.isViable && (currentVehicleKey === "e-rickshaw" || currentVehicleKey === "e-auto") && km > 6) {
     html += `
       <div style="background: #fff8eb; border: 1px solid #f9dca2; color: #8a5314; padding: 10px 14px; border-radius: 12px; margin-bottom: 8px; font-size: 12px;">
-        <strong>⚡ Urban Range Notice:</strong>
+        <strong>${getSafarIcon("zap", { size: 14 })} Urban Range Notice:</strong>
         <p style="margin: 3px 0 0; color: #975a16; font-size: 11px;">E-Rickshaws and E-Autos operate within municipal limits (1–8 km). For highway transit (${km} km), commuters use Shared Maxi-Cabs or Matadors.</p>
       </div>
     `;
@@ -1614,7 +1624,7 @@ function calculateAndRender() {
 
   if (fareRouteSummary) {
     if (hasRoute) {
-      fareRouteSummary.textContent = `${currentFrom} ➔ ${currentTo}`;
+      fareRouteSummary.textContent = `${currentFrom} → ${currentTo}`;
       fareRouteSummary.style.display = "block";
     } else {
       fareRouteSummary.textContent = "";
@@ -1714,7 +1724,7 @@ function calculateAndRender() {
       if (hwy) hwy.textContent = routeInfo.highway;
       if (trn) trn.textContent = routeInfo.terrain;
       if (chips && routeInfo.stops) {
-        chips.innerHTML = routeInfo.stops.map((s) => `<span>📍 ${s}</span>`).join("");
+        chips.innerHTML = routeInfo.stops.map((s) => `<span>${s}</span>`).join("");
       }
     } else {
       contextCard.style.display = "none";
@@ -1737,7 +1747,7 @@ function renderRouteGuide() {
     card.innerHTML = `
       <div>
         <div class="guide-header">
-          <span>${r.from} ➔ ${r.to}</span>
+          <span>${r.from} → ${r.to}</span>
           <span class="guide-duration">${r.duration}</span>
         </div>
         <div class="guide-meta">
@@ -1746,7 +1756,7 @@ function renderRouteGuide() {
           <span><strong>Terrain:</strong> ${r.terrain}</span>
         </div>
       </div>
-      <button class="calc-route-btn">Calculate This Route ➔</button>
+      <button class="calc-route-btn">Calculate This Route →</button>
     `;
     card.querySelector(".calc-route-btn").addEventListener("click", () => {
       currentFrom = r.from;
@@ -1758,7 +1768,7 @@ function renderRouteGuide() {
       if (inputDistance) inputDistance.value = currentDistance;
       switchTab("calculator");
       calculateAndRender();
-      showToast(`Loaded ${r.from} ➔ ${r.to}`);
+      showToast(`Loaded ${r.from} → ${r.to}`);
     });
     container.appendChild(card);
   });
@@ -1886,7 +1896,7 @@ function renderStageExplorer() {
               </div>
               <div style="margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--color-border);">
                 <button id="calcOnCorridorBtn" style="padding: 8px 14px; border-radius: 8px; background: var(--color-primary); color: #ffffff; border: none; font-size: 0.8rem; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
-                  <span>Calculate Fare on this Corridor</span> ➔
+                  <span>Calculate Fare on this Corridor</span> →
                 </button>
               </div>
             </div>
@@ -1948,7 +1958,7 @@ function renderStageExplorer() {
       if (inputDistance) inputDistance.value = currentDistance;
       switchTab('calculator');
       calculateAndRender();
-      showToast(`Loaded ${first} ➔ ${last} (${dist} km)`);
+      showToast(`Loaded ${first} → ${last} (${dist} km)`);
     });
   }
 }
@@ -2000,7 +2010,7 @@ function drawQrToCanvas(canvas, payloadText) {
       ctx.clearRect(0, 0, size, size);
       ctx.fillStyle = '#ffffff';
       ctx.fillRect(0, 0, size, size);
-      ctx.fillStyle = '#0f172a';
+      ctx.fillStyle = '#23383b';
       for (let r = 0; r < count; r++) {
         for (let c = 0; c < count; c++) {
           if (qr.isDark(r, c)) {
@@ -2017,7 +2027,7 @@ function drawQrToCanvas(canvas, payloadText) {
   // Fallback visual
   ctx.fillStyle = '#ffffff';
   ctx.fillRect(0, 0, size, size);
-  ctx.fillStyle = '#0f172a';
+  ctx.fillStyle = '#23383b';
   ctx.font = '12px monospace';
   ctx.textAlign = 'center';
   ctx.fillText('SRO-97 PASS', size / 2, size / 2);
@@ -2040,7 +2050,7 @@ function updateConductorPassModal() {
   const baseFare = currentSingleFare || 15;
   const total = baseFare * currentPassPassengers;
 
-  if (routeEl) routeEl.textContent = `${origin} ➔ ${dest}`;
+  if (routeEl) routeEl.textContent = `${origin} → ${dest}`;
   if (vehEl) vehEl.textContent = vehName;
   if (countEl) countEl.textContent = currentPassPassengers;
   if (totalEl) totalEl.textContent = `₹${total}`;
@@ -2329,7 +2339,7 @@ function attachListeners() {
   // Share button
   if (shareFareBtn) {
     shareFareBtn.addEventListener("click", () => {
-      const text = `🚗 Safar Fare Estimate: ${currentFrom} to ${currentTo} (${currentDistance} km) is ${displayPriceVal.textContent}. Official J&K transit rates on Safar.`;
+      const text = `Safar Fare Estimate: ${currentFrom} to ${currentTo} (${currentDistance} km) is ${displayPriceVal.textContent}. Official J&K transit rates on Safar.`;
       if (navigator.clipboard) {
         navigator.clipboard.writeText(text);
         showToast("Estimate copied to clipboard!");
