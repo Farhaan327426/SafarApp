@@ -202,9 +202,10 @@ export function detectFareIntent(query, session = null) {
 
   const matchedLocations = extractLocationsFromText(query);
   const detectedVehicle = normalizeVehicleType(query);
-  const hasFareKeyword = FARE_KEYWORDS.some(kw => clean.includes(kw));
+  const hasFare = hasFareKeyword(clean);
+  const hasExplicitRouteInQuery = /(?:from\s+.+?\s+to\s+|se\s+|→|->)/i.test(clean);
 
-  if (session && session.lastOrigin && session.lastDestination && detectedVehicle && !hasScheduleKeyword(clean)) {
+  if (session && session.lastOrigin && session.lastDestination && detectedVehicle && !hasScheduleKeyword(clean) && !hasExplicitRouteInQuery) {
     const isFollowUpPattern = matchedLocations.length === 0 || 
       clean.includes('what about') || 
       clean.includes('how about') || 
@@ -224,7 +225,7 @@ export function detectFareIntent(query, session = null) {
     }
   }
 
-  if (hasFareKeyword) {
+  if (hasFare) {
     const { origin, destination } = resolveOriginAndDestination(clean, matchedLocations);
 
     return {
@@ -240,8 +241,25 @@ export function detectFareIntent(query, session = null) {
   return null;
 }
 
-function hasScheduleKeyword(clean) {
+export function hasFareKeyword(clean) {
+  return FARE_KEYWORDS.some(kw => clean.includes(kw));
+}
+
+export function hasRouteKeyword(clean) {
+  return ROUTE_KEYWORDS.some(kw => clean.includes(kw));
+}
+
+export function hasScheduleKeyword(clean) {
   return SCHEDULE_KEYWORDS.some(kw => clean.includes(kw));
+}
+
+export function isMultiIntentQuery(text) {
+  if (!text) return false;
+  const clean = String(text).toLowerCase().trim();
+  if (isComplaintQuery(clean) || isLiveTrackingQuery(clean)) return false;
+  const fare = hasFareKeyword(clean) || clean.includes('fare') || clean.includes('kiraya') || clean.includes('cost');
+  const sched = hasScheduleKeyword(clean) || clean.includes('schedule') || clean.includes('when') || clean.includes('timing') || clean.includes('bus');
+  return (fare && sched && (clean.includes('and') || clean.includes('aur') || clean.includes('or')));
 }
 
 /**

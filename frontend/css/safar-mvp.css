@@ -324,6 +324,28 @@ body {
   align-self: flex-start;
 }
 
+.fare-card-default-mode {
+  background: rgba(56, 189, 248, 0.08);
+  border: 1px dashed rgba(56, 189, 248, 0.4);
+  border-radius: var(--radius-sm);
+  padding: 8px 10px;
+  font-size: 0.78rem;
+  color: #e0f2fe;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.fare-card-default-mode strong {
+  color: var(--accent-primary);
+  font-weight: 700;
+}
+
+.fare-card-default-mode span {
+  color: var(--text-muted);
+  font-size: 0.72rem;
+}
+
 .fare-card-notice {
   font-size: 0.76rem;
   color: #94a3b8;

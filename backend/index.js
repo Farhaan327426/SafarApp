@@ -13,6 +13,7 @@ import { getRoute } from './routes/routeService.js';
 import { getSchedule } from './schedule/scheduleService.js';
 import { draftComplaint } from './complaints/complaintService.js';
 import { detectFareIntent, detectRouteIntent, detectScheduleIntent, detectComplaintIntent, isLiveTrackingQuery } from './ai/intentService.js';
+import { processChatQuery } from './ai/aiRouter.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -96,7 +97,9 @@ function parseRequestBody(req) {
       try {
         resolve(JSON.parse(body));
       } catch (err) {
-        resolve({ raw: body });
+        const error = new Error('Malformed JSON payload');
+        error.status = 400;
+        reject(error);
       }
     });
     req.on('error', reject);
@@ -127,25 +130,26 @@ export function createServer() {
     if (pathname.startsWith('/api/')) {
       res.setHeader('Content-Type', 'application/json; charset=utf-8');
 
-      // GET /api/health
-      if (pathname === '/api/health' && req.method === 'GET') {
-        res.writeHead(200);
-        return res.end(JSON.stringify({
-          status: 'ok',
-          stage: 5,
-          message: 'Safar AI MVP Stage 5 Active (Complaint Assistant)',
-          dataSafety: {
-            mode: 'DEMO',
-            notice: 'All transport values are illustrative demo estimates.'
-          },
-          database: {
-            locationsCount: database.locations.length,
-            faresCount: database.fares.length,
-            routesCount: database.routes.length,
-            schedulesCount: database.schedules.length
-          }
-        }));
-      }
+      try {
+        // GET /api/health
+        if (pathname === '/api/health' && req.method === 'GET') {
+          res.writeHead(200);
+          return res.end(JSON.stringify({
+            status: 'ok',
+            stage: 7,
+            message: 'Safar AI MVP Stage 7 Active (Final Hardening, UX, Language QA & Release Readiness)',
+            dataSafety: {
+              mode: 'DEMO',
+              notice: 'All transport values are illustrative demo estimates.'
+            },
+            database: {
+              locationsCount: database.locations.length,
+              faresCount: database.fares.length,
+              routesCount: database.routes.length,
+              schedulesCount: database.schedules.length
+            }
+          }));
+        }
 
       // GET /api/locations
       if (pathname === '/api/locations' && req.method === 'GET') {
@@ -221,205 +225,30 @@ export function createServer() {
         return res.end(JSON.stringify(result));
       }
 
-      // POST /api/chat
+      // POST /api/chat (Stage 6 Unified Orchestration)
       if (pathname === '/api/chat' && req.method === 'POST') {
         const payload = await parseRequestBody(req);
-        const userMessage = payload.message || '';
-        const sessionId = payload.sessionId || 'default';
-        const session = getSession(sessionId);
+        const result = processChatQuery({
+          message: payload.message || '',
+          sessionId: payload.sessionId || 'default',
+          database
+        });
 
-        // Stage 4 Safety Check: Live tracking requests must be rejected safely
-        if (isLiveTrackingQuery(userMessage)) {
-          res.writeHead(200);
-          return res.end(JSON.stringify({
-            reply: 'Live tracking is not available in the current version.',
-            source_type: 'DEMO',
-            disclaimer: 'This is the listed schedule, not live vehicle information.',
-            stage: 5,
-            context: session.getContext()
-          }));
-        }
-
-        // Stage 5: Detect COMPLAINT intent
-        const complaintDetection = detectComplaintIntent(userMessage, session);
-
-        if (complaintDetection && complaintDetection.intent === 'COMPLAINT') {
-          if (complaintDetection.route) {
-            const parts = complaintDetection.route.split('→').map(s => s.trim());
-            if (parts.length === 2) {
-              session.updateContext({
-                origin: parts[0],
-                destination: parts[1],
-                transportMode: complaintDetection.vehicleType,
-                intent: 'COMPLAINT'
-              });
-            }
-          } else {
-            session.updateContext({
-              intent: 'COMPLAINT'
-            });
-          }
-
-          const complaintResult = draftComplaint({
-            route: complaintDetection.route,
-            location: complaintDetection.location,
-            vehicleType: complaintDetection.vehicleType,
-            issue: complaintDetection.issue,
-            amountCharged: complaintDetection.amountCharged,
-            expectedFare: complaintDetection.expectedFare,
-            description: userMessage
-          });
-
-          res.writeHead(200);
-          return res.end(JSON.stringify({
-            reply: 'I have prepared a draft complaint summary for you. This has not been filed with any authority.',
-            complaintData: complaintResult,
-            source_type: 'DEMO',
-            disclaimer: complaintResult.disclaimer,
-            type: 'COMPLAINT',
-            context: session.getContext()
-          }));
-        }
-
-        // Stage 4: Detect SCHEDULE intent or follow-up
-        const scheduleDetection = detectScheduleIntent(userMessage, session);
-
-        if (scheduleDetection && scheduleDetection.intent === 'SCHEDULE') {
-          if (!scheduleDetection.origin || !scheduleDetection.destination) {
-            res.writeHead(200);
-            return res.end(JSON.stringify({
-              reply: 'Which route would you like to check? Please provide the starting point and destination.',
-              source_type: 'DEMO',
-              disclaimer: 'This is the listed schedule, not live vehicle information.',
-              type: 'SCHEDULE_PROMPT',
-              context: session.getContext()
-            }));
-          }
-
-          // Update session memory
-          session.updateContext({
-            origin: scheduleDetection.origin,
-            destination: scheduleDetection.destination,
-            transportMode: scheduleDetection.vehicleType,
-            intent: 'SCHEDULE'
-          });
-
-          const scheduleResult = getSchedule({
-            origin: scheduleDetection.origin,
-            destination: scheduleDetection.destination,
-            vehicleType: scheduleDetection.vehicleType,
-            locationsList: database.locations,
-            schedulesList: database.schedules
-          });
-
-          res.writeHead(200);
-          return res.end(JSON.stringify({
-            reply: scheduleResult.formattedText || scheduleResult.message,
-            scheduleData: scheduleResult.success ? scheduleResult : null,
-            source_type: 'DEMO',
-            disclaimer: scheduleResult.disclaimer,
-            type: 'SCHEDULE',
-            context: session.getContext()
-          }));
-        }
-
-        // Stage 2: Detect FARE intent or follow-up
-        const fareDetection = detectFareIntent(userMessage, session);
-
-        if (fareDetection && fareDetection.intent === 'FARE') {
-          if (!fareDetection.origin || !fareDetection.destination) {
-            res.writeHead(200);
-            return res.end(JSON.stringify({
-              reply: 'Which route would you like to check? Please provide the starting point and destination.',
-              source_type: 'DEMO',
-              disclaimer: 'Demo / Estimated data — actual fare may vary by operator.',
-              type: 'FARE_PROMPT',
-              context: session.getContext()
-            }));
-          }
-
-          // Update session memory
-          session.updateContext({
-            origin: fareDetection.origin,
-            destination: fareDetection.destination,
-            transportMode: fareDetection.vehicleType,
-            intent: 'FARE'
-          });
-
-          const fareResult = calculateFare({
-            origin: fareDetection.origin,
-            destination: fareDetection.destination,
-            vehicleType: fareDetection.vehicleType,
-            locationsList: database.locations,
-            faresList: database.fares
-          });
-
-          res.writeHead(200);
-          return res.end(JSON.stringify({
-            reply: fareResult.formattedText || fareResult.message,
-            fareData: fareResult.success ? fareResult : null,
-            source_type: 'DEMO',
-            disclaimer: fareResult.disclaimer,
-            type: 'FARE',
-            context: session.getContext()
-          }));
-        }
-
-        // Stage 3: Detect ROUTE intent or follow-up
-        const routeDetection = detectRouteIntent(userMessage, session);
-
-        if (routeDetection && routeDetection.intent === 'ROUTE') {
-          if (!routeDetection.origin || !routeDetection.destination) {
-            res.writeHead(200);
-            return res.end(JSON.stringify({
-              reply: 'Which route would you like to check? Please provide the starting point and destination.',
-              source_type: 'DEMO',
-              disclaimer: 'Demo route information — actual route and stops may vary.',
-              type: 'ROUTE_PROMPT',
-              context: session.getContext()
-            }));
-          }
-
-          // Update session memory
-          session.updateContext({
-            origin: routeDetection.origin,
-            destination: routeDetection.destination,
-            intent: 'ROUTE'
-          });
-
-          const routeResult = getRoute({
-            origin: routeDetection.origin,
-            destination: routeDetection.destination,
-            locationsList: database.locations,
-            routesList: database.routes
-          });
-
-          res.writeHead(200);
-          return res.end(JSON.stringify({
-            reply: routeResult.formattedText || routeResult.message,
-            routeData: routeResult.success ? routeResult : null,
-            source_type: 'DEMO',
-            disclaimer: routeResult.disclaimer,
-            type: 'ROUTE',
-            context: session.getContext()
-          }));
-        }
-
-        // Fallback for non-fare queries in Stage 2 (preserved from Stage 1):
         res.writeHead(200);
-        return res.end(JSON.stringify({
-          reply: 'Safar AI is ready to help with fares, routes, schedules, and complaints.',
-          source_type: 'DEMO',
-          notice: 'Demo Mode: All transport data is illustrative and not official.',
-          stage: 2,
-          receivedMessage: userMessage,
-          context: session.getContext()
-        }));
+        return res.end(JSON.stringify(result));
       }
 
-      // 404 for unknown API routes
-      res.writeHead(404);
-      return res.end(JSON.stringify({ error: 'API route not found' }));
+        // 404 for unknown API routes
+        res.writeHead(404);
+        return res.end(JSON.stringify({ success: false, error: 'API route not found' }));
+      } catch (err) {
+        const statusCode = err.status || (err.message && err.message.includes('JSON') ? 400 : 500);
+        res.writeHead(statusCode);
+        return res.end(JSON.stringify({
+          success: false,
+          error: err.message || 'Internal server error'
+        }));
+      }
     }
 
     // --- STATIC FRONTEND ASSETS ---

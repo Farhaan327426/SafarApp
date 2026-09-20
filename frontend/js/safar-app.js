@@ -37,6 +37,13 @@ document.addEventListener('DOMContentLoaded', () => {
     `;
     card.appendChild(vehicleRow);
 
+    if (fare.isDefaultVehicle) {
+      const defaultModeEl = document.createElement('div');
+      defaultModeEl.className = 'fare-card-default-mode';
+      defaultModeEl.innerHTML = `<strong>Default vehicle: ${fare.vehicleType}</strong><span>Ask for "Shared Taxi" or "Bus" to compare other modes.</span>`;
+      card.appendChild(defaultModeEl);
+    }
+
     const badge = document.createElement('div');
     badge.className = 'fare-card-status-badge';
     badge.textContent = 'DEMO / ESTIMATE';
@@ -331,7 +338,10 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       const data = await response.json();
-      if (data.complaintData) {
+      if (data.fareData && data.scheduleData) {
+        appendMessage('', 'assistant', 'DEMO / ESTIMATE', data.fareData);
+        appendMessage('', 'assistant', 'DEMO / ESTIMATE', data.scheduleData);
+      } else if (data.complaintData) {
         appendMessage('', 'assistant', 'DRAFT — NOT SUBMITTED', data.complaintData);
       } else if (data.scheduleData) {
         appendMessage('', 'assistant', 'DEMO / ESTIMATE', data.scheduleData);

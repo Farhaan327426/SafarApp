@@ -1030,3 +1030,672 @@ describe('Safar AI MVP: Stage 5 Complaint Assistant Tests', () => {
   });
 });
 
+describe('Safar AI MVP: Stage 6 Full AI Orchestration Tests', () => {
+  let server;
+  const TEST_PORT = 3194;
+  const BASE_URL = `http://localhost:${TEST_PORT}`;
+
+  before(async () => {
+    server = createServer();
+    await new Promise((resolve) => server.listen(TEST_PORT, resolve));
+  });
+
+  after(async () => {
+    if (server) {
+      await new Promise((resolve) => server.close(resolve));
+    }
+  });
+
+  test('1. Fare intent: resolves fare queries with structured fare card data', async () => {
+    const res = await fetch(`${BASE_URL}/api/chat`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: 'Fare from Baramulla to Srinagar?' })
+    });
+    assert.equal(res.status, 200);
+    const data = await res.json();
+    assert.equal(data.type, 'FARE');
+    assert.ok(data.fareData);
+    assert.equal(data.fareData.origin, 'Baramulla');
+    assert.equal(data.fareData.destination, 'Srinagar');
+  });
+
+  test('2. Route intent: resolves route queries with structured route card data', async () => {
+    const res = await fetch(`${BASE_URL}/api/chat`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: 'How can I travel from Budgam to Lal Chowk?' })
+    });
+    assert.equal(res.status, 200);
+    const data = await res.json();
+    assert.equal(data.type, 'ROUTE');
+    assert.ok(data.routeData);
+    assert.equal(data.routeData.origin, 'Budgam');
+    assert.equal(data.routeData.destination, 'Lal Chowk');
+  });
+
+  test('3. Schedule intent: resolves schedule queries with structured schedule card data', async () => {
+    const res = await fetch(`${BASE_URL}/api/chat`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: 'When is the next listed bus from Srinagar to Baramulla?' })
+    });
+    assert.equal(res.status, 200);
+    const data = await res.json();
+    assert.equal(data.type, 'SCHEDULE');
+    assert.ok(data.scheduleData);
+    assert.equal(data.scheduleData.origin, 'Srinagar');
+    assert.equal(data.scheduleData.destination, 'Baramulla');
+  });
+
+  test('4. Complaint intent: resolves passenger grievances with draft complaint data', async () => {
+    const res = await fetch(`${BASE_URL}/api/chat`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: 'The driver overcharged me on the bus.' })
+    });
+    assert.equal(res.status, 200);
+    const data = await res.json();
+    assert.equal(data.type, 'COMPLAINT');
+    assert.ok(data.complaintData);
+    assert.equal(data.complaintData.issue, 'OVERCHARGE');
+    assert.equal(data.complaintData.status, 'DRAFT — NOT SUBMITTED');
+  });
+
+  test('5. General intent: responds to standard greetings', async () => {
+    const res = await fetch(`${BASE_URL}/api/chat`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: 'Hello' })
+    });
+    assert.equal(res.status, 200);
+    const data = await res.json();
+    assert.equal(data.type, 'GENERAL');
+    assert.equal(data.reply, "Hello! I'm Safar AI. I can help with fares, routes, listed schedules, and transport complaints.");
+  });
+
+  test('6. Fare via Romanized query: "Baramulla se Srinagar ka kiraya kitna hai?"', async () => {
+    const res = await fetch(`${BASE_URL}/api/chat`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: 'Baramulla se Srinagar ka kiraya kitna hai?' })
+    });
+    assert.equal(res.status, 200);
+    const data = await res.json();
+    assert.equal(data.type, 'FARE');
+    assert.ok(data.fareData);
+  });
+
+  test('7. Route via Romanized query: "Budgam se Lal Chowk ka route kya hai?"', async () => {
+    const res = await fetch(`${BASE_URL}/api/chat`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: 'Budgam se Lal Chowk ka route kya hai?' })
+    });
+    assert.equal(res.status, 200);
+    const data = await res.json();
+    assert.equal(data.type, 'ROUTE');
+    assert.ok(data.routeData);
+  });
+
+  test('8. Schedule via Romanized query: "Srinagar se Baramulla bus kab hai?"', async () => {
+    const res = await fetch(`${BASE_URL}/api/chat`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: 'Srinagar se Baramulla bus kab hai?' })
+    });
+    assert.equal(res.status, 200);
+    const data = await res.json();
+    assert.equal(data.type, 'SCHEDULE');
+    assert.ok(data.scheduleData);
+  });
+
+  test('9. Complaint via Romanized query: "Driver ne zyada paisay liye."', async () => {
+    const res = await fetch(`${BASE_URL}/api/chat`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: 'Driver ne zyada paisay liye.' })
+    });
+    assert.equal(res.status, 200);
+    const data = await res.json();
+    assert.equal(data.type, 'COMPLAINT');
+    assert.equal(data.complaintData.issue, 'OVERCHARGE');
+  });
+
+  test('10. Urdu fare query: "سرینگر سے بارہمولہ کا کرایہ؟"', async () => {
+    const res = await fetch(`${BASE_URL}/api/chat`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: 'سرینگر سے بارہمولہ کا کرایہ؟' })
+    });
+    assert.equal(res.status, 200);
+    const data = await res.json();
+    assert.equal(data.type, 'FARE');
+    assert.ok(data.fareData);
+  });
+
+  test('11. Ambiguous query handling: prompts user for clarification without guessing', async () => {
+    const res1 = await fetch(`${BASE_URL}/api/chat`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: 'How much?' })
+    });
+    assert.equal(res1.status, 200);
+    const data1 = await res1.json();
+    assert.equal(data1.type, 'FARE_PROMPT');
+    assert.equal(data1.reply, 'Which route would you like to check? Please provide the starting point and destination.');
+
+    const res2 = await fetch(`${BASE_URL}/api/chat`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: 'Bus?' })
+    });
+    assert.equal(res2.status, 200);
+    const data2 = await res2.json();
+    assert.equal(data2.type, 'AMBIGUOUS_PROMPT');
+    assert.equal(data2.reply, 'Would you like to check a fare, route, or listed schedule?');
+  });
+
+  test('12. Follow-up fare query: reuses previous origin and destination with new vehicle mode', async () => {
+    const sessionId = `stage6-fare-followup-${Date.now()}`;
+    await fetch(`${BASE_URL}/api/chat`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: 'Fare from Baramulla to Srinagar', sessionId })
+    });
+
+    const res2 = await fetch(`${BASE_URL}/api/chat`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: 'What about shared taxi?', sessionId })
+    });
+    assert.equal(res2.status, 200);
+    const data2 = await res2.json();
+    assert.equal(data2.type, 'FARE');
+    assert.ok(data2.fareData);
+    assert.ok(data2.fareData.vehicleType.includes('Shared Taxi'));
+    assert.equal(data2.fareData.origin, 'Baramulla');
+    assert.equal(data2.fareData.destination, 'Srinagar');
+  });
+
+  test('13. Follow-up schedule query: reuses route context for "What about the last one?"', async () => {
+    const sessionId = `stage6-sched-followup-${Date.now()}`;
+    await fetch(`${BASE_URL}/api/chat`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: 'What is the schedule from Srinagar to Baramulla?', sessionId })
+    });
+
+    const res2 = await fetch(`${BASE_URL}/api/chat`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: 'What about the last one?', sessionId })
+    });
+    assert.equal(res2.status, 200);
+    const data2 = await res2.json();
+    assert.equal(data2.type, 'SCHEDULE');
+    assert.equal(data2.scheduleData.origin, 'Srinagar');
+    assert.equal(data2.scheduleData.destination, 'Baramulla');
+    assert.equal(data2.scheduleData.lastDeparture, '07:00 PM');
+  });
+
+  test('14. Follow-up route query: "What about from here to Sopore?"', async () => {
+    const sessionId = `stage6-route-followup-${Date.now()}`;
+    await fetch(`${BASE_URL}/api/chat`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: 'How do I travel from Budgam to Lal Chowk?', sessionId })
+    });
+
+    const res2 = await fetch(`${BASE_URL}/api/chat`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: 'What about from here to Sopore?', sessionId })
+    });
+    assert.equal(res2.status, 200);
+    const data2 = await res2.json();
+    assert.equal(data2.type, 'ROUTE');
+    assert.ok(data2.routeData);
+  });
+
+  test('15. Complaint after route context: reuses established corridor', async () => {
+    const sessionId = `stage6-complaint-followup-${Date.now()}`;
+    await fetch(`${BASE_URL}/api/chat`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: 'Fare from Baramulla to Srinagar', sessionId })
+    });
+
+    const res2 = await fetch(`${BASE_URL}/api/chat`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: 'The driver charged me too much.', sessionId })
+    });
+    assert.equal(res2.status, 200);
+    const data2 = await res2.json();
+    assert.equal(data2.type, 'COMPLAINT');
+    assert.equal(data2.complaintData.fields.route, 'Baramulla → Srinagar');
+  });
+
+  test('16. Explicit new route overriding old context: new endpoints override session memory', async () => {
+    const sessionId = `stage6-override-${Date.now()}`;
+    await fetch(`${BASE_URL}/api/chat`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: 'Fare from Baramulla to Srinagar', sessionId })
+    });
+
+    const res2 = await fetch(`${BASE_URL}/api/chat`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: 'Fare from Jammu to Katra', sessionId })
+    });
+    assert.equal(res2.status, 200);
+    const data2 = await res2.json();
+    assert.equal(data2.type, 'FARE');
+    assert.equal(data2.fareData.origin, 'Jammu');
+    assert.equal(data2.fareData.destination, 'Katra');
+  });
+
+  test('17. Unsupported route with previous context: does not fall back to old cached route', async () => {
+    const sessionId = `stage6-unsupported-override-${Date.now()}`;
+    await fetch(`${BASE_URL}/api/chat`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: 'Fare from Baramulla to Srinagar', sessionId })
+    });
+
+    const res2 = await fetch(`${BASE_URL}/api/chat`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: 'Bus schedule from Kupwara to Kishtwar', sessionId })
+    });
+    assert.equal(res2.status, 200);
+    const data2 = await res2.json();
+    assert.equal(data2.type, 'SCHEDULE');
+    assert.equal(data2.reply, "I don't have verified schedule information for this route yet.");
+    assert.equal(data2.scheduleData, null);
+  });
+
+  test('18. Live tracking rejection: safely returns standard notice', async () => {
+    const res1 = await fetch(`${BASE_URL}/api/chat`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: 'Where is the bus right now?' })
+    });
+    assert.equal(res1.status, 200);
+    const data1 = await res1.json();
+    assert.equal(data1.reply, 'Live tracking is not available in the current version.');
+
+    const res2 = await fetch(`${BASE_URL}/api/chat`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: 'Track the bus' })
+    });
+    assert.equal(res2.status, 200);
+    const data2 = await res2.json();
+    assert.equal(data2.reply, 'Live tracking is not available in the current version.');
+  });
+
+  test('19. Multi-intent query: returns combined fare and schedule response', async () => {
+    const res = await fetch(`${BASE_URL}/api/chat`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: 'What is the fare from Jammu to Katra and when is the listed bus?' })
+    });
+    assert.equal(res.status, 200);
+    const data = await res.json();
+    assert.equal(data.type, 'MULTI_INTENT');
+    assert.ok(data.fareData);
+    assert.ok(data.scheduleData);
+    assert.equal(data.fareData.origin, 'Jammu');
+    assert.equal(data.fareData.destination, 'Katra');
+    assert.equal(data.scheduleData.origin, 'Jammu');
+    assert.equal(data.scheduleData.destination, 'Katra');
+  });
+
+  test('20. General capability question: responds with accurate non-live capabilities', async () => {
+    const res = await fetch(`${BASE_URL}/api/chat`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: 'What can Safar AI do?' })
+    });
+    assert.equal(res.status, 200);
+    const data = await res.json();
+    assert.equal(data.type, 'GENERAL');
+    assert.equal(data.reply, 'I can help you check demo fare estimates, listed schedules, available demo routes, and prepare transport complaint drafts.');
+  });
+
+  test('21. Complaint with transport keywords: correctly classified as COMPLAINT, not FARE or SCHEDULE', async () => {
+    const res = await fetch(`${BASE_URL}/api/chat`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: 'I was charged more than the listed fare on the bus route.' })
+    });
+    assert.equal(res.status, 200);
+    const data = await res.json();
+    assert.equal(data.type, 'COMPLAINT');
+    assert.equal(data.complaintData.issue, 'OVERCHARGE');
+  });
+});
+
+describe('Safar AI MVP: Stage 7 Final Hardening & Release Readiness Tests', () => {
+  let server;
+  const TEST_PORT = 3203;
+  const BASE_URL = `http://localhost:${TEST_PORT}`;
+
+  before(async () => {
+    server = createServer();
+    await new Promise((resolve) => server.listen(TEST_PORT, resolve));
+  });
+
+  after(async () => {
+    if (server) {
+      await new Promise((resolve) => server.close(resolve));
+    }
+  });
+
+  test('1. No vehicle specified in fare query: explicit default mode (Minibus) applied', async () => {
+    const res = await fetch(`${BASE_URL}/api/chat`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: 'Fare from Baramulla to Srinagar?' })
+    });
+    assert.equal(res.status, 200);
+    const data = await res.json();
+    assert.equal(data.type, 'FARE');
+    assert.ok(data.fareData);
+    assert.equal(data.fareData.isDefaultVehicle, true);
+    assert.equal(data.fareData.vehicleType, 'Minibus');
+    assert.ok(data.fareData.defaultVehicleNotice.includes('Minibus'));
+    assert.ok(data.reply.includes('Default vehicle: Minibus'));
+  });
+
+  test('2. Explicit vehicle specified in fare query: isDefaultVehicle is false', async () => {
+    const res = await fetch(`${BASE_URL}/api/chat`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: 'Fare from Baramulla to Srinagar in shared taxi' })
+    });
+    assert.equal(res.status, 200);
+    const data = await res.json();
+    assert.equal(data.type, 'FARE');
+    assert.ok(data.fareData);
+    assert.equal(data.fareData.isDefaultVehicle, false);
+    assert.ok(data.fareData.vehicleType.includes('Shared Taxi'));
+  });
+
+  test('3. English fare query: resolves with demo estimate', async () => {
+    const res = await fetch(`${BASE_URL}/api/chat`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: 'What is the fare from Srinagar to Baramulla?' })
+    });
+    assert.equal(res.status, 200);
+    const data = await res.json();
+    assert.equal(data.type, 'FARE');
+    assert.equal(data.fareData.origin, 'Srinagar');
+    assert.equal(data.fareData.destination, 'Baramulla');
+  });
+
+  test('4. Hindi fare query: "श्रीनगर से बारामूला का किराया कितना है?"', async () => {
+    const res = await fetch(`${BASE_URL}/api/chat`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: 'श्रीनगर से बारामूला का किराया कितना है?' })
+    });
+    assert.equal(res.status, 200);
+    const data = await res.json();
+    assert.equal(data.type, 'FARE');
+    assert.equal(data.fareData.origin, 'Srinagar');
+    assert.equal(data.fareData.destination, 'Baramulla');
+  });
+
+  test('5. Urdu fare query: "سرینگر سے بارہمولہ کا کرایہ کتنا ہے؟"', async () => {
+    const res = await fetch(`${BASE_URL}/api/chat`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: 'سرینگر سے بارہمولہ کا کرایہ کتنا ہے؟' })
+    });
+    assert.equal(res.status, 200);
+    const data = await res.json();
+    assert.equal(data.type, 'FARE');
+    assert.equal(data.fareData.origin, 'Srinagar');
+    assert.equal(data.fareData.destination, 'Baramulla');
+  });
+
+  test('6. Romanized fare query with aliases: "srngr se bmla ka kiraya?"', async () => {
+    const res = await fetch(`${BASE_URL}/api/chat`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: 'srngr se bmla ka kiraya?' })
+    });
+    assert.equal(res.status, 200);
+    const data = await res.json();
+    assert.equal(data.type, 'FARE');
+    assert.equal(data.fareData.origin, 'Srinagar');
+    assert.equal(data.fareData.destination, 'Baramulla');
+  });
+
+  test('7. Ambiguous query: prompts user for clarification without guessing', async () => {
+    const res1 = await fetch(`${BASE_URL}/api/chat`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: 'How much?' })
+    });
+    const data1 = await res1.json();
+    assert.equal(data1.type, 'FARE_PROMPT');
+    assert.ok(data1.reply.includes('Which route would you like to check'));
+
+    const res2 = await fetch(`${BASE_URL}/api/chat`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: 'Bus?' })
+    });
+    const data2 = await res2.json();
+    assert.equal(data2.type, 'AMBIGUOUS_PROMPT');
+    assert.ok(data2.reply.includes('Would you like to check a fare, route, or listed schedule'));
+
+    const res3 = await fetch(`${BASE_URL}/api/chat`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: 'From Srinagar?' })
+    });
+    const data3 = await res3.json();
+    assert.equal(data3.type, 'ROUTE_PROMPT');
+    assert.ok(data3.reply.includes('Where would you like to go from Srinagar'));
+  });
+
+  test('8. Unsupported route: returns clear non-invented message', async () => {
+    const res = await fetch(`${BASE_URL}/api/chat`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: 'Fare from Kupwara to Kishtwar' })
+    });
+    assert.equal(res.status, 200);
+    const data = await res.json();
+    assert.equal(data.type, 'FARE');
+    assert.equal(data.reply, "I don't have verified information for this route yet.");
+  });
+
+  test('9. Unsupported schedule: returns clear non-invented message', async () => {
+    const res = await fetch(`${BASE_URL}/api/chat`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: 'Schedule from Kupwara to Kishtwar' })
+    });
+    assert.equal(res.status, 200);
+    const data = await res.json();
+    assert.equal(data.type, 'SCHEDULE');
+    assert.equal(data.reply, "I don't have verified schedule information for this route yet.");
+  });
+
+  test('10. Live tracking rejection: explicitly states unavailable', async () => {
+    const res = await fetch(`${BASE_URL}/api/chat`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: 'Where is the bus right now?' })
+    });
+    assert.equal(res.status, 200);
+    const data = await res.json();
+    assert.equal(data.type, 'GENERAL');
+    assert.equal(data.reply, 'Live tracking is not available in the current version.');
+  });
+
+  test('11. Complaint disclaimer: exact static draft disclaimer present', async () => {
+    const res = await fetch(`${BASE_URL}/api/chat`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: 'The driver overcharged me' })
+    });
+    assert.equal(res.status, 200);
+    const data = await res.json();
+    assert.equal(data.type, 'COMPLAINT');
+    assert.equal(data.disclaimer, 'This is a draft complaint summary. It has not been automatically filed with any authority.');
+    assert.equal(data.complaintData.status, 'DRAFT — NOT SUBMITTED');
+  });
+
+  test('12. Demo-data disclaimer: DEMO / ESTIMATE and disclaimer present', async () => {
+    const res = await fetch(`${BASE_URL}/api/chat`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: 'Fare from Srinagar to Baramulla' })
+    });
+    assert.equal(res.status, 200);
+    const data = await res.json();
+    assert.equal(data.fareData.status, 'DEMO / ESTIMATE');
+    assert.equal(data.fareData.source_type, 'DEMO');
+    assert.equal(data.disclaimer, 'Demo / Estimated data — actual fare may vary by operator.');
+  });
+
+  test('13. Multi-intent fare + schedule: returns both cleanly', async () => {
+    const res = await fetch(`${BASE_URL}/api/chat`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: 'What is the fare from Srinagar to Baramulla and when is the bus?' })
+    });
+    assert.equal(res.status, 200);
+    const data = await res.json();
+    assert.equal(data.type, 'MULTI_INTENT');
+    assert.ok(data.fareData);
+    assert.ok(data.scheduleData);
+    assert.equal(data.fareData.origin, 'Srinagar');
+    assert.equal(data.scheduleData.origin, 'Srinagar');
+  });
+
+  test('14. Follow-up fare: reuses context', async () => {
+    const sessionId = `stage7-fare-fup-${Date.now()}`;
+    await fetch(`${BASE_URL}/api/chat`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: 'Fare from Baramulla to Srinagar', sessionId })
+    });
+
+    const res2 = await fetch(`${BASE_URL}/api/chat`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: 'What about shared taxi?', sessionId })
+    });
+    const data2 = await res2.json();
+    assert.equal(data2.type, 'FARE');
+    assert.equal(data2.fareData.origin, 'Baramulla');
+    assert.equal(data2.fareData.destination, 'Srinagar');
+    assert.ok(data2.fareData.vehicleType.includes('Shared Taxi'));
+  });
+
+  test('15. Follow-up schedule: reuses context', async () => {
+    const sessionId = `stage7-sched-fup-${Date.now()}`;
+    await fetch(`${BASE_URL}/api/chat`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: 'Schedule from Srinagar to Baramulla', sessionId })
+    });
+
+    const res2 = await fetch(`${BASE_URL}/api/chat`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: 'What about the last one?', sessionId })
+    });
+    const data2 = await res2.json();
+    assert.equal(data2.type, 'SCHEDULE');
+    assert.equal(data2.scheduleData.origin, 'Srinagar');
+    assert.equal(data2.scheduleData.lastDeparture, '07:00 PM');
+  });
+
+  test('16. Explicit new route overriding old context: new endpoints override session', async () => {
+    const sessionId = `stage7-override-${Date.now()}`;
+    await fetch(`${BASE_URL}/api/chat`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: 'Fare from Baramulla to Srinagar', sessionId })
+    });
+
+    const res2 = await fetch(`${BASE_URL}/api/chat`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: 'Fare from Jammu to Katra', sessionId })
+    });
+    const data2 = await res2.json();
+    assert.equal(data2.type, 'FARE');
+    assert.equal(data2.fareData.origin, 'Jammu');
+    assert.equal(data2.fareData.destination, 'Katra');
+  });
+
+  test('17. Complaint after previous route context: grievance reuses corridor', async () => {
+    const sessionId = `stage7-complaint-fup-${Date.now()}`;
+    await fetch(`${BASE_URL}/api/chat`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: 'Fare from Baramulla to Srinagar', sessionId })
+    });
+
+    const res2 = await fetch(`${BASE_URL}/api/chat`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: 'The driver overcharged me', sessionId })
+    });
+    const data2 = await res2.json();
+    assert.equal(data2.type, 'COMPLAINT');
+    assert.equal(data2.complaintData.fields.route, 'Baramulla → Srinagar');
+  });
+
+  test('18. Malformed API request: returns 400 with valid JSON error', async () => {
+    const res = await fetch(`${BASE_URL}/api/chat`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: 'this-is-not-valid-json'
+    });
+    assert.equal(res.status, 400);
+    const data = await res.json();
+    assert.equal(data.success, false);
+    assert.ok(data.error.includes('JSON'));
+  });
+
+  test('19. Unknown vehicle type: query with unsupported vehicle returns clear advisory', async () => {
+    const res = await fetch(`${BASE_URL}/api/chat`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: 'Fare from Baramulla to Srinagar in submarine' })
+    });
+    assert.equal(res.status, 200);
+    const data = await res.json();
+    assert.equal(data.type, 'FARE');
+    assert.ok(data.fareData);
+    assert.equal(data.fareData.isDefaultVehicle, true);
+  });
+
+  test('20. Mobile-safe frontend markup/layout checks: viewport and responsive design verified', async () => {
+    const res = await fetch(`${BASE_URL}/`);
+    assert.equal(res.status, 200);
+    const html = await res.text();
+    assert.ok(html.includes('<meta name="viewport" content="width=device-width, initial-scale=1.0">'));
+    assert.ok(html.includes('STAGE 7 MVP'));
+
+    const cssRes = await fetch(`${BASE_URL}/css/safar-mvp.css`);
+    assert.equal(cssRes.status, 200);
+    const css = await cssRes.text();
+    assert.ok(css.includes('@media (max-width: 600px)'));
+    assert.ok(css.includes('.fare-card-default-mode'));
+  });
+});
+

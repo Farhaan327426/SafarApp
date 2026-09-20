@@ -194,9 +194,11 @@ export function calculateFare({
 
   let chosenModeKey = requestedKey;
   let vehicleInfo = normalizedVehicle;
+  let isDefaultVehicle = false;
+  let defaultVehicleNotice = null;
 
   if (!chosenModeKey || !fareRecord.modes[chosenModeKey]) {
-    // If requested vehicle is not in record, or none specified:
+    // If requested vehicle is not in record:
     if (requestedKey && !fareRecord.modes[requestedKey]) {
       // Requested vehicle mode is not available for this corridor
       const availableModesList = Object.keys(fareRecord.modes)
@@ -216,7 +218,9 @@ export function calculateFare({
       };
     }
 
-    // Default to minibus if present, otherwise first available mode
+    // Option B: Documented MVP default mode (Minibus)
+    // Never silently choose a vehicle without explicitly flagging it to the user.
+    isDefaultVehicle = true;
     if (fareRecord.modes.minibus) {
       chosenModeKey = 'minibus';
       vehicleInfo = VEHICLE_MODES.minibus;
@@ -224,6 +228,7 @@ export function calculateFare({
       chosenModeKey = Object.keys(fareRecord.modes)[0];
       vehicleInfo = VEHICLE_MODES[chosenModeKey] || { displayName: chosenModeKey };
     }
+    defaultVehicleNotice = `Default vehicle: ${vehicleInfo.displayName}`;
   }
 
   const modeFare = fareRecord.modes[chosenModeKey];
@@ -240,6 +245,10 @@ export function calculateFare({
     luggageNote = "Note: MVP currently does not calculate additional luggage charges.";
   }
 
+  const vehicleDisplayText = isDefaultVehicle
+    ? `${vehicleInfo.displayName} (Default vehicle: ${vehicleInfo.displayName})`
+    : vehicleInfo.displayName;
+
   const formattedText = 
 `${normOrigin.name} → ${normDest.name}
 
@@ -247,7 +256,7 @@ Estimated Fare:
 ₹${modeFare.estimatedMin}–₹${modeFare.estimatedMax}
 
 Vehicle:
-${vehicleInfo.displayName}
+${vehicleDisplayText}
 
 Status:
 DEMO / ESTIMATE
@@ -261,6 +270,8 @@ ${DISCLAIMER_TEXT}`;
     origin: normOrigin.name,
     destination: normDest.name,
     vehicleType: vehicleInfo.displayName,
+    isDefaultVehicle,
+    defaultVehicleNotice,
     distanceKm: fareRecord.distanceKm,
     fare: {
       min: modeFare.estimatedMin,
