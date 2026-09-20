@@ -151,14 +151,7 @@
             </svg>
             <span>Passenger Hub</span>
           </button>
-          <button class="nav-tab" data-tab="driver" role="tab" id="tab-btn-driver" aria-selected="false" aria-controls="tab-driver" tabindex="-1">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-              <circle cx="12" cy="12" r="10"></circle>
-              <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"></path>
-              <path d="M2 12h20"></path>
-            </svg>
-            <span>Driver Mode</span>
-          </button>
+
 
         </nav>
 
@@ -200,10 +193,7 @@
             <strong>Passenger Hub</strong>
             <span>SRO-97 statutory rates &amp; legal rules</span>
           </button>
-          <button class="drawer-link" data-tab="driver" role="tab" id="drawer-tab-driver" aria-selected="false" aria-controls="tab-driver">
-            <strong>Driver Mode</strong>
-            <span>Trip management, ledger &amp; QR fare slip</span>
-          </button>
+
 
           <button class="drawer-link" id="drawer-help-btn" style="border-top:1px solid rgba(255,255,255,0.1);margin-top:8px;">
             <strong>Help &amp; Defense Hub</strong>
@@ -601,16 +591,7 @@
         </div>
       </section>
 
-      <!-- ============================================================= -->
-      <!-- TAB 3: DRIVER & CONDUCTOR MODE                                -->
-      <!-- ============================================================= -->
-      <section id="tab-driver" class="tab-view" role="tabpanel" aria-labelledby="tab-btn-driver" tabindex="0" hidden>
-        <div id="tab-content-driver">
-          <div class="skeleton-card" style="min-height:300px;border-radius:12px;margin:20px 0;display:flex;align-items:center;justify-content:center;color:var(--color-text-muted);">
-            Loading Driver &amp; Conductor Mode...
-          </div>
-        </div>
-      </section>
+
 
     </main>
 
@@ -1369,7 +1350,6 @@
   <script src="js/dispute-engine.js" defer></script>
   <script src="js/crowd-radar.js" defer></script>
   <script src="js/evidence-locker.js" defer></script>
-  <script src="js/driver-mode.js" defer></script>
   <script src="js/safar-data.js" defer></script>
   <script src="js/safar-tools.js" defer></script>
   <script src="js/safar-ai-engine.js" defer></script>
@@ -1379,16 +1359,7 @@
   <script src="js/main.js" defer></script>
   <script src="js/safar-app.js" defer></script>
   <script>
-    // Driver Mode tab activator & mobile drawer help bridge
     document.addEventListener('DOMContentLoaded', () => {
-      document.querySelectorAll('[data-tab="driver"]').forEach(btn => {
-        btn.addEventListener('click', () => {
-          if (window.SafarDriverMode && typeof window.SafarDriverMode.init === 'function') {
-            window.SafarDriverMode.init();
-          }
-        });
-      });
-
       const drawerHelp = document.getElementById('drawer-help-btn');
       if (drawerHelp) {
         drawerHelp.addEventListener('click', () => {
