@@ -1854,22 +1854,36 @@ body {
   max-width: 1240px;
   margin: 0 auto;
   display: flex;
-  flex-direction: column;
-  gap: 8px;
+  flex-direction: row;
+  justify-content: space-between;
   align-items: center;
-  justify-content: center;
-  text-align: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  width: 100%;
 }
 
 @media (min-width: 640px) {
   .footer-container {
     flex-direction: row;
-    justify-content: center;
+    justify-content: space-between;
   }
+}
+
+.footer-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  text-align: left;
 }
 
 .footer-brand strong {
   color: var(--color-primary);
+}
+
+.footer-benchmark-chip {
+  display: inline-flex !important;
+  align-items: center;
+  margin: 0;
 }
 
 .footer-links {

@@ -1653,10 +1653,16 @@ export default function App() {
 
       {/* Footer */}
       <footer className="border-t border-[#dce5dc] bg-[#fbfcf8] mt-12 py-6 px-4 sm:px-6 lg:px-8 text-xs text-[#78908a]">
-        <div className="max-w-7xl mx-auto flex items-center justify-center gap-2">
-          <Compass size={15} className="text-[#234b4c]" />
-          <span className="font-bold text-[#234b4c]">SAFAR</span>
-          <span dir="rtl" lang="ur" className="font-semibold text-[#4a6d65]">منزل سے بہتر ہے سفر</span>
+        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <Compass size={15} className="text-[#234b4c]" />
+            <span className="font-bold text-[#234b4c]">SAFAR</span>
+            <span dir="rtl" lang="ur" className="font-semibold text-[#4a6d65]">منزل سے بہتر ہے سفر</span>
+          </div>
+          <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#edf5ee] border border-[#d2e4d4] text-[#426a54] font-semibold text-[11px]" title="Gazetted baseline tariff under J&K Transport SRO-97 notification">
+            <ShieldCheck size={13} className="text-[#426a54]" />
+            <span>SRO-97 Benchmark Rate</span>
+          </div>
         </div>
       </footer>
 
