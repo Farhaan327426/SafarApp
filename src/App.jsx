@@ -47,6 +47,9 @@ import {
   getVehicleRouteViability,
 } from "./data/transitZones.js";
 import { useFareCalculator } from "./hooks/useFareCalculator.js";
+import { useTariffSync } from "./hooks/useTariffSync.js";
+import { OfflineStatusBanner } from "./components/OfflineStatusBanner.js";
+import corridorsData from "../public/data/corridors.json";
 
 const vehicleCategories = [
   { key: "all", label: "All Vehicles (11)" },
@@ -781,6 +784,27 @@ function resolveRouteInfo(loc1, loc2, userRegionOverride = null) {
     };
   }
 
+  // Check exact match in surveyed corridors first
+  const corridorMatch = corridorsData.find(
+    (c) =>
+      (c.origin.toLowerCase() === s1.toLowerCase() && c.destination.toLowerCase() === s2.toLowerCase()) ||
+      (c.origin.toLowerCase() === s2.toLowerCase() && c.destination.toLowerCase() === s1.toLowerCase())
+  );
+
+  if (corridorMatch) {
+    return {
+      distance: corridorMatch.roadNetworkDistance,
+      duration: `${Math.round((corridorMatch.roadNetworkDistance / 40) * 60)}m`,
+      terrain: corridorMatch.terrain,
+      region: corridorMatch.tariffTerrain,
+      tariffTerrain: corridorMatch.tariffTerrain,
+      highway: corridorMatch.name,
+      stops: corridorMatch.stages.map((s) => s.stopName),
+      isPreset: true,
+      routeProfile: profile,
+    };
+  }
+
   // Check exact match in verified route presets
   const presetMatch = routePresets.find(
     (r) =>
@@ -797,11 +821,13 @@ function resolveRouteInfo(loc1, loc2, userRegionOverride = null) {
   );
 
   if (s1.toLowerCase() === s2.toLowerCase()) {
+    const tariffTerrain = profile?.region === "jammu" ? "jammu-plain" : "kashmir-plain";
     return {
       distance: 3,
       duration: "8m",
       terrain: "Local City Hop",
-      region: profile?.region === "jammu" ? "jammu-plain" : "kashmir-plain",
+      region: tariffTerrain,
+      tariffTerrain,
       highway: "Local Street / Link Road",
       isPreset: false,
       routeProfile: profile,
@@ -809,11 +835,13 @@ function resolveRouteInfo(loc1, loc2, userRegionOverride = null) {
   }
 
   if (presetMatch) {
+    const tariffTerrain = presetMatch.region || (profile?.region === "jammu" ? "jammu-plain" : "kashmir-plain");
     return {
       distance: presetMatch.distance,
       duration: presetMatch.duration,
       terrain: presetMatch.terrain,
-      region: presetMatch.region || (profile?.region === "jammu" ? "jammu-plain" : "kashmir-plain"),
+      region: tariffTerrain,
+      tariffTerrain,
       highway: presetMatch.highway,
       stops: presetMatch.stops,
       isPreset: true,
@@ -832,9 +860,9 @@ function resolveRouteInfo(loc1, loc2, userRegionOverride = null) {
     const a =
       Math.sin(dLat / 2) * Math.sin(dLat / 2) +
       Math.cos((c1.lat * Math.PI) / 180) *
-        Math.cos((c2.lat * Math.PI) / 180) *
-        Math.sin(dLng / 2) *
-        Math.sin(dLng / 2);
+      Math.cos((c2.lat * Math.PI) / 180) *
+      Math.sin(dLng / 2) *
+      Math.sin(dLng / 2);
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     const aerialKm = R * c;
 
@@ -848,8 +876,8 @@ function resolveRouteInfo(loc1, loc2, userRegionOverride = null) {
           ? "jammu-hill"
           : "jammu-plain"
         : isHilly
-        ? "kashmir-hill"
-        : "kashmir-plain";
+          ? "kashmir-hill"
+          : "kashmir-plain";
 
     const hours = roadDistance / (isHilly ? 32 : 45);
     const h = Math.floor(hours);
@@ -969,8 +997,8 @@ export default function App() {
       mode === "auto"
         ? "Auto device view detection enabled"
         : mode === "pc"
-        ? "Switched to PC Command Center view"
-        : "Switched to Mobile App view"
+          ? "Switched to PC Command Center view"
+          : "Switched to Mobile App view"
     );
   };
 
@@ -1043,18 +1071,37 @@ export default function App() {
     setUserRegionOverride(null);
     const info = resolveRouteInfo(nextFrom, nextTo, null);
     setDistance(String(info.distance));
-    setTerrainRegion(info.region);
+    setTerrainRegion(info.tariffTerrain || info.region);
     return info;
   };
+
+  const syncState = useTariffSync();
+  const tariffEntry = syncState.tariffs?.[chosenVehicle?.key || chosenVehicle?.id] || null;
+
+  const matchedCorridor = useMemo(() => {
+    if (!from.trim() || !to.trim()) return null;
+    const f = from.trim().toLowerCase();
+    const t = to.trim().toLowerCase();
+    return (
+      corridorsData.find(
+        (c) =>
+          (c.origin.toLowerCase() === f && c.destination.toLowerCase() === t) ||
+          (c.origin.toLowerCase() === t && c.destination.toLowerCase() === f) ||
+          (c.name.toLowerCase().includes(f) && c.name.toLowerCase().includes(t))
+      ) || null
+    );
+  }, [from, to]);
 
   // Statutory Fare Computations via useFareCalculator Hook
   const { fareParts, displayFare, priceMode, setPriceMode } = useFareCalculator({
     vehicle: chosenVehicle,
     distance,
-    terrainRegion,
+    terrainRegion: matchedCorridor?.tariffTerrain || terrainRegion,
     from,
     to,
     eligibleVehicles,
+    tariffEntry,
+    enabled: Boolean(hasRoute && chosenVehicle && syncState.dataFreshness !== 'NO_DATA')
   });
 
   const activePresets = useMemo(() => {
@@ -1236,29 +1283,29 @@ export default function App() {
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                   <defs>
                     <linearGradient id="reactStarGold" x1="0%" y1="0%" x2="100%" y2="100%">
-                      <stop offset="0%" stopColor="#fffbeb"/>
-                      <stop offset="45%" stopColor="#fbbf24"/>
-                      <stop offset="100%" stopColor="#d97706"/>
+                      <stop offset="0%" stopColor="#fffbeb" />
+                      <stop offset="45%" stopColor="#fbbf24" />
+                      <stop offset="100%" stopColor="#d97706" />
                     </linearGradient>
                     <linearGradient id="reactStarShade" x1="0%" y1="0%" x2="100%" y2="100%">
-                      <stop offset="0%" stopColor="#d97706"/>
-                      <stop offset="100%" stopColor="#92400e"/>
+                      <stop offset="0%" stopColor="#d97706" />
+                      <stop offset="100%" stopColor="#92400e" />
                     </linearGradient>
                     <linearGradient id="reactOrbit" x1="0%" y1="0%" x2="100%" y2="100%">
-                      <stop offset="0%" stopColor="#34d399"/>
-                      <stop offset="100%" stopColor="#f59e0b"/>
+                      <stop offset="0%" stopColor="#34d399" />
+                      <stop offset="100%" stopColor="#f59e0b" />
                     </linearGradient>
                   </defs>
-                  <path d="M3.5 15.5C4.8 19 9 21.5 13.5 21C18 20.5 21.2 16.8 21 12.2C20.8 8.8 18.2 5.8 15 4.8" stroke="url(#reactOrbit)" strokeWidth="1.8" strokeLinecap="round" strokeDasharray="28 8"/>
-                  <polygon points="12,2 12,12 8.5,8.5" fill="url(#reactStarGold)"/>
-                  <polygon points="12,2 15.5,8.5 12,12" fill="url(#reactStarShade)"/>
-                  <polygon points="22,12 12,12 15.5,8.5" fill="url(#reactStarGold)"/>
-                  <polygon points="22,12 15.5,15.5 12,12" fill="url(#reactStarShade)"/>
-                  <polygon points="12,22 12,12 15.5,15.5" fill="url(#reactStarGold)"/>
-                  <polygon points="12,22 8.5,15.5 12,12" fill="url(#reactStarShade)"/>
-                  <polygon points="2,12 12,12 8.5,15.5" fill="url(#reactStarGold)"/>
-                  <polygon points="2,12 8.5,8.5 12,12" fill="url(#reactStarShade)"/>
-                  <circle cx="12" cy="12" r="2.2" fill="#ffffff" stroke="#f59e0b" strokeWidth="0.8"/>
+                  <path d="M3.5 15.5C4.8 19 9 21.5 13.5 21C18 20.5 21.2 16.8 21 12.2C20.8 8.8 18.2 5.8 15 4.8" stroke="url(#reactOrbit)" strokeWidth="1.8" strokeLinecap="round" strokeDasharray="28 8" />
+                  <polygon points="12,2 12,12 8.5,8.5" fill="url(#reactStarGold)" />
+                  <polygon points="12,2 15.5,8.5 12,12" fill="url(#reactStarShade)" />
+                  <polygon points="22,12 12,12 15.5,8.5" fill="url(#reactStarGold)" />
+                  <polygon points="22,12 15.5,15.5 12,12" fill="url(#reactStarShade)" />
+                  <polygon points="12,22 12,12 15.5,15.5" fill="url(#reactStarGold)" />
+                  <polygon points="12,22 8.5,15.5 12,12" fill="url(#reactStarShade)" />
+                  <polygon points="2,12 12,12 8.5,15.5" fill="url(#reactStarGold)" />
+                  <polygon points="2,12 8.5,8.5 12,12" fill="url(#reactStarShade)" />
+                  <circle cx="12" cy="12" r="2.2" fill="#ffffff" stroke="#f59e0b" strokeWidth="0.8" />
                 </svg>
                 <span className="absolute -top-1 -right-1 flex h-2.5 w-2.5">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#d36b3d] opacity-75"></span>
@@ -1298,11 +1345,10 @@ export default function App() {
                     setActiveNav(item.label);
                     showToast(`Switched to ${item.label}`);
                   }}
-                  className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all ${
-                    active
-                      ? "bg-[#234b4c] text-[#f4f6ed] shadow-sm"
-                      : "text-[#557b72] hover:text-[#234b4c] hover:bg-[#dce5dc]/50"
-                  }`}
+                  className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all ${active
+                    ? "bg-[#234b4c] text-[#f4f6ed] shadow-sm"
+                    : "text-[#557b72] hover:text-[#234b4c] hover:bg-[#dce5dc]/50"
+                    }`}
                 >
                   <Icon size={15} />
                   <span>{item.label}</span>
@@ -1317,22 +1363,20 @@ export default function App() {
             <div className="flex items-center p-1 bg-[#edf3eb] rounded-xl border border-[#dce5dc]" title="Switch between PC Command Center and Mobile App interfaces">
               <button
                 onClick={() => handleViewportChange("auto")}
-                className={`px-2 py-1 rounded-lg text-[10.5px] font-bold transition ${
-                  viewportMode === "auto"
-                    ? "bg-[#234b4c] text-[#f4f6ed] shadow-xs"
-                    : "text-[#557b72] hover:text-[#234b4c]"
-                }`}
+                className={`px-2 py-1 rounded-lg text-[10.5px] font-bold transition ${viewportMode === "auto"
+                  ? "bg-[#234b4c] text-[#f4f6ed] shadow-xs"
+                  : "text-[#557b72] hover:text-[#234b4c]"
+                  }`}
                 title="Automatically adapt to screen width"
               >
                 Auto
               </button>
               <button
                 onClick={() => handleViewportChange("pc")}
-                className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10.5px] font-bold transition ${
-                  viewportMode === "pc"
-                    ? "bg-[#234b4c] text-[#f4f6ed] shadow-xs"
-                    : "text-[#557b72] hover:text-[#234b4c]"
-                }`}
+                className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10.5px] font-bold transition ${viewportMode === "pc"
+                  ? "bg-[#234b4c] text-[#f4f6ed] shadow-xs"
+                  : "text-[#557b72] hover:text-[#234b4c]"
+                  }`}
                 title="Force PC / Desktop Command Center view"
               >
                 <Monitor size={12} />
@@ -1340,11 +1384,10 @@ export default function App() {
               </button>
               <button
                 onClick={() => handleViewportChange("mobile")}
-                className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10.5px] font-bold transition ${
-                  viewportMode === "mobile"
-                    ? "bg-[#234b4c] text-[#f4f6ed] shadow-xs"
-                    : "text-[#557b72] hover:text-[#234b4c]"
-                }`}
+                className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10.5px] font-bold transition ${viewportMode === "mobile"
+                  ? "bg-[#234b4c] text-[#f4f6ed] shadow-xs"
+                  : "text-[#557b72] hover:text-[#234b4c]"
+                  }`}
                 title="Force Mobile App view"
               >
                 <Smartphone size={12} />
@@ -1410,11 +1453,10 @@ export default function App() {
                       setActiveNav(item.label);
                       setMobileNavOpen(false);
                     }}
-                    className={`w-full flex items-center gap-3 p-3 rounded-2xl text-left transition ${
-                      active
-                        ? "bg-[#234b4c] text-[#f4f6ed]"
-                        : "text-[#345657] hover:bg-[#eaf0e9]"
-                    }`}
+                    className={`w-full flex items-center gap-3 p-3 rounded-2xl text-left transition ${active
+                      ? "bg-[#234b4c] text-[#f4f6ed]"
+                      : "text-[#345657] hover:bg-[#eaf0e9]"
+                      }`}
                   >
                     <Icon size={18} className={active ? "text-[#f2bd70]" : "text-[#557b72]"} />
                     <div>
@@ -1708,13 +1750,12 @@ export default function App() {
                   return (
                     <div
                       key={v.key}
-                      className={`p-4 rounded-2xl border-2 transition flex flex-col justify-between ${
-                        isInspected
-                          ? "bg-[#f4f8f4] border-[#234b4c] shadow-md ring-2 ring-[#234b4c]/15"
-                          : isSelected
+                      className={`p-4 rounded-2xl border-2 transition flex flex-col justify-between ${isInspected
+                        ? "bg-[#f4f8f4] border-[#234b4c] shadow-md ring-2 ring-[#234b4c]/15"
+                        : isSelected
                           ? "bg-[#f9faf7] border-[#74a181] shadow-xs"
                           : "bg-[#ffffff] border-[#e2eae0] hover:border-[#adc9b2]"
-                      }`}
+                        }`}
                     >
                       {/* Vehicle Header & Render Showcase */}
                       <div>
@@ -1779,11 +1820,10 @@ export default function App() {
                             setShowFleetGuide(false);
                             showToast(`Selected ${v.label} for calculation`);
                           }}
-                          className={`px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1 ${
-                            isSelected
-                              ? "bg-[#234b4c] text-[#f4f6ed] shadow-xs"
-                              : "bg-[#edf3eb] text-[#234b4c] hover:bg-[#dfebe0]"
-                          }`}
+                          className={`px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1 ${isSelected
+                            ? "bg-[#234b4c] text-[#f4f6ed] shadow-xs"
+                            : "bg-[#edf3eb] text-[#234b4c] hover:bg-[#dfebe0]"
+                            }`}
                         >
                           {isSelected ? (
                             <>

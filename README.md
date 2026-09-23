@@ -1,77 +1,64 @@
-# Safar AI
+# SafarApp — J&K Smart Transit & Statutory Fare Guide
 
-**Purpose**: Jammu & Kashmir transport assistant MVP.
-
-Safar AI is a lightweight conversational transit assistant designed to provide estimated passenger transport fares, listed corridor schedules, route transit waypoints, and complaint drafting assistance across key transit hubs in Jammu & Kashmir.
+An offline-first, client-side progressive web application providing statutory passenger transport fares under Government of Jammu & Kashmir Transport Department notifications (**S.O. 126** dated 29 April 2026 and **SRO-97** baseline).
 
 ---
 
-## 🚦 Current MVP Capabilities
+## 🚀 Key Features
 
-1. **Fare Estimates**
-   - Corridors covering Srinagar, Baramulla, Budgam, Anantnag, Jammu, Katra, and regional transit hubs.
-   - Vehicle modes: Minibus, Bus, Shared Taxi, Auto Rickshaw, E-Rickshaw.
-   - **Explicit Default Vehicle**: When no mode is requested, Safar AI explicitly indicates `Default vehicle: Minibus` with guidance on asking for Shared Taxi or Bus.
-2. **Demo Route Lookup**
-   - Canonical waypoints and major regional transit interchange points (e.g. Parimpora, Sangrama, Batamaloo, TRC).
-3. **Listed Schedules**
-   - First departure, typical frequency, and last departure for listed public transit corridors.
-4. **Complaint Drafting**
-   - Prepares structured passenger grievance summaries (Overcharging, Refused Service, Overloading, Misbehavior, Dangerous Driving).
-   - Generates ready-to-copy drafts with `.txt` download and device sharing capabilities.
-   - Does **not** file complaints or claim official authority submission.
-5. **Multilingual Input Normalization**
-   - Supports English, Urdu (اردو), Hindi (हिन्दी), and common Romanized Hindi/Urdu inquiries.
-6. **Conversational Follow-ups**
-   - Lightweight session memory (`lastOrigin`, `lastDestination`, `lastTransportMode`, `lastIntent`).
-   - Natural follow-up inquiries (e.g. *"What about shared taxi?"*, *"What about the last one?"*, *"What about from here to Sopore?"*).
-   - Explicit routes in user prompts immediately override previous context.
+1. **Statutory Tariff Engine**
+   - Official fares under S.O. 126 / SRO-97 across all commercial passenger vehicle categories (Buses, Medium/Mini Buses, Shared Taxis, Petrol Autos, E-Rickshaws, E-Autos, and Tourist Cabs).
+   - Authoritative terrain rates (`kashmir-plain`, `kashmir-hill`, `jammu-plain`, `jammu-hill`).
+   - High-precision rounding and non-manufacturing statutory safeguards.
+
+2. **Offline-First Synchronization**
+   - Serialized background tariff synchronization (`useTariffSync` + `TariffSyncService`).
+   - Strict ETag checking, payload schema validation (`tariffs.schema.json`), and localStorage fallback caching.
+   - Commuter offline status banner with freshness indicator, offline warning, and manual retry.
+
+3. **Stage-by-Stage Transit Corridors**
+   - Canonical regional corridors across Srinagar, Jammu, and national highway routes.
+   - Bidirectional stage lookups with verified statutory stage fares.
+
+4. **Commuter QR Pass Generator**
+   - Conductor pass generator with cryptographically structured, sorted-key base64 QR payload for offline verification.
 
 ---
 
-## ⚠️ Current MVP Limitations
+## 🛠️ Tech Stack
 
-- **DEMO Data**: All fares, schedules, and routes are illustrative demo estimates. Never treat as official statutory decrees.
-- **No Live GPS / Tracking**: Real-time vehicle positions and live tracking are explicitly unavailable in V1.
-- **No Live Traffic**: Travel times are estimated baselines without real-time congestion or roadblock data.
-- **No Real-Time Seat Availability**: Does not display live seat counts or booked inventory.
-- **No Automatic Authority Submission**: Complaint drafting is strictly an offline personal summary tool; it is not sent to police or transport authorities.
-- **No Payments / Ticketing**: Does not process monetary transactions or issue tickets.
-- **No Persistent Accounts**: All conversation context is transient and session-based.
+- **Framework**: React 18 + Vite
+- **Styling**: Tailwind CSS + Vanilla CSS tokens
+- **Icons**: Lucide React
+- **QR**: `qrcode`
+- **Typing**: TypeScript type declarations (`src/types/transit.d.ts`)
+- **Testing**: Node.js native test runner (`node --test`)
 
 ---
 
-## 🛠️ How to Run Locally
+## 💻 Development & Testing
 
-### 1. Start the Server
+### 1. Install Dependencies
 ```bash
-node backend/index.js
-```
-The server will start at: `http://localhost:3001`
-
-### 2. Access the Application
-Open your browser and navigate to:
-```
-http://localhost:3001
+npm install
 ```
 
-### 3. Run Automated Tests
+### 2. Run Locally
+```bash
+npm run dev
+```
+
+### 3. Typecheck
+```bash
+npm run typecheck
+```
+
+### 4. Run Test Suite
 ```bash
 npm test
 ```
-or run the MVP suite directly:
+
+### 5. Production Build
 ```bash
-node --test tests/safar-mvp.test.js
+npm run build
 ```
-
----
-
-## 📡 API Endpoints
-
-- `GET /api/health` — Returns system status, Stage 7 active state, demo data notice, and record counts.
-- `POST /api/chat` — Primary unified AI conversational interface.
-- `POST /api/fare` — Direct fare lookup service.
-- `POST /api/route` — Direct route and waypoint service.
-- `POST /api/schedule` — Direct listed timetable service.
-- `POST /api/complaint` — Direct complaint drafting assistant.
-- `GET /api/locations` — Supported hub list and multilingual aliases.

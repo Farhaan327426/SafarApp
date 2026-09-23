@@ -1,6 +1,6 @@
 {
   "cleanUrls": true,
-  "buildCommand": "",
-  "installCommand": "echo 'Static deployment'",
-  "outputDirectory": "frontend"
+  "buildCommand": "npm run build",
+  "installCommand": "npm install",
+  "outputDirectory": "dist"
 }

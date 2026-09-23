@@ -1,0 +1,124 @@
+[
+  {
+    "id": "JK-SRI-01",
+    "name": "Lal Chowk ⇄ Hazratbal via Dalgate",
+    "origin": "Lal Chowk",
+    "destination": "Hazratbal",
+    "division": "Kashmir",
+    "terrain": "valley-plain",
+    "tariffTerrain": "kashmir-plain",
+    "roadNetworkDistance": 11.5,
+    "stages": [
+      { "stopId": "s1", "stopName": "Lal Chowk", "kmFromSource": 0 },
+      { "stopId": "s2", "stopName": "Dalgate", "kmFromSource": 3.2 },
+      { "stopId": "s3", "stopName": "Hazratbal", "kmFromSource": 11.5 }
+    ]
+  },
+  {
+    "id": "JK-SRI-02",
+    "name": "Batamaloo ⇄ Baramulla NH-1",
+    "origin": "Batamaloo",
+    "destination": "Baramulla",
+    "division": "Kashmir",
+    "terrain": "valley-plain",
+    "tariffTerrain": "kashmir-plain",
+    "roadNetworkDistance": 54.0,
+    "stages": [
+      { "stopId": "s1", "stopName": "Batamaloo", "kmFromSource": 0 },
+      { "stopId": "s2", "stopName": "Pattan", "kmFromSource": 27.0 },
+      { "stopId": "s3", "stopName": "Baramulla", "kmFromSource": 54.0 }
+    ]
+  },
+  {
+    "id": "JK-SRI-03",
+    "name": "Lal Chowk ⇄ Anantnag NH-44",
+    "origin": "Lal Chowk",
+    "destination": "Anantnag",
+    "division": "Kashmir",
+    "terrain": "valley-plain",
+    "tariffTerrain": "kashmir-plain",
+    "roadNetworkDistance": 52.0,
+    "stages": [
+      { "stopId": "s1", "stopName": "Lal Chowk", "kmFromSource": 0 },
+      { "stopId": "s2", "stopName": "Pampore", "kmFromSource": 14.0 },
+      { "stopId": "s3", "stopName": "Anantnag", "kmFromSource": 52.0 }
+    ]
+  },
+  {
+    "id": "JK-JAM-01",
+    "name": "General Bus Stand ⇄ Katra",
+    "origin": "General Bus Stand",
+    "destination": "Katra",
+    "division": "Jammu",
+    "terrain": "sub-hilly",
+    "tariffTerrain": "jammu-hill",
+    "roadNetworkDistance": 48.0,
+    "stages": [
+      { "stopId": "s1", "stopName": "General Bus Stand", "kmFromSource": 0 },
+      { "stopId": "s2", "stopName": "Jhajjar Kotli", "kmFromSource": 30.0 },
+      { "stopId": "s3", "stopName": "Katra", "kmFromSource": 48.0 }
+    ]
+  },
+  {
+    "id": "JK-JAM-02",
+    "name": "Jammu ⇄ Udhampur NH-44",
+    "origin": "Jammu",
+    "destination": "Udhampur",
+    "division": "Jammu",
+    "terrain": "sub-hilly",
+    "tariffTerrain": "jammu-hill",
+    "roadNetworkDistance": 66.0,
+    "stages": [
+      { "stopId": "s1", "stopName": "Jammu", "kmFromSource": 0 },
+      { "stopId": "s2", "stopName": "Nandni", "kmFromSource": 28.0 },
+      { "stopId": "s3", "stopName": "Udhampur", "kmFromSource": 66.0 }
+    ]
+  },
+  {
+    "id": "JK-KMR-01",
+    "name": "Srinagar ⇄ Gulmarg",
+    "origin": "Srinagar",
+    "destination": "Gulmarg",
+    "division": "Kashmir",
+    "terrain": "mountain-highway",
+    "tariffTerrain": "kashmir-hill",
+    "roadNetworkDistance": 51.0,
+    "stages": [
+      { "stopId": "s1", "stopName": "Srinagar", "kmFromSource": 0 },
+      { "stopId": "s2", "stopName": "Tangmarg", "kmFromSource": 38.0 },
+      { "stopId": "s3", "stopName": "Gulmarg", "kmFromSource": 51.0 }
+    ]
+  },
+  {
+    "id": "JK-NKA-01",
+    "name": "Jammu Tawi Station ⇄ Lal Chowk (Inter-Division NH-44)",
+    "origin": "Jammu Tawi Station",
+    "destination": "Lal Chowk",
+    "division": "both",
+    "terrain": "mountain-highway",
+    "tariffTerrain": "jammu-hill",
+    "roadNetworkDistance": 265.0,
+    "stages": [
+      { "stopId": "s1", "stopName": "Jammu Tawi Station", "kmFromSource": 0 },
+      { "stopId": "s2", "stopName": "Ramban", "kmFromSource": 130.0 },
+      { "stopId": "s3", "stopName": "Banihal", "kmFromSource": 175.0 },
+      { "stopId": "s4", "stopName": "Lal Chowk", "kmFromSource": 265.0 }
+    ]
+  },
+  {
+    "id": "JK-NKA-02",
+    "name": "Srinagar TRC ⇄ Sonamarg NH-1D",
+    "origin": "Srinagar TRC",
+    "destination": "Sonamarg",
+    "division": "Kashmir",
+    "terrain": "mountain-highway",
+    "tariffTerrain": "kashmir-hill",
+    "roadNetworkDistance": 80.0,
+    "stages": [
+      { "stopId": "s1", "stopName": "Srinagar TRC", "kmFromSource": 0 },
+      { "stopId": "s2", "stopName": "Ganderbal", "kmFromSource": 22.0 },
+      { "stopId": "s3", "stopName": "Kangan", "kmFromSource": 40.0 },
+      { "stopId": "s4", "stopName": "Sonamarg", "kmFromSource": 80.0 }
+    ]
+  }
+]

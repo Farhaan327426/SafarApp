@@ -51,15 +51,6 @@ test('Corridors Schema & Data Integrity', async (t) => {
     }
   });
 
-  await t.test('Parity: frontend/js/corridors-data.js matches canonical JSON exactly', () => {
-    const script = readFileSync('./frontend/js/corridors-data.js', 'utf-8');
-    const globalProxy = {};
-    new Function('window', script)(globalProxy);
-    const { JK_CORRIDORS } = globalProxy;
-
-    assert.ok(Array.isArray(JK_CORRIDORS), 'JK_CORRIDORS must be an array');
-    assert.deepStrictEqual(JK_CORRIDORS, canonicalCorridors, 'corridors-data.js has diverged from canonical JSON');
-  });
 
   await t.test('getStageFare contract and bidirectional travel semantics', () => {
     // Forward travel

@@ -1,0 +1,196 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "SafarTariffSchedule",
+  "type": "object",
+  "required": [
+    "schemaVersion",
+    "activeScheduleId",
+    "publishedDate",
+    "publishedAt",
+    "effectiveFrom",
+    "validUntil",
+    "amendmentSequence",
+    "checksum",
+    "provenanceMetadata",
+    "tariffs"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "schemaVersion": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$"
+    },
+    "activeScheduleId": {
+      "type": "string",
+      "minLength": 3
+    },
+    "publishedDate": {
+      "type": "string",
+      "format": "date"
+    },
+    "publishedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "effectiveFrom": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "validUntil": {
+      "oneOf": [
+        { "type": "string", "format": "date-time" },
+        { "type": "null" }
+      ]
+    },
+    "amendmentSequence": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "checksum": {
+      "type": "string",
+      "pattern": "^sha256:[a-f0-9]{64}$"
+    },
+    "provenanceMetadata": {
+      "type": "object",
+      "required": [
+        "sourceReference",
+        "baselineSource",
+        "evStatutoryClause",
+        "nonEvRevisionBasis",
+        "issuingAuthority"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "sourceReference": { "type": "string" },
+        "baselineSource": { "type": "string" },
+        "evStatutoryClause": { "type": "string" },
+        "nonEvRevisionBasis": { "type": "string" },
+        "issuingAuthority": { "type": "string" }
+      }
+    },
+    "tariffs": {
+      "type": "object",
+      "required": [
+        "e-rickshaw",
+        "e-auto",
+        "auto",
+        "tata-magic",
+        "mini-bus",
+        "private-bus",
+        "shared-cab",
+        "taxi-sedan",
+        "taxi-suv",
+        "force-traveler",
+        "vikram-tempo"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "e-rickshaw": { "$ref": "#/definitions/tariffEntry" },
+        "e-auto": { "$ref": "#/definitions/tariffEntry" },
+        "auto": { "$ref": "#/definitions/tariffEntry" },
+        "tata-magic": { "$ref": "#/definitions/tariffEntry" },
+        "mini-bus": { "$ref": "#/definitions/tariffEntry" },
+        "private-bus": { "$ref": "#/definitions/tariffEntry" },
+        "shared-cab": { "$ref": "#/definitions/tariffEntry" },
+        "taxi-sedan": { "$ref": "#/definitions/tariffEntry" },
+        "taxi-suv": { "$ref": "#/definitions/tariffEntry" },
+        "force-traveler": { "$ref": "#/definitions/tariffEntry" },
+        "vikram-tempo": { "$ref": "#/definitions/tariffEntry" }
+      }
+    }
+  },
+  "definitions": {
+    "tariffEntry": {
+      "type": "object",
+      "required": ["calculationType", "currency", "derivation"],
+      "additionalProperties": false,
+      "properties": {
+        "calculationType": {
+          "type": "string",
+          "enum": [
+            "PER_KM",
+            "FIRST_KM_PLUS_SUBSEQUENT",
+            "BASE_PLUS_PER_KM",
+            "MIN_PLUS_PER_KM",
+            "TERRAIN_RATE"
+          ]
+        },
+        "currency": {
+          "type": "string",
+          "enum": ["INR"]
+        },
+        "perKm": { "type": "number", "minimum": 0 },
+        "firstKm": { "type": "number", "minimum": 0 },
+        "subsequentKm": { "type": "number", "minimum": 0 },
+        "baseFare": { "type": "number", "minimum": 0 },
+        "minFare": { "type": "number", "minimum": 0 },
+        "ratesByTerrain": {
+          "type": "object",
+          "required": ["kashmir-plain", "kashmir-hill", "jammu-plain", "jammu-hill"],
+          "additionalProperties": false,
+          "properties": {
+            "kashmir-plain": { "type": "number", "minimum": 0 },
+            "kashmir-hill": { "type": "number", "minimum": 0 },
+            "jammu-plain": { "type": "number", "minimum": 0 },
+            "jammu-hill": { "type": "number", "minimum": 0 }
+          }
+        },
+        "notes": { "type": "string" },
+        "derivation": {
+          "type": "object",
+          "required": ["legalBasis", "adjustment", "absoluteRateSource"],
+          "additionalProperties": false,
+          "properties": {
+            "legalBasis": { "type": "string" },
+            "baseline": { "type": ["string", "null"] },
+            "adjustment": { "type": "string" },
+            "absoluteRateSource": { "type": "string" }
+          }
+        },
+        "provenance": {
+          "type": "object",
+          "required": ["calculationBasis", "sourceReference", "absoluteFareSource"],
+          "additionalProperties": false,
+          "properties": {
+            "calculationBasis": { "type": "string" },
+            "sourceReference": { "type": "string" },
+            "baselineSource": { "type": ["string", "null"] },
+            "absoluteFareSource": { "type": "string" }
+          }
+        }
+      },
+      "oneOf": [
+        {
+          "properties": {
+            "calculationType": { "const": "PER_KM" }
+          },
+          "required": ["perKm"]
+        },
+        {
+          "properties": {
+            "calculationType": { "const": "FIRST_KM_PLUS_SUBSEQUENT" }
+          },
+          "required": ["firstKm", "subsequentKm"]
+        },
+        {
+          "properties": {
+            "calculationType": { "const": "BASE_PLUS_PER_KM" }
+          },
+          "required": ["baseFare", "perKm"]
+        },
+        {
+          "properties": {
+            "calculationType": { "const": "MIN_PLUS_PER_KM" }
+          },
+          "required": ["minFare", "perKm"]
+        },
+        {
+          "properties": {
+            "calculationType": { "const": "TERRAIN_RATE" }
+          },
+          "required": ["minFare", "ratesByTerrain"]
+        }
+      ]
+    }
+  }
+}

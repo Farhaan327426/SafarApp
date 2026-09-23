@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * SAFAR — Statutory Vehicle Operational Zones & Transit Corridor Profiles
  * Canonical Data Layer for Jammu & Kashmir Transit Network

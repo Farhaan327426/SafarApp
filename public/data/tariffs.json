@@ -1,0 +1,232 @@
+{
+  "schemaVersion": "1.0.0",
+  "activeScheduleId": "SO-126-2026",
+  "publishedDate": "2026-04-29",
+  "publishedAt": "2026-04-29T00:00:00Z",
+  "effectiveFrom": "2026-05-01T00:00:00Z",
+  "validUntil": null,
+  "amendmentSequence": 1,
+  "checksum": "sha256:2708a52c341fab3b48f1b34368098dc5c61df0390afb96ffde3719f90f5e04dd",
+  "provenanceMetadata": {
+    "sourceReference": "S.O. 126 dated 29 April 2026",
+    "baselineSource": "SRO-97 dated 19 March 2021",
+    "evStatutoryClause": "Direct statutory rates fixed for E-Rickshaws (₹15/km) and E-Autos (₹25 1st km + ₹20 sub km)",
+    "nonEvRevisionBasis": "18% statutory fare revision over SRO-97 maximum chargeable baseline",
+    "issuingAuthority": "Department of Law, Justice and Parliamentary Affairs / Transport Department, Government of Jammu & Kashmir"
+  },
+  "tariffs": {
+    "e-rickshaw": {
+      "calculationType": "PER_KM",
+      "currency": "INR",
+      "perKm": 15,
+      "notes": "Directly notified by S.O. 126 of 2026 at flat ₹15 per km.",
+      "derivation": {
+        "legalBasis": "S.O. 126 of 2026",
+        "baseline": null,
+        "adjustment": "STATUTORY_FIXED",
+        "absoluteRateSource": "S.O. 126 dated 29 April 2026"
+      },
+      "provenance": {
+        "calculationBasis": "STATUTORY_FIXED_IN_SO_126",
+        "sourceReference": "S.O. 126 of 2026 dated 29 April 2026",
+        "baselineSource": null,
+        "absoluteFareSource": "S.O. 126 dated 29 April 2026"
+      }
+    },
+    "e-auto": {
+      "calculationType": "FIRST_KM_PLUS_SUBSEQUENT",
+      "currency": "INR",
+      "firstKm": 25,
+      "subsequentKm": 20,
+      "notes": "Directly notified by S.O. 126 of 2026: ₹25 for first km, ₹20 per subsequent km.",
+      "derivation": {
+        "legalBasis": "S.O. 126 of 2026",
+        "baseline": null,
+        "adjustment": "STATUTORY_FIXED",
+        "absoluteRateSource": "S.O. 126 dated 29 April 2026"
+      },
+      "provenance": {
+        "calculationBasis": "STATUTORY_FIXED_IN_SO_126",
+        "sourceReference": "S.O. 126 of 2026 dated 29 April 2026",
+        "baselineSource": null,
+        "absoluteFareSource": "S.O. 126 dated 29 April 2026"
+      }
+    },
+    "auto": {
+      "calculationType": "FIRST_KM_PLUS_SUBSEQUENT",
+      "currency": "INR",
+      "firstKm": 25,
+      "subsequentKm": 15,
+      "notes": "Conventional auto-rickshaw based on SRO-97 baseline with S.O. 126 18% adjustment factor.",
+      "derivation": {
+        "legalBasis": "S.O. 126 of 2026",
+        "baseline": "SRO-97 dated 19 March 2021",
+        "adjustment": "18%",
+        "absoluteRateSource": "01-P-MVD-2026 / applicable annexure"
+      },
+      "provenance": {
+        "calculationBasis": "SRO-97-2021 + S.O.-126-2026-18-PERCENT",
+        "sourceReference": "S.O. 126 of 2026",
+        "baselineSource": "SRO-97 dated 19 March 2021",
+        "absoluteFareSource": "PENDING_TRANSPORT_COMMISSIONER_NOTIFICATION"
+      }
+    },
+    "tata-magic": {
+      "calculationType": "MIN_PLUS_PER_KM",
+      "currency": "INR",
+      "minFare": 15,
+      "perKm": 3.5,
+      "notes": "Rural feeder passenger van stage carriage.",
+      "derivation": {
+        "legalBasis": "S.O. 126 of 2026",
+        "baseline": "SRO-97 dated 19 March 2021",
+        "adjustment": "18%",
+        "absoluteRateSource": "01-P-MVD-2026 / applicable annexure"
+      },
+      "provenance": {
+        "calculationBasis": "SRO-97-2021 + S.O.-126-2026-18-PERCENT",
+        "sourceReference": "S.O. 126 of 2026",
+        "baselineSource": "SRO-97 dated 19 March 2021",
+        "absoluteFareSource": "PENDING_TRANSPORT_COMMISSIONER_NOTIFICATION"
+      }
+    },
+    "mini-bus": {
+      "calculationType": "MIN_PLUS_PER_KM",
+      "currency": "INR",
+      "minFare": 10,
+      "perKm": 2.2,
+      "notes": "Standard urban and suburban stage carriage mini-bus.",
+      "derivation": {
+        "legalBasis": "S.O. 126 of 2026",
+        "baseline": "SRO-97 dated 19 March 2021",
+        "adjustment": "18%",
+        "absoluteRateSource": "01-P-MVD-2026 / applicable annexure"
+      },
+      "provenance": {
+        "calculationBasis": "SRO-97-2021 + S.O.-126-2026-18-PERCENT",
+        "sourceReference": "S.O. 126 of 2026",
+        "baselineSource": "SRO-97 dated 19 March 2021",
+        "absoluteFareSource": "PENDING_TRANSPORT_COMMISSIONER_NOTIFICATION"
+      }
+    },
+    "private-bus": {
+      "calculationType": "TERRAIN_RATE",
+      "currency": "INR",
+      "minFare": 12,
+      "ratesByTerrain": {
+        "kashmir-plain": 1.65,
+        "kashmir-hill": 1.95,
+        "jammu-plain": 1.35,
+        "jammu-hill": 1.9
+      },
+      "notes": "Big commercial stage carriage passenger bus with distinct terrain rates per SRO-97 modified by S.O. 126.",
+      "derivation": {
+        "legalBasis": "S.O. 126 of 2026",
+        "baseline": "SRO-97 dated 19 March 2021",
+        "adjustment": "18%",
+        "absoluteRateSource": "01-P-MVD-2026 / applicable annexure"
+      },
+      "provenance": {
+        "calculationBasis": "SRO-97-2021 + S.O.-126-2026-18-PERCENT",
+        "sourceReference": "S.O. 126 of 2026",
+        "baselineSource": "SRO-97 dated 19 March 2021",
+        "absoluteFareSource": "PENDING_TRANSPORT_COMMISSIONER_NOTIFICATION"
+      }
+    },
+    "shared-cab": {
+      "calculationType": "MIN_PLUS_PER_KM",
+      "currency": "INR",
+      "minFare": 25,
+      "perKm": 4.5,
+      "notes": "Base-model maxi-cab / passenger taxi operating in shared stage mode.",
+      "derivation": {
+        "legalBasis": "S.O. 126 of 2026",
+        "baseline": "SRO-97 dated 19 March 2021",
+        "adjustment": "18%",
+        "absoluteRateSource": "01-P-MVD-2026 / applicable annexure"
+      },
+      "provenance": {
+        "calculationBasis": "SRO-97-2021 + S.O.-126-2026-18-PERCENT",
+        "sourceReference": "S.O. 126 of 2026",
+        "baselineSource": "SRO-97 dated 19 March 2021",
+        "absoluteFareSource": "PENDING_TRANSPORT_COMMISSIONER_NOTIFICATION"
+      }
+    },
+    "taxi-sedan": {
+      "calculationType": "BASE_PLUS_PER_KM",
+      "currency": "INR",
+      "baseFare": 120,
+      "perKm": 18,
+      "notes": "Base-model contract carriage motor cab (e.g. Swift/Indica/Dzire).",
+      "derivation": {
+        "legalBasis": "S.O. 126 of 2026",
+        "baseline": "SRO-97 dated 19 March 2021",
+        "adjustment": "18%",
+        "absoluteRateSource": "01-P-MVD-2026 / applicable annexure"
+      },
+      "provenance": {
+        "calculationBasis": "SRO-97-2021 + S.O.-126-2026-18-PERCENT",
+        "sourceReference": "S.O. 126 of 2026",
+        "baselineSource": "SRO-97 dated 19 March 2021",
+        "absoluteFareSource": "PENDING_TRANSPORT_COMMISSIONER_NOTIFICATION"
+      }
+    },
+    "taxi-suv": {
+      "calculationType": "BASE_PLUS_PER_KM",
+      "currency": "INR",
+      "baseFare": 155,
+      "perKm": 24,
+      "notes": "Premium-class tourist taxi / contract maxi-cab (e.g. Innova/Fortuner).",
+      "derivation": {
+        "legalBasis": "S.O. 126 of 2026",
+        "baseline": "SRO-97 dated 19 March 2021",
+        "adjustment": "18%",
+        "absoluteRateSource": "01-P-MVD-2026 / applicable annexure"
+      },
+      "provenance": {
+        "calculationBasis": "SRO-97-2021 + S.O.-126-2026-18-PERCENT",
+        "sourceReference": "S.O. 126 of 2026",
+        "baselineSource": "SRO-97 dated 19 March 2021",
+        "absoluteFareSource": "PENDING_TRANSPORT_COMMISSIONER_NOTIFICATION"
+      }
+    },
+    "force-traveler": {
+      "calculationType": "MIN_PLUS_PER_KM",
+      "currency": "INR",
+      "minFare": 20,
+      "perKm": 3.8,
+      "notes": "Base-model passenger maxi-cab / Tempo Traveller per S.O. 126 base classification.",
+      "derivation": {
+        "legalBasis": "S.O. 126 of 2026",
+        "baseline": "SRO-97 dated 19 March 2021",
+        "adjustment": "18%",
+        "absoluteRateSource": "01-P-MVD-2026 / applicable annexure"
+      },
+      "provenance": {
+        "calculationBasis": "SRO-97-2021 + S.O.-126-2026-18-PERCENT",
+        "sourceReference": "S.O. 126 of 2026",
+        "baselineSource": "SRO-97 dated 19 March 2021",
+        "absoluteFareSource": "PENDING_TRANSPORT_COMMISSIONER_NOTIFICATION"
+      }
+    },
+    "vikram-tempo": {
+      "calculationType": "MIN_PLUS_PER_KM",
+      "currency": "INR",
+      "minFare": 15,
+      "perKm": 3.5,
+      "notes": "High-capacity three-wheeler suburban carrier.",
+      "derivation": {
+        "legalBasis": "S.O. 126 of 2026",
+        "baseline": "SRO-97 dated 19 March 2021",
+        "adjustment": "18%",
+        "absoluteRateSource": "01-P-MVD-2026 / applicable annexure"
+      },
+      "provenance": {
+        "calculationBasis": "SRO-97-2021 + S.O.-126-2026-18-PERCENT",
+        "sourceReference": "S.O. 126 of 2026",
+        "baselineSource": "SRO-97 dated 19 March 2021",
+        "absoluteFareSource": "PENDING_TRANSPORT_COMMISSIONER_NOTIFICATION"
+      }
+    }
+  }
+}
